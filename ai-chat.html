@@ -1,183 +1,258 @@
-<!doctype html>
-<html lang="ar" dir="rtl">
+<!DOCTYPE html>
+<html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>Jopai Chat</title>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport"/>
+  <title>AI Chat</title>
   <style>
-    :root{
-      --bg:#0C0B10;
-      --panel:#05070f;
-      --stroke:rgba(255,255,255,.08);
-      --text:#ffffff;
-      --muted:#9ca3af;
+    :root {
+      --page-bg: #05070b;
+      --card-main: #0B2F3B;
+      --text-main: #ffffff;
+      --text-muted: #7b8593;
+      --accent: #00e4c0;
+      --border-soft: #283341;
+      --bottom-active: #00d1ff;
+      --bottom-bg: #0C0B10;
+      --item-bg: #12151d;
 
+      /* Run button gradient (Jopai) */
       --run-blue:#18C1FF;
       --run-green:#22E1A5;
-      --grad: linear-gradient(90deg, var(--run-blue), var(--run-green));
-
-      --nav-h: 72px;
-      --nav-pad: calc(env(safe-area-inset-bottom, 0px) + 10px);
+      --run-grad: linear-gradient(90deg, var(--run-blue), var(--run-green));
     }
-    *{box-sizing:border-box}
+
+    *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+
     body{
       margin:0;
-      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial;
-      background: radial-gradient(1200px 600px at 20% -10%, rgba(24,193,255,.12), transparent 55%),
-                  radial-gradient(900px 500px at 90% 0%, rgba(34,225,165,.10), transparent 55%),
-                  var(--bg);
-      color:var(--text);
+      font-family:-apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
+      background-color: var(--page-bg);
+      color: var(--text-main);
     }
-    .wrap{
-      max-width:480px;margin:0 auto;min-height:100vh;
-      padding-bottom: calc(var(--nav-h) + var(--nav-pad) + 18px);
+
+    .page{
+      min-height:100vh;
+      background-color: var(--page-bg);
+      display:flex;
+      flex-direction:column;
     }
-    .top{
-      position:sticky;top:0;z-index:10;
-      display:flex;align-items:center;justify-content:center;
-      padding:14px 12px;
-      background:rgba(12,11,16,.88);
-      backdrop-filter: blur(10px);
-      border-bottom:1px solid rgba(255,255,255,.06);
-      font-weight:900;letter-spacing:.2px;
+
+    .nav-bar{
+      height:46px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:16px;
+      font-weight:600;
+      color:#ffffffd9;
     }
-    .msgs{
-      padding:14px 12px 10px;
-      display:flex;flex-direction:column;gap:10px;
-      min-height:55vh;
+
+    /* IMPORTANT: نفس padding تبع الصفحات القديمة حتى الهيدر السفلي يضل ثابت */
+    .content{
+      flex:1;
+      overflow-y:auto;
+      padding: 8px 12px 80px 12px;
     }
-    .b{
+
+    /* Chat UI */
+    .chat{
+      direction: rtl; /* العربية داخل المحتوى فقط */
+    }
+    .chat-log{
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      padding-top:8px;
+      min-height:60vh;
+    }
+    .bubble{
       max-width:88%;
       padding:10px 12px;
       border-radius:14px;
       line-height:1.35;
       white-space:pre-wrap;
-      border:1px solid rgba(255,255,255,.10);
-      background: rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,0.10);
+      background: rgba(255,255,255,0.06);
     }
-    .me{align-self:flex-start;border:1px solid rgba(24,193,255,.22);background: rgba(24,193,255,.12);}
-    .ai{align-self:flex-end;}
+    .bubble.me{
+      align-self:flex-start;
+      border:1px solid rgba(24,193,255,0.22);
+      background: rgba(24,193,255,0.12);
+    }
+    .bubble.ai{
+      align-self:flex-end;
+    }
 
-    /* composer sits ABOVE bottom nav */
     .composer{
-      position:fixed;
-      left:0; right:0;
-      bottom: calc(var(--nav-h) + var(--nav-pad));
-      padding:10px 12px 12px;
-      background:rgba(12,11,16,.88);
+      position: sticky;
+      bottom: 0;
+      margin-top: 14px;
+      background: rgba(12,11,16,0.88);
       backdrop-filter: blur(10px);
-      border-top:1px solid rgba(255,255,255,.06);
-      z-index:998;
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 14px;
+      padding: 10px;
     }
-    .composer-inner{max-width:480px;margin:0 auto;}
-    .row{display:flex;gap:10px;align-items:center}
+    .composer-row{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      direction:ltr; /* حتى زر الإرسال يبقى يسار مثل تصميمك */
+    }
     .chat-input{
       flex:1;
       padding:12px 12px;
       border-radius:12px;
-      border:1px solid rgba(255,255,255,.12);
+      border:1px solid rgba(255,255,255,0.12);
       background:#101019;
       color:#fff;
       outline:none;
+      direction: rtl; /* الكتابة عربي */
+      text-align: right;
     }
     .send-btn{
-      width:50px;height:44px;
+      width:52px;
+      height:44px;
       border-radius:12px;
-      border:0;
-      background: var(--grad);
+      border:none;
+      background: var(--run-grad);
       color:#05060b;
       font-size:18px;
       font-weight:900;
       cursor:pointer;
+      flex:0 0 auto;
     }
     .send-btn:disabled{opacity:.6}
 
-    /* Bottom nav (FIXED + safe area) */
-    .bottom-nav{
-      position:fixed;left:0;right:0;bottom:0;
-      height:var(--nav-h);
-      padding:8px 0 var(--nav-pad);
-      background:#0C0B10;
-      box-shadow:0 -1px 0 rgba(255,255,255,.04);
-      display:flex;align-items:flex-start;justify-content:space-around;
-      z-index:999;
-    }
-    .bottom-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11px;color:#7b8593;cursor:pointer}
-    .bottom-icon-img{width:26px;height:26px;object-fit:contain}
-    .bottom-item.power .bottom-icon-img.power-img{width:40px;height:40px;border-radius:999px}
-    .bottom-item.active span{color:#00d1ff}
-    @media (min-width:480px){
-      .bottom-nav{left:50%;right:auto;transform:translateX(-50%);max-width:480px;}
-      .composer{left:50%;right:auto;transform:translateX(-50%);max-width:480px;}
+    /* ===== Bottom nav (COPIED from mine.html) ===== */
+    .bottom-nav {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 78px;
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      padding: 8px 0 30px 0;
+      background-color: var(--bottom-bg);
+      box-shadow: 0 -1px 0 rgba(255, 255, 255, 0.04);
     }
 
-    /* iPhone keyboard fix: when typing, hide bottom nav + move composer down */
-    body.kb .bottom-nav{display:none;}
-    body.kb .composer{bottom: env(safe-area-inset-bottom, 0px);}
-    body.kb .wrap{padding-bottom: 90px;}
+    .bottom-item {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .bottom-icon-img {
+      width: 26px;
+      height: 26px;
+      object-fit: contain;
+    }
+
+    .bottom-item.power .bottom-icon-img.power-img {
+      width: 40px;
+      height: 40px;
+      border-radius: 999px;
+    }
+
+    .bottom-item.active span {
+      color: var(--bottom-active);
+    }
+
+    @media (min-width: 480px) {
+      .page { max-width: 480px; margin: 0 auto; }
+      .bottom-nav {
+        left: 50%;
+        right: auto;
+        transform: translateX(-50%);
+        max-width: 480px;
+      }
+    }
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <div class="top">Jopai</div>
+<div class="page">
+  <header class="nav-bar"><div>Jopai</div></header>
 
-    <div id="chatLog" class="msgs">
-      <div class="b ai">أهلاً 🤍 أنا Jopai. اكتبي سؤالك تحت.</div>
-    </div>
-  </div>
-
-  <div class="composer">
-    <div class="composer-inner">
-      <div class="row">
-        <input class="chat-input" type="text" placeholder="اكتب سؤالك هنا..." />
-        <button class="send-btn" type="button">➤</button>
+  <main class="content">
+    <section class="chat">
+      <div id="chatLog" class="chat-log">
+        <div class="bubble ai">أهلاً 🤍 أنا Jopai. اكتبي سؤالك تحت.</div>
       </div>
-    </div>
-  </div>
 
+      <div class="composer">
+        <div class="composer-row">
+          <button class="send-btn" id="sendBtn" type="button">➤</button>
+          <input class="chat-input" id="chatInput" type="text" placeholder="اكتب سؤالك هنا..." />
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Bottom nav: نفس ترتيب mine.html حرفيًا -->
   <nav class="bottom-nav">
-    <div class="bottom-item tools" data-go="ai-tools.html">
+    <div class="bottom-item tools">
       <img alt="AI-Tools" class="bottom-icon-img" src="images/tools-icon.png"/>
       <span>AI–Tools</span>
     </div>
-    <div class="bottom-item chat active" data-go="ai-chat.html">
+    <div class="bottom-item chat active">
       <img alt="AI Chat" class="bottom-icon-img" src="images/chat-icon.png"/>
       <span>AI Chat</span>
     </div>
-    <div class="bottom-item power" data-go="ai-power.html">
+    <div class="bottom-item power">
       <img alt="AI Power" class="bottom-icon-img power-img" src="images/ai-power.gif"/>
       <span>AI Power</span>
     </div>
-    <div class="bottom-item assets" data-go="my-assets.html">
+    <div class="bottom-item assets">
       <img alt="Assets" class="bottom-icon-img" src="images/assets-icon.png"/>
       <span>Assets</span>
     </div>
-    <div class="bottom-item mine" data-go="mine.html">
+    <div class="bottom-item mine">
       <img alt="Mine" class="bottom-icon-img" src="images/mine-icon.png"/>
       <span>Mine</span>
     </div>
   </nav>
+</div>
 
-  <script src="sb-config.js"></script>
-  <script src="auth.js"></script>
-  <script src="sb-user.js"></script>
-  <script src="jopai.js"></script>
+<script>
+(function(){
+  // bottom nav clicks (copied behavior)
+  var bottomTools = document.querySelector('.bottom-nav .bottom-item.tools');
+  if (bottomTools) bottomTools.addEventListener('click', function(){ window.location.href='ai-tools.html'; });
 
-  <script>
-    // Bottom nav navigation
-    document.querySelectorAll('.bottom-item').forEach(function(item){
-      item.addEventListener('click', function(){
-        var href = item.getAttribute('data-go');
-        if (href) window.location.href = href;
-      });
-    });
+  var bottomChat = document.querySelector('.bottom-nav .bottom-item.chat');
+  if (bottomChat) bottomChat.addEventListener('click', function(){ window.location.href='ai-chat.html'; });
 
-    // Keyboard handling (iOS): hide bottom nav when typing
-    var input = document.querySelector('.chat-input');
-    if (input){
-      input.addEventListener('focus', function(){ document.body.classList.add('kb'); });
-      input.addEventListener('blur', function(){ setTimeout(function(){ document.body.classList.remove('kb'); }, 120); });
-    }
-  </script>
+  var bottomPower = document.querySelector('.bottom-nav .bottom-item.power');
+  if (bottomPower) bottomPower.addEventListener('click', function(){ window.location.href='ai-power.html'; });
+
+  var bottomAssets = document.querySelector('.bottom-nav .bottom-item.assets');
+  if (bottomAssets) bottomAssets.addEventListener('click', function(){ window.location.href='my-assets.html'; });
+
+  var bottomMine = document.querySelector('.bottom-nav .bottom-item.mine');
+  if (bottomMine) bottomMine.addEventListener('click', function(){ window.location.href='mine.html'; });
+
+  // Bridge: Run from tools sends ?q=
+  try{
+    var params = new URLSearchParams(location.search);
+    var q = params.get('q');
+    if (q) document.getElementById('chatInput').value = q;
+  }catch(e){}
+
+})();
+</script>
+
+<!-- your existing scripts -->
+<script src="sb-config.js"></script>
+<script src="auth.js"></script>
+<script src="sb-user.js"></script>
+<script src="jopai.js"></script>
 </body>
 </html>
