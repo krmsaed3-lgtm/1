@@ -336,7 +336,7 @@
 </div>
 <div class="swap-row">
 <div class="amount-input">
-<input id="from-amount" type="number" min="0" step="0.0001" placeholder="0"/>
+<input id="from-amount" type="number" min="0" step="0.0001" placeholder="0 (min 100)"/>
 <div style="display:flex;align-items:center;gap:4px;">
 <span class="max-btn" onclick="setMax()">MAX</span>
 <div class="token-select-wrapper" id="from-token-wrapper">
@@ -452,6 +452,10 @@
     TRX: 0.1
   };
 
+  const MIN_SWAP = 100;
+
+  // Balances are synced from wallet.js / backend if available.
+  // Fallback is 0 for all assets.
   const balances = {
     USDT: 0,
     USDC: 0,
@@ -498,16 +502,26 @@
   }
 
   function updateExpected() {
-    const fromBalance = balances[fromToken];
+    const fromBalance = balances[fromToken] || 0;
     const amount = parseNumber(fromAmountInput.value);
     const rate = getRate(fromToken, toToken);
 
-    if (amount > 0 && amount <= fromBalance && rate > 0) {
-      const expected = amount * rate;
-      toAmountInput.value = formatNumber(expected);
-      expectedText.textContent = formatNumber(expected) + ' ' + toToken;
-      swapBtn.disabled = false;
-    } else {
+    // Default UI
+    toAmountInput.value = '';
+    expectedText.textContent = '0 ' + toToken;
+    swapBtn.disabled = true;
+
+    // Basic validation
+    if (!(amount > 0)) return;
+    if (amount < MIN_SWAP) return;
+    if (amount > fromBalance) return;
+    if (!(rate > 0)) return;
+
+    const expected = amount * rate;
+    toAmountInput.value = formatNumber(expected);
+    expectedText.textContent = formatNumber(expected) + ' ' + toToken;
+    swapBtn.disabled = false;
+  } else {
       toAmountInput.value = '';
       expectedText.textContent = '0 ' + toToken;
       swapBtn.disabled = true;
@@ -515,7 +529,8 @@
   }
 
   function setMax() {
-    fromAmountInput.value = formatNumber(balances[fromToken]);
+    const max = balances[fromToken] || 0;
+    fromAmountInput.value = formatNumber(max);
     updateExpected();
   }
 
@@ -528,13 +543,46 @@
 
   function performSwap() {
     const amount = parseNumber(fromAmountInput.value);
-    const fromBalance = balances[fromToken];
+    const fromBalance = balances[fromToken] || 0;
     const rate = getRate(fromToken, toToken);
 
     if (amount <= 0) {
       alert('Please enter an amount greater than 0.');
       return;
     }
+    if (amount < MIN_SWAP) {
+      alert('Minimum swap amount is ' + MIN_SWAP + ' ' + fromToken + '.');
+      return;
+    }
+    if (amount > fromBalance) {
+      alert('Amount exceeds available balance.');
+      return;
+    }
+    if (rate <= 0) {
+      alert('Invalid rate.');
+      return;
+    }
+    if (fromToken === toToken) {
+      alert('Please choose different tokens.');
+      return;
+    }
+
+    const received = amount * rate;
+
+    balances[fromToken] = fromBalance - amount;
+    balances[toToken] = (balances[toToken] || 0) + received;
+
+    updateBalancesUI();
+
+    // Record swap if backend helper exists
+    if (window.DemoWallet && typeof window.DemoWallet.recordSwap === 'function') {
+      DemoWallet.recordSwap(fromToken, toToken, amount, received);
+    }
+
+    alert('Swap successful.');
+    resetForm();
+    updateExpected();
+  }
     if (amount > fromBalance) {
       alert('Amount exceeds available balance.');
       return;
@@ -635,21 +683,64 @@
 
 
   function syncFromWallet() {
-    if (window.DemoWallet && typeof window.DemoWallet.getWallet === 'function') {
-      var w = DemoWallet.getWallet();
-      if (w && typeof w.balance === 'number') {
-        balances.USDT = w.balance;
-        updateBalancesUI();
-        updateExpected();
+    // 1) Preferred: DemoWallet.getBalances() -> {USDT:..., BTC:..., ...}
+    try {
+      if (window.DemoWallet && typeof window.DemoWallet.getBalances === 'function') {
+        var b = DemoWallet.getBalances();
+        if (b && typeof b === 'object') {
+          Object.keys(balances).forEach(function(k){
+            if (b[k] != null && !isNaN(parseFloat(b[k]))) balances[k] = parseFloat(b[k]);
+          });
+          return;
+        }
       }
+    } catch(e){}
+
+    // 2) Existing demo: DemoWallet.getWallet() -> {balance: number} (assume USDT)
+    try {
+      if (window.DemoWallet && typeof window.DemoWallet.getWallet === 'function') {
+        var w = DemoWallet.getWallet();
+        if (w && typeof w.balance === 'number') {
+          balances.USDT = w.balance;
+          return;
+        }
+      }
+    } catch(e){}
+
+    // 3) LocalStorage fallback: balances_json = {"USDT":3,...}
+    try {
+      var raw = localStorage.getItem('balances_json');
+      if (raw) {
+        var obj = JSON.parse(raw);
+        if (obj && typeof obj === 'object') {
+          Object.keys(balances).forEach(function(k){
+            if (obj[k] != null && !isNaN(parseFloat(obj[k]))) balances[k] = parseFloat(obj[k]);
+          });
+          return;
+        }
+      }
+    } catch(e){}
+  }
     }
   }
 
+  
+  function startBalanceSync() {
+    syncFromWallet();
+    updateBalancesUI();
+    updateRateText();
+    updateExpected();
+
+    // Re-sync periodically (lightweight) to reflect backend updates.
+    setInterval(function(){
+      syncFromWallet();
+      updateBalancesUI();
+      updateExpected();
+    }, 1500);
+  }
+
   // init
-  syncFromWallet();
-  updateBalancesUI();
-  updateRateText();
-  updateExpected();
+  startBalanceSync();
 </script>
 </body>
 </html>
