@@ -12,6 +12,23 @@
 ;(function () {
   'use strict';
 
+  // Fallback: ensure SB_CONFIG exists even if sb-config.js wasn't loaded (prevents "Auth service not loaded").
+  if (!window.SB_CONFIG) {
+    window.SB_CONFIG = {
+      url: 'https://daaxfvepnujsuftzcfcv.supabase.co',
+      anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRhYXhmdmVwbnVqc3VmdHpjZmN2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY0NTUxMzMsImV4cCI6MjA4MjAzMTEzM30.WjpjKmK2j7omDIH2n_Q7gzC7Ei-KinARMF2FlUj4qyA',
+      headers: function () {
+        return {
+          'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRhYXhmdmVwbnVqc3VmdHpjZmN2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY0NTUxMzMsImV4cCI6MjA4MjAzMTEzM30.WjpjKmK2j7omDIH2n_Q7gzC7Ei-KinARMF2FlUj4qyA',
+          'Authorization': 'Bearer ' + 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRhYXhmdmVwbnVqc3VmdHpjZmN2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY0NTUxMzMsImV4cCI6MjA4MjAzMTEzM30.WjpjKmK2j7omDIH2n_Q7gzC7Ei-KinARMF2FlUj4qyA',
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        };
+      }
+    };
+  }
+
+
   var SB = window.SB_CONFIG;
   if (!SB) {
     console.error('SB_CONFIG is not defined. Ensure sb-config.js is loaded before auth.js.');
