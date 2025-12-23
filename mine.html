@@ -612,118 +612,67 @@
         });
       }
     })();
-  </script>
-
-<script src="auth.js"></script>
-<script src="sb-user.js"></script>
-
-<script>
-(function () {
-  var SUPABASE_URL = "https://aqingpclpceifnxhznrf.supabase.co";
-  var SUPABASE_KEY = "sb_publishable_u2-ozV4SIB3IKdIAeu2X2w_wj3QeEWP";
-
-  function fmtPhone(area, digits, fallback) {
-    area = (area || "").toString().trim();
-    digits = (digits || "").toString().trim();
-    if (!area && !digits) return fallback || "";
-    if (area && digits) return area + " " + digits;
-    return area || digits;
-  }
-
-  function setText(id, txt) {
-    try {
-      var el = document.getElementById(id);
-      if (el) el.textContent = txt;
-    } catch (e) {}
-  }
-
-  async function fetchUserRowById(sbId) {
-    try {
-      if (!sbId) return null;
-      var url = SUPABASE_URL + "/rest/v1/users?select=uid,phone_digits,area_code&id=eq." + encodeURIComponent(sbId) + "&limit=1";
-      var res = await fetch(url, {
-        method: "GET",
-        headers: {
-          "apikey": SUPABASE_KEY,
-          "Authorization": "Bearer " + SUPABASE_KEY,
-          "Accept": "application/json"
-        }
-      });
-      if (!res.ok) return null;
-      var rows = await res.json();
-      return (rows && rows[0]) ? rows[0] : null;
-    } catch (e) {
-      return null;
-    }
-  }
-
-  async function paint() {
-    var phoneFallback = (document.getElementById("mine-phone") || {}).textContent || "";
-    var idFallbackRaw = (document.getElementById("mine-id") || {}).textContent || "";
-    var idFallback = idFallbackRaw.replace(/^ID:\s*/i, "").trim();
-
-    var sbId = "";
-    try {
-      if (window.ExaAuth && typeof window.ExaAuth.getSupabaseUserId === "function") {
-        sbId = window.ExaAuth.getSupabaseUserId() || "";
-      }
-      if (!sbId) sbId = localStorage.getItem("sb_user_id_v1") || "";
-    } catch (e) {}
-
-    var uid = "";
-    var area = "";
-    var digits = "";
-
-    // 1) Supabase (source of truth)
-    if (sbId) {
-      var row = await fetchUserRowById(sbId);
-      if (row) {
-        uid = (row.uid || "").toString();
-        area = (row.area_code || "").toString();
-        digits = (row.phone_digits || "").toString();
-      }
-    }
-
-    // 2) Fallback to local (offline)
-    if (!uid || !digits) {
-      try {
-        var u = null;
-        var raw = localStorage.getItem("demoCurrentUser");
-        if (raw) u = JSON.parse(raw);
-        if ((!u || typeof u !== "object") && window.DemoWallet && typeof window.DemoWallet.getUser === "function") {
-          u = window.DemoWallet.getUser();
-        }
-        if (u && typeof u === "object") {
-          uid = uid || (u.id || "");
-          area = area || (u.areaCode || "");
-          digits = digits || (u.phoneDigits || u.phone || "");
-        }
-      } catch (e2) {}
-    }
-
-    // Apply
-    if (digits || area) setText("mine-phone", fmtPhone(area, digits, phoneFallback) || phoneFallback);
-    if (uid) setText("mine-id", "ID: " + uid);
-    else if (idFallback) setText("mine-id", "ID: " + idFallback);
-
-    // Level from DemoWallet (keeps existing VIP logic)
-    try {
-      if (window.DemoWallet && typeof window.DemoWallet.getVipInfo === "function") {
-        var vip = window.DemoWallet.getVipInfo();
-        if (vip && vip.currentLevel) setText("mine-level", vip.currentLevel + " Level");
-      }
-    } catch (e3) {}
-  }
-
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", paint);
-  } else {
-    paint();
-  }
-})();
+  
 </script>
 
-<script src="auth.js"></script>
-<script src="common-nav.js"></script>
+  <!-- Load Supabase configuration -->
+  <script src="sb-config.js"></script>
+  <!-- Authentication helpers -->
+  <script src="auth.js"></script>
+  <!-- User profile helpers -->
+  <script src="sb-user.js"></script>
+  <!-- Enforce login redirects -->
+  <script src="common-nav.js"></script>
+
+  <script>
+    // Keep Mine header values in sync with Account Information (Supabase users table)
+    (function () {
+      function safeText(v, fallback) {
+        if (v === null || v === undefined) return fallback;
+        var t = String(v).trim();
+        return t ? t : fallback;
+      }
+
+      function formatPhone(raw, fallback) {
+        var t = safeText(raw, "");
+        if (!t) return fallback || "";
+        // Remove spaces and leading +
+        var digits = t.replace(/\s+/g, "").replace(/^\+/, "");
+        // If looks like a country code + local number, add a space after first 3 digits
+        if (digits.length > 8 && /^\d+$/.test(digits)) {
+          return digits.slice(0, 3) + " " + digits.slice(3);
+        }
+        return t;
+      }
+
+      async function paintFromSupabase() {
+        try {
+          if (!window.SBUser || typeof window.SBUser.getCurrentProfile !== "function") return;
+
+          var profile = await window.SBUser.getCurrentProfile();
+          if (!profile) return;
+
+          var phoneEl = document.getElementById("mine-phone");
+          if (phoneEl) {
+            phoneEl.textContent = formatPhone(profile.phone, phoneEl.textContent || "");
+          }
+
+          var idEl = document.getElementById("mine-id");
+          if (idEl) {
+            var idVal = profile.publicId || profile.id;
+            idEl.textContent = "ID: " + safeText(idVal, "-");
+          }
+        } catch (e) {
+          try { console.error(e); } catch (_) {}
+        }
+      }
+
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", paintFromSupabase);
+      } else {
+        paintFromSupabase();
+      }
+    })();
+  </script>
 </body>
 </html>
