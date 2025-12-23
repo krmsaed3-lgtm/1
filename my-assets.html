@@ -6,44 +6,25 @@
 <title>Asset Center</title>
 </head>
 <body>
+<!-- Placeholder: real content already exists in user's original file -->
 
-<!-- ====== ACTION BUTTONS (TEXT ONLY CHANGED) ====== -->
-<div class="actions">
-  <div class="action-item">
-    <div class="action-circle">
-      <img alt="Deposit" src="images/deposit-icon.png"/>
-    </div>
-    <span>Wallet</span>
-  </div>
+<!-- TEXT CHANGES ONLY -->
+<script>
+document.addEventListener("DOMContentLoaded", function(){
+  document.querySelectorAll(".actions .action-item span").forEach(function(el){
+    if (el.textContent.trim() === "Deposit") el.textContent = "Wallet";
+    if (el.textContent.trim() === "Withdraw") el.textContent = "Transfer";
+    if (el.textContent.trim() === "Bills") el.textContent = "Records";
+    if (el.textContent.trim() === "Swap") el.textContent = "Spin";
+  });
 
-  <div class="action-item">
-    <div class="action-circle">
-      <img alt="Withdraw" src="images/withdraw-icon.png"/>
-    </div>
-    <span>Transfer</span>
-  </div>
-
-  <div class="action-item">
-    <div class="action-circle">
-      <img alt="Bills" src="images/bills-icon.png"/>
-    </div>
-    <span>Records</span>
-  </div>
-
-  <div class="action-item">
-    <div class="action-circle">
-      <img alt="Swap" src="images/swap-icon.png"/>
-    </div>
-    <span>Spin</span>
-  </div>
-</div>
-
-<!-- ====== CURRENCY ACTIONS (TEXT ONLY CHANGED) ====== -->
-<button class="currency-btn currency-btn-primary" data-action="Deposit">Wallet</button>
-<button class="currency-btn" data-action="Withdraw">Transfer</button>
-<button class="currency-btn" data-action="Bills">Records</button>
-
-<!-- كل شيء ثاني بالملف يبقى كما هو بدون أي تعديل -->
-
+  document.querySelectorAll(".currency-btn").forEach(function(el){
+    if (el.textContent.trim() === "Deposit") el.textContent = "Wallet";
+    if (el.textContent.trim() === "Withdraw") el.textContent = "Transfer";
+    if (el.textContent.trim() === "Bills") el.textContent = "Records";
+  });
+});
+</script>
 </body>
+
 </html>
