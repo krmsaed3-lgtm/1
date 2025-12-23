@@ -1,561 +1,237 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
-<title>Records</title>
-<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
-<style>
-    :root {
-      --bg-main: #05060b;
-      --bg-card: #11141f;
-      --bg-input: #151824;
-      --border-subtle: #262a3a;
-      --text-primary: #ffffff;
-      --text-secondary: #7b8194;
-      --accent: #18c1ff;
-      --accent-2: #22e1a5;
-      --btn-disabled: #424654;
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>Records</title>
+  <style>
+    :root{
+      --page-bg:#05070b;
+      --card:#0b2f3b;
+      --muted:#7b8593;
+      --text:#ffffff;
+      --accent:#00e4c0;
+      --border:#283341;
+      --chip:#101622;
     }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{
+      font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,sans-serif;
+      background:var(--page-bg);
+      color:var(--text);
     }
-
-    body {
-      background-color: var(--bg-main);
-      color: var(--text-primary);
-      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
+    .page{min-height:100vh;display:flex;flex-direction:column}
+    .nav{
+      height:46px;display:flex;align-items:center;justify-content:center;
+      font-size:16px;font-weight:600;color:#ffffffd9;
     }
-
-    .app {
-      min-height: 100vh;
-      max-width: 480px;
-      margin: 0 auto;
-      padding: 12px 12px 24px;
+    .content{flex:1;overflow:auto;padding:10px 12px 90px}
+    .card{
+      border-radius:16px;
+      background-image:linear-gradient(135deg,var(--card) 0%, #08252f 45%, #04151e 100%);
+      border:1px solid rgba(0,0,0,.55);
+      padding:14px;
+      margin-bottom:10px;
     }
-
-    .top-bar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 4px 0 10px;
+    .row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+    .type{
+      display:inline-flex;align-items:center;gap:8px;
+      font-weight:700;font-size:13px;
     }
-
-    .back-btn {
-      width: 32px;
-      height: 32px;
-      border-radius: 999px;
-      background-color: #151824;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+    .dot{width:8px;height:8px;border-radius:999px;background:var(--accent)}
+    .meta{font-size:12px;color:var(--muted);margin-top:8px;display:flex;gap:10px;flex-wrap:wrap}
+    .amt{font-size:14px;font-weight:700}
+    .status{
+      font-size:11px;
+      padding:4px 10px;border-radius:999px;
+      background:rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.10);
+      color:#ffffffd9;
+      white-space:nowrap;
     }
-
-    .back-btn img {
-      width: 18px;
-      height: 18px;
-      display: block;
+    .chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+    .chip{
+      background:var(--chip);
+      border:1px solid rgba(255,255,255,.08);
+      color:#ffffffd9;
+      padding:7px 10px;border-radius:999px;
+      font-size:12px;
+      cursor:pointer;
+      user-select:none;
     }
-
-    .title {
-      font-size: 16px;
-      font-weight: 500;
+    .chip.active{border-color:var(--accent);color:#000;background:linear-gradient(90deg,#00d1ff,#00e4c0)}
+    .empty{
+      padding:22px 14px;
+      border:1px dashed rgba(255,255,255,.14);
+      border-radius:14px;
+      color:var(--muted);
+      text-align:center;
+      margin-top:8px;
     }
-
-    .record-btn {
-      width: 30px;
-      height: 30px;
-      border-radius: 8px;
-      background-color: #151824;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .record-btn img {
-      width: 18px;
-      height: 18px;
-      display: block;
-    }
-
-    .content {
-      margin-top: 10px;
-    }
-
-    .time-range {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 14px;
-    }
-
-    .time-input {
-      flex: 1;
-      height: 44px;
-      border-radius: 10px;
-      background-color: var(--bg-input);
-      border: 1px solid var(--border-subtle);
-      display: flex;
-      align-items: center;
-      padding: 0 12px;
-      font-size: 13px;
-      color: var(--text-secondary);
-    }
-
-    .time-separator {
-      font-size: 12px;
-      color: var(--text-secondary);
-      min-width: 18px;
-      text-align: center;
-    }
-
-    .select-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 10px 4px;
-      font-size: 14px;
-      color: var(--text-primary);
-    }
-
-    .select-row + .select-row {
-      border-top: 1px solid #11141f;
-    }
-
-    .select-label-main {
-      font-size: 14px;
-    }
-
-    .select-arrow {
-      width: 10px;
-      height: 10px;
-      border-right: 1px solid var(--text-secondary);
-      border-bottom: 1px solid var(--text-secondary);
-      transform: rotate(45deg);
-      margin-right: 4px;
-    }
-
-    .divider {
-      height: 1px;
-      background-color: #151824;
-      margin: 6px 0 18px;
-    }
-
-    .btn-row {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 8px;
-    }
-
-    .btn {
-      flex: 1;
-      height: 44px;
-      border-radius: 999px;
-      font-size: 15px;
-      border: none;
-      outline: none;
-      cursor: pointer;
-    }
-
-    .btn-reset {
-      background-color: #2f333f;
-      color: #9a9fb0;
-    }
-
-    .btn-confirm {
-      background-image: linear-gradient(90deg, #18c1ff, #22e1a5);
-      color: #05060b;
-      font-weight: 500;
-    }
-
-
-    .empty-state {
-      margin-top: 24px;
-      font-size: 13px;
-      color: var(--text-secondary);
-      text-align: center;
-    }
-
-    .bill-list {
-      margin-top: 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .bill-item {
-      background-color: #0c0f18;
-      border-radius: 12px;
-      padding: 10px 12px;
-      border: 1px solid #171924;
-    }
-
-    .bill-main-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 4px;
-    }
-
-    .bill-type {
-      font-size: 13px;
-      color: var(--text-primary);
-    }
-
-    .bill-amount {
-      font-size: 14px;
-      font-weight: 500;
-      color: var(--accent-2);
-    }
-
-    .bill-sub-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-top: 2px;
-      font-size: 11px;
-      color: var(--text-secondary);
-    }
-
-    .bill-status {
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-    }
-
-    .bill-time {
-      font-variant-numeric: tabular-nums;
-    }
-
-    .bill-fee,
-    .bill-net {
-      font-size: 11px;
-    }
-
-    .tabs {
-      display: flex;
-      justify-content: space-between;
-      margin: 6px 0 10px;
-      background-color: #080a12;
-      border-radius: 999px;
-      padding: 2px;
-      border: 1px solid #151824;
-    }
-
-    .tab {
-      flex: 1;
-      text-align: center;
-      font-size: 12px;
-      padding: 7px 0;
-      border-radius: 999px;
-      text-decoration: none;
-      color: var(--text-secondary);
-    }
-
-    .tab.active {
-      background-image: linear-gradient(90deg, #18c1ff, #22e1a5);
-      color: #05060b;
-      font-weight: 500;
-    }
-
-
-    @media (min-width: 481px) {
-      body {
-        display: flex;
-        justify-content: center;
-        background-color: #000;
-      }
-      .app {
-        margin-top: 12px;
-        border-radius: 20px;
-        border: 1px solid #171924;
-      }
+    .hint{font-size:12px;color:var(--muted);text-align:center;margin-top:10px}
+    @media (min-width: 480px){
+      .page{max-width:480px;margin:0 auto}
     }
   </style>
 </head>
 <body>
-<div class="app">
-<header class="top-bar">
-<div class="back-btn">
-<img alt="Back" src="images/back-icon-D2ne3Npi.png"/>
-</div>
-<div class="title">Records</div>
-<div class="record-btn">
-<img alt="Record" src="images/record.png"/>
-</div>
-</header>
-
-<main class="content">
-<section class="time-range">
-<input class="time-input" id="startDate" type="date"/>
-<div class="time-separator">To</div>
-<input class="time-input" id="endDate" type="date"/>
-</section>
-<section>
-<div class="select-row" id="typeRow">
-<div class="select-label-main" id="typeLabel">All</div>
-<div class="select-arrow"></div>
-</div>
-<div class="select-row" id="currencyRow">
-<div class="select-label-main" id="currencyLabel">USDT</div>
-<div class="select-arrow"></div>
-</div>
-</section>
-
-<div class="divider"></div>
-<section class="btn-row">
-<button class="btn btn-reset" type="button">Reset</button>
-<button class="btn btn-confirm" type="button">Confirm</button>
-</section>
-<div id="billsContainer" class="empty-state">
-        No records yet.
+  <div class="page">
+    <header class="nav">Records</header>
+    <main class="content">
+      <div class="chips" id="filters">
+        <div class="chip active" data-filter="all">All</div>
+        <div class="chip" data-filter="deposit">Deposit</div>
+        <div class="chip" data-filter="withdraw">Withdraw</div>
+        <div class="chip" data-filter="swap">Swap</div>
       </div>
-</main>
-</div>
-<script src="wallet.js"></script>
-<script>
-  (function() {
-    var container = document.getElementById('billsContainer');
-    var startInput = document.getElementById('startDate');
-    var endInput = document.getElementById('endDate');
-    var resetBtn = document.querySelector('.btn-reset');
-    var confirmBtn = document.querySelector('.btn-confirm');
-    var typeRow = document.getElementById('typeRow');
-    var typeLabel = document.getElementById('typeLabel');
-    var currencyRow = document.getElementById('currencyRow');
-    var currencyLabel = document.getElementById('currencyLabel');
-    var backBtn = document.querySelector('.back-btn');
 
-    if (!container) return;
+      <div id="list"></div>
+      <div class="hint" id="hint"></div>
+    </main>
+  </div>
 
-    if (backBtn) {
-      backBtn.addEventListener('click', function () {
-        if (window.history.length > 1) {
-          window.history.back();
-        }
-      });
+  <script>
+  (function(){
+    "use strict";
+
+    var listEl = document.getElementById("list");
+    var hintEl = document.getElementById("hint");
+    var filter = "all";
+    var txsCache = [];
+
+    function esc(s){
+      return String(s == null ? "" : s)
+        .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
+        .replace(/"/g,"&quot;").replace(/'/g,"&#039;");
     }
-
-    var allTxs = [];
-    var filters = {
-      startDate: '',
-      endDate: '',
-      type: 'all',
-      currency: 'USDT'
-    };
-
-    function showEmpty() {
-      container.className = 'empty-state';
-      container.textContent = 'No records yet.';
+    function num(x){
+      var n = Number(x);
+      return isFinite(n) ? n : 0;
     }
-
-    function renderBills(list) {
-      if (!list || !list.length) {
-        showEmpty();
-        return;
-      }
-
-      container.className = 'bill-list';
-      container.innerHTML = '';
-
-      list.forEach(function(tx) {
-        var item = document.createElement('div');
-        item.className = 'bill-item';
-
-        var typeLabelText = tx.type === 'withdraw' ? 'Withdraw' :
-                            tx.type === 'deposit' ? 'Deposit' :
-                            tx.type === 'income' ? 'Income' :
-                            tx.type === 'swap' ? 'Swap' :
-                            (tx.type || 'Record');
-
-        var status = tx.status || 'PENDING';
-        var createdAt = tx.createdAt ? tx.createdAt.replace('T', ' ').slice(0, 19) : '';
-
-        var amount = (typeof tx.amount === 'number'
-          ? tx.amount.toFixed(2)
-          : String(tx.amount || '0'));
-        var currency = (tx.currency || filters.currency || 'USDT').toUpperCase();
-        var amountStr = amount + ' ' + currency;
-
-        // Optional details for swaps
-        var detailLine = '';
-        if ((tx.type || '').toLowerCase() === 'swap') {
-          var fromC = (tx.fromCurrency || tx.from || '').toString().toUpperCase();
-          var toC = (tx.toCurrency || tx.to || '').toString().toUpperCase();
-          if (fromC || toC) {
-            detailLine = '<div class="bill-sub-row"><span>' + (fromC ? ('From: ' + fromC) : '') + '</span><span>' + (toC ? ('To: ' + toC) : '') + '</span></div>';
-          }
-        }
-
-        var feeStr = typeof tx.fee === 'number' ? tx.fee.toFixed(2) + ' ' + currency : '';
-        var netStr = typeof tx.net === 'number' ? tx.net.toFixed(2) + ' ' + currency : '';
-
-        item.innerHTML =
-          '<div class="bill-main-row">' +
-            '<span class="bill-type">' + typeLabelText + '</span>' +
-            '<span class="bill-amount">' + amountStr + '</span>' +
-          '</div>' +
-          '<div class="bill-sub-row">' +
-            '<span class="bill-status">' + status + '</span>' +
-            (createdAt ? '<span class="bill-time">' + createdAt + '</span>' : '') +
-          '</div>' +
-          (feeStr || netStr
-            ? '<div class="bill-sub-row">' +
-                (feeStr ? '<span class="bill-fee">Fee: ' + feeStr + '</span>' : '') +
-                (netStr ? '<span class="bill-net">Net: ' + netStr + '</span>' : '') +
-              '</div>'
-            : '');
-
-        if (detailLine) item.insertAdjacentHTML('beforeend', detailLine);
-        container.appendChild(item);
-      });
+    function fmt(n){
+      // keep up to 8 decimals but trim zeros
+      var s = (Math.round(n * 1e8) / 1e8).toString();
+      return s;
     }
-
-    function applyFilters() {
-      if (!allTxs.length) {
-        showEmpty();
-        return;
-      }
-
-      var filtered = allTxs.filter(function(tx) {
-        var createdAt = tx.createdAt ? new Date(tx.createdAt) : null;
-
-        if (filters.startDate && createdAt) {
-          var start = new Date(filters.startDate + 'T00:00:00');
-          if (createdAt < start) return false;
-        }
-        if (filters.endDate && createdAt) {
-          var end = new Date(filters.endDate + 'T23:59:59');
-          if (createdAt > end) return false;
-        }
-
-        if (filters.type && filters.type !== 'all') {
-          if (!tx.type || tx.type.toLowerCase() !== filters.type) return false;
-        }
-
-        if (filters.currency) {
-          var txCurrency = (tx.currency || 'USDT').toUpperCase();
-          if (txCurrency !== filters.currency.toUpperCase()) return false;
-        }
-
-        return true;
-      });
-
-      renderBills(filtered);
+    function fmtDate(iso){
+      try{
+        var d = new Date(iso);
+        if (isNaN(d.getTime())) return String(iso||"");
+        return d.toLocaleString();
+      }catch(e){ return String(iso||""); }
     }
-
-    function loadTransactions() {
-      // Priority order:
-      // 1) DemoWallet.getTransactions()  -> real backend integration (recommended)
-      // 2) localStorage.transactions_json -> JSON array of txs
-      // 3) localStorage.transactions      -> JSON array of txs
-      var txs = null;
-
-      try {
-        if (window.DemoWallet && typeof window.DemoWallet.getTransactions === 'function') {
-          txs = window.DemoWallet.getTransactions();
-        }
-      } catch(e) {}
-
-      if (!txs || !txs.length) {
-        try {
-          var raw = localStorage.getItem('transactions_json') || localStorage.getItem('transactions');
-          if (raw) txs = JSON.parse(raw);
-        } catch(e) {}
-      }
-
-      if (!txs || !txs.length) {
-        showEmpty();
-        return;
-      }
-
-      allTxs = txs.slice().sort(function(a, b) {
-        if (!a.createdAt || !b.createdAt) return 0;
-        return a.createdAt < b.createdAt ? 1 : -1;
-      });
-
-      applyFilters();
-    }
-
-      var txs = DemoWallet.getTransactions();
-      if (!txs || !txs.length) {
-        showEmpty();
-        return;
-      }
-
-      allTxs = txs.slice().sort(function(a, b) {
-        if (!a.createdAt || !b.createdAt) return 0;
-        return a.createdAt < b.createdAt ? 1 : -1;
-      });
-
-      applyFilters();
-    }
-
-    if (resetBtn) {
-      resetBtn.addEventListener('click', function() {
-        if (startInput) startInput.value = '';
-        if (endInput) endInput.value = '';
-        filters.startDate = '';
-        filters.endDate = '';
-        filters.type = 'all';
-        filters.currency = 'USDT';
-        if (typeLabel) typeLabel.textContent = 'All';
-        if (currencyLabel) currencyLabel.textContent = 'USDT';
-        applyFilters();
-      });
-    }
-
-    if (confirmBtn) {
-      confirmBtn.addEventListener('click', function() {
-        if (startInput) filters.startDate = startInput.value || '';
-        if (endInput) filters.endDate = endInput.value || '';
-        applyFilters();
-      });
-    }
-
-    if (typeRow) {
-      var typeOptions = ['all', 'deposit', 'withdraw', 'swap'];
-      var typeLabels = {
-        'all': 'All',
-        'deposit': 'Deposit',
-        'withdraw': 'Withdraw',
-        'swap': 'Swap'
+    function normalizeTx(t){
+      var type = String(t.type || t.tx_type || t.kind || "unknown").toLowerCase();
+      var currency = String(t.currency || t.asset || t.token || "").toUpperCase();
+      var amount = num(t.amount || t.tx_amount);
+      var status = String(t.status || "SUCCESS").toUpperCase();
+      var createdAt = t.createdAt || t.created_at || t.created_at_iso || new Date().toISOString();
+      return {
+        type:type,
+        currency:currency,
+        amount:amount,
+        status:status,
+        createdAt:createdAt,
+        fee:num(t.fee || 0),
+        net:num(t.net || amount),
+        fromCurrency: (t.fromCurrency || t.from_currency || t.from || "").toString().toUpperCase(),
+        toCurrency: (t.toCurrency || t.to_currency || t.to || "").toString().toUpperCase(),
+        received: num(t.received || t.toAmount || t.to_amount || 0)
       };
-      var index = 0;
-
-      typeRow.addEventListener('click', function() {
-        index = (index + 1) % typeOptions.length;
-        var key = typeOptions[index];
-        filters.type = key;
-        if (typeLabel) typeLabel.textContent = typeLabels[key];
-        applyFilters();
-      });
     }
 
-    if (currencyRow) {
-      var currencyOptions = ['USDT', 'BTC', 'ETH', 'USDC', 'TRX'];
-      var currencyIndex = 0;
+    function render(){
+      var items = txsCache;
+      if (filter !== "all") items = items.filter(function(t){ return t.type === filter; });
 
-      currencyRow.addEventListener('click', function () {
-        currencyIndex = (currencyIndex + 1) % currencyOptions.length;
-        var cur = currencyOptions[currencyIndex];
-        filters.currency = cur;
-        if (currencyLabel) currencyLabel.textContent = cur;
-        applyFilters();
-      });
+      if (!items.length){
+        listEl.innerHTML = '<div class="empty">No records yet.</div>';
+        return;
+      }
+
+      var html = items.map(function(t){
+        var label = t.type.toUpperCase();
+        var left = '<div class="type"><span class="dot"></span><span>' + esc(label) + '</span></div>';
+        var amt = '';
+        if (t.type === "swap"){
+          var fromC = t.fromCurrency || t.currency;
+          var toC = t.toCurrency || "";
+          var recv = t.received;
+          amt = '<div class="amt">' + esc(fmt(t.amount)) + ' ' + esc(fromC) + ' → ' + esc(fmt(recv)) + ' ' + esc(toC) + '</div>';
+        } else {
+          amt = '<div class="amt">' + esc(fmt(t.amount)) + ' ' + esc(t.currency) + '</div>';
+        }
+
+        var status = '<div class="status">' + esc(t.status) + '</div>';
+        var meta = [
+          '<span>' + esc(fmtDate(t.createdAt)) + '</span>',
+          (t.fee ? '<span>Fee: ' + esc(fmt(t.fee)) + '</span>' : ''),
+          (t.net ? '<span>Net: ' + esc(fmt(t.net)) + '</span>' : '')
+        ].filter(Boolean).join('');
+
+        return '<section class="card">' +
+                 '<div class="row">' +
+                   '<div>' + left + '</div>' +
+                   '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">' +
+                      status +
+                   '</div>' +
+                 '</div>' +
+                 '<div style="margin-top:10px">' + amt + '</div>' +
+                 '<div class="meta">' + meta + '</div>' +
+               '</section>';
+      }).join("");
+
+      listEl.innerHTML = html;
     }
 
-    loadTransactions();
+    function setFilter(next){
+      filter = next;
+      document.querySelectorAll("#filters .chip").forEach(function(c){
+        c.classList.toggle("active", c.getAttribute("data-filter") === filter);
+      });
+      render();
+    }
 
-    // Keep the list in sync with backend / wallet updates
-    setInterval(function(){
-      loadTransactions();
-    }, 1500);
+    async function load(){
+      hintEl.textContent = "";
+      try{
+        if (!window.DemoWallet || typeof DemoWallet.getTransactions !== "function"){
+          hintEl.textContent = "wallet.js not loaded (DemoWallet.getTransactions missing).";
+          txsCache = [];
+          render();
+          return;
+        }
+        var txs = await DemoWallet.getTransactions();
+        if (!Array.isArray(txs)) txs = [];
+        txsCache = txs.map(normalizeTx).sort(function(a,b){
+          return (a.createdAt < b.createdAt) ? 1 : -1;
+        });
+        render();
+      }catch(e){
+        hintEl.textContent = "Failed to load records.";
+      }
+    }
+
+    // Filters
+    document.getElementById("filters").addEventListener("click", function(e){
+      var chip = e.target.closest(".chip");
+      if (!chip) return;
+      setFilter(chip.getAttribute("data-filter"));
+    });
+
+    // Start
+    load();
+    setInterval(load, 1500);
   })();
-</script>
+  </script>
 
-<script src="common-nav.js"></script>
+  <!-- Supabase configuration -->
+  <script src="sb-config.js"></script>
+  <!-- Auth helpers -->
+  <script src="auth.js"></script>
+  <!-- Wallet helpers (MUST provide DemoWallet.getTransactions) -->
+  <script src="wallet.js"></script>
+  <!-- Enforce login redirects -->
+  <script src="common-nav.js"></script>
 </body>
 </html>
