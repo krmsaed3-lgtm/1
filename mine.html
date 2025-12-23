@@ -313,7 +313,7 @@
 <main class="content">
 <section class="profile-card">
 <div class="avatar">
-<img id="mine-avatar" alt="Avatar" src="images/ec72cc3f0db8049d48f6fbcea83f4437.png"/>
+<img alt="Avatar" id="mine-avatar" src="images/ec72cc3f0db8049d48f6fbcea83f4437.png"/>
 </div>
 <div class="profile-info">
 <div class="profile-phone" id="mine-phone">961 70758137</div>
@@ -614,17 +614,15 @@
     })();
   
 </script>
-
-  <!-- Load Supabase configuration -->
-  <script src="sb-config.js"></script>
-  <!-- Authentication helpers -->
-  <script src="auth.js"></script>
-  <!-- User profile helpers -->
-  <script src="sb-user.js"></script>
-  <!-- Enforce login redirects -->
-  <script src="common-nav.js"></script>
-
-  <script>
+<!-- Load Supabase configuration -->
+<script src="sb-config.js"></script>
+<!-- Authentication helpers -->
+<script src="auth.js"></script>
+<!-- User profile helpers -->
+<script src="sb-user.js"></script><script src="avatar.js"></script>
+<!-- Enforce login redirects -->
+<script src="common-nav.js"></script>
+<script>
     // Keep Mine header values in sync with Account Information (Supabase users table)
     (function () {
       function safeText(v, fallback) {
@@ -658,6 +656,10 @@
           }
 
           var idEl = document.getElementById("mine-id");
+          if (window.UserAvatar && typeof window.UserAvatar.apply === "function") {
+            window.UserAvatar.apply(profile);
+          }
+
           if (idEl) {
             var idVal = profile.publicId || profile.id;
             idEl.textContent = "ID: " + safeText(idVal, "-");
