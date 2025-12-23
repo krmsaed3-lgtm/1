@@ -129,10 +129,3 @@
   if (sendBtn) sendBtn.addEventListener('click', onSend);
   if (input) input.addEventListener('keydown', function (e) { if (e.key === 'Enter') onSend(); });
 })();
-// لو جاي سؤال من صفحة الأدوات ?q=
-try {
-  var params = new URLSearchParams(location.search);
-  var q = params.get('q');
-  if (q && input) input.value = q;
-} catch (e) {}
-
