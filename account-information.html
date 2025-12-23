@@ -279,37 +279,6 @@
 </div>
 </div>
 </section>
-<!-- Card 2 -->
-<section class="card">
-<div class="row email-row">
-<div class="label">Email</div>
-<div class="value">
-<span class="value-link account-email-value">ieudhehehe@mozej.com</span>
-</div>
-</div>
-<div class="row">
-<div class="label">Registration Time</div>
-<div class="value">
-<span class="account-regtime-value">2025-11-29 16:44:43</span>
-</div>
-</div>
-</section>
-<!-- Card 3 -->
-<section class="card">
-<div class="row">
-<div class="label">Registration Method</div>
-<div class="value">
-<span class="account-regmethod-value">Phone</span>
-</div>
-</div>
-<div class="row">
-<div class="label">Invite Code</div>
-<div class="value copy-wrapper">
-<span id="invite-code">-</span>
-<div class="copy-icon" id="copy-invite-code"></div>
-</div>
-</div>
-</section>
 </section>
 </main>
 </div>
@@ -358,13 +327,7 @@
 
       var phoneEl = document.querySelector(".account-phone-value");
       if (phoneEl) phoneEl.textContent = safeText(profile.phone, "-");
-
-      var regTimeEl = document.querySelector(".account-regtime-value");
-      if (regTimeEl) regTimeEl.textContent = formatDateTime(profile.createdAt, regTimeEl.textContent || "-");
-
-      var inviteEl = document.getElementById("invite-code");
-      if (inviteEl) inviteEl.textContent = safeText(profile.inviteCode, "-");
-    } catch (e) {
+} catch (e) {
       try { console.error(e); } catch (_) {}
     }
   }
@@ -419,55 +382,6 @@
           selection.removeAllRanges();
         });
       }
-    })();
-  
-    // Copy Invite Code with toast
-    (function () {
-      var copyBtn = document.getElementById('copy-invite-code');
-      var codeSpan = document.getElementById('invite-code');
-      var toastEl = document.getElementById('toast');
-
-      function showToast(message) {
-        if (!toastEl) return;
-        toastEl.textContent = message;
-        toastEl.classList.add('toast-visible');
-        window.clearTimeout(showToast._timer);
-        showToast._timer = window.setTimeout(function () {
-          toastEl.classList.remove('toast-visible');
-        }, 1600);
-      }
-
-      if (!copyBtn || !codeSpan) return;
-
-      function doCopy(text) {
-        if (!text) return;
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-          navigator.clipboard.writeText(text).then(function () {
-            showToast('Invite code copied');
-          }).catch(function () {
-            showToast('Unable to copy');
-          });
-          return;
-        }
-        var range = document.createRange();
-        range.selectNodeContents(codeSpan);
-        var selection = window.getSelection();
-        selection.removeAllRanges();
-        selection.addRange(range);
-        try {
-          var ok = document.execCommand('copy');
-          showToast(ok ? 'Invite code copied' : 'Unable to copy');
-        } catch (e) {
-          showToast('Unable to copy');
-        }
-        selection.removeAllRanges();
-      }
-
-      copyBtn.addEventListener('click', function () {
-        doCopy((codeSpan.textContent || '').trim());
-      });
-    })();
-
-  </script>
+    })();</script>
 </body>
 </html>
