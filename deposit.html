@@ -386,6 +386,10 @@
 
 
 <script src="sb-user.js"></script>
+<script>
+  // Tell the deposit page which Supabase Edge Function to call for generating a new deposit address
+  window.DEPOSIT_EDGE_FUNCTION = 'get_new_address';
+</script>
 <script src="deposit-page.fixed.js"></script>
 </body>
 </html>
