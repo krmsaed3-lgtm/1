@@ -27,29 +27,3 @@
     enforceAuth();
   }
 })();
-
-
-// [nav-visibility] Hide bottom nav on specific pages
-(function () {
-  try {
-    // Hide bottom navigation on AI Power page (full-screen experience)
-    var path = (location.pathname || "").toLowerCase();
-    var file = path.split("/").pop() || "";
-    var isAIPower = file === "ai-power.html" || file === "ai-power-updated.html";
-
-    if (isAIPower) {
-      var bottom = document.querySelector(".bottom-nav");
-      if (bottom) bottom.style.display = "none";
-
-      // Remove extra bottom padding/space if any pages use it
-      var content = document.querySelector(".content");
-      if (content) {
-        try {
-          var pb = parseFloat(getComputedStyle(content).paddingBottom || "0");
-          if (pb >= 60) content.style.paddingBottom = "16px";
-        } catch (e) {}
-      }
-    }
-  } catch (e) {}
-})();
-
