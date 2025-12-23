@@ -3,7 +3,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"/>
-<title>Bills</title>
+<title>Records</title>
 <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
 <style>
     :root {
@@ -281,7 +281,7 @@
 <div class="back-btn">
 <img alt="Back" src="images/back-icon-D2ne3Npi.png"/>
 </div>
-<div class="title">Bills</div>
+<div class="title">Records</div>
 <div class="record-btn">
 <img alt="Record" src="images/record.png"/>
 </div>
@@ -310,7 +310,7 @@
 <button class="btn btn-confirm" type="button">Confirm</button>
 </section>
 <div id="billsContainer" class="empty-state">
-        No bills yet.
+        No records yet.
       </div>
 </main>
 </div>
@@ -348,7 +348,7 @@
 
     function showEmpty() {
       container.className = 'empty-state';
-      container.textContent = 'No bills yet.';
+      container.textContent = 'No records yet.';
     }
 
     function renderBills(list) {
@@ -379,6 +379,16 @@
         var currency = (tx.currency || filters.currency || 'USDT').toUpperCase();
         var amountStr = amount + ' ' + currency;
 
+        // Optional details for swaps
+        var detailLine = '';
+        if ((tx.type || '').toLowerCase() === 'swap') {
+          var fromC = (tx.fromCurrency || tx.from || '').toString().toUpperCase();
+          var toC = (tx.toCurrency || tx.to || '').toString().toUpperCase();
+          if (fromC || toC) {
+            detailLine = '<div class="bill-sub-row"><span>' + (fromC ? ('From: ' + fromC) : '') + '</span><span>' + (toC ? ('To: ' + toC) : '') + '</span></div>';
+          }
+        }
+
         var feeStr = typeof tx.fee === 'number' ? tx.fee.toFixed(2) + ' ' + currency : '';
         var netStr = typeof tx.net === 'number' ? tx.net.toFixed(2) + ' ' + currency : '';
 
@@ -398,6 +408,7 @@
               '</div>'
             : '');
 
+        if (detailLine) item.insertAdjacentHTML('beforeend', detailLine);
         container.appendChild(item);
       });
     }
@@ -436,10 +447,37 @@
     }
 
     function loadTransactions() {
-      if (!window.DemoWallet || typeof window.DemoWallet.getTransactions !== 'function') {
+      // Priority order:
+      // 1) DemoWallet.getTransactions()  -> real backend integration (recommended)
+      // 2) localStorage.transactions_json -> JSON array of txs
+      // 3) localStorage.transactions      -> JSON array of txs
+      var txs = null;
+
+      try {
+        if (window.DemoWallet && typeof window.DemoWallet.getTransactions === 'function') {
+          txs = window.DemoWallet.getTransactions();
+        }
+      } catch(e) {}
+
+      if (!txs || !txs.length) {
+        try {
+          var raw = localStorage.getItem('transactions_json') || localStorage.getItem('transactions');
+          if (raw) txs = JSON.parse(raw);
+        } catch(e) {}
+      }
+
+      if (!txs || !txs.length) {
         showEmpty();
         return;
       }
+
+      allTxs = txs.slice().sort(function(a, b) {
+        if (!a.createdAt || !b.createdAt) return 0;
+        return a.createdAt < b.createdAt ? 1 : -1;
+      });
+
+      applyFilters();
+    }
 
       var txs = DemoWallet.getTransactions();
       if (!txs || !txs.length) {
@@ -510,6 +548,11 @@
     }
 
     loadTransactions();
+
+    // Keep the list in sync with backend / wallet updates
+    setInterval(function(){
+      loadTransactions();
+    }, 1500);
   })();
 </script>
 
