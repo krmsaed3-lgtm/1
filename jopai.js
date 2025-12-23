@@ -1,83 +1,164 @@
 ;(function () {
   'use strict';
 
-  var SB = window.SB_CONFIG;
-  if (!SB) {
-    console.error('SB_CONFIG missing. Ensure sb-config.js loads before jopai.js');
-    return;
-  }
-
   var input = document.querySelector('.chat-input');
   var sendBtn = document.querySelector('.send-btn');
   var log = document.getElementById('chatLog');
 
   function bubble(text, who) {
     var d = document.createElement('div');
-    var isMe = who === 'me';
-    d.style.alignSelf = isMe ? 'flex-end' : 'flex-start';
-    d.style.background = isMe ? 'rgba(0,209,255,.14)' : 'rgba(255,255,255,.08)';
-    d.style.border = isMe ? '1px solid rgba(0,209,255,.20)' : '1px solid rgba(255,255,255,.10)';
-    d.style.padding = '10px 12px';
-    d.style.borderRadius = '14px';
-    d.style.maxWidth = '90%';
-    d.style.whiteSpace = 'pre-wrap';
+    d.className = 'bubble ' + (who === 'me' ? 'me' : 'ai');
     d.textContent = text;
     log.appendChild(d);
-    // scroll to bottom
+    try { log.scrollTop = log.scrollHeight; } catch (e) {}
     try { window.scrollTo(0, document.body.scrollHeight); } catch (e) {}
   }
 
-  function getUserId() {
-    try {
-      return localStorage.getItem('currentUserId') || localStorage.getItem('sb_user_id_v1') || null;
-    } catch (e) {
-      return null;
-    }
+  function norm(s) {
+    return String(s || '')
+      .toLowerCase()
+      .replace(/[^\u0600-\u06FFa-z0-9\s]/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
   }
 
-  async function askJopai(message) {
-    var userId = getUserId();
-    if (!userId) {
-      bubble('لازم تسجّل دخول أولاً.', 'ai');
-      return;
+  // قواعد ردود Jopai
+  var KB = [
+    {
+      keys: ['كيف اربح', 'كيف اكسب', 'اربح', 'اكسب', 'ربح', 'profits', 'profit'],
+      answer:
+        "الربح يعتمد على رصيدك وتفعيل الربح اليومي.\n" +
+        "• كل 24 ساعة بتفوتي وتكبسي (استلام الربح).\n" +
+        "• الربح ينحسب كنسبة حسب الرصيد.\n\n" +
+        "بدك قلك على الخطوات حسب رصيدك الحالي؟ اكتبلي: كم رصيدك؟",
+      follow: ["كم رصيدك الحالي؟", "بتستلم الربح مرة كل 24 ساعة؟"]
+    },
+    {
+      keys: ['قوة الحوسبة', 'حوسبة', 'computing', 'power'],
+      answer:
+        "قوة الحوسبة بتخليك تربحي بشكل أسهل لأن العائد مرتبط برصيدك/مستواك.\n" +
+        "كل ما زاد الرصيد أو المستوى، زاد العائد اليومي.\n\n" +
+        "بدك شرح سريع: هل هدفك ربح يومي ولا مضاعفة الرصيد؟",
+      follow: ["بدك ربح يومي ولا مضاعفة؟", "شو رصيدك الآن؟"]
+    },
+    {
+      keys: ['كم ربح اليوم', 'ربح اليوم', 'اليوم كم', 'daily', 'today'],
+      answer:
+        "ربح اليوم ينحسب حسب رصيدك الحالي ونسبة الربح اليومية.\n" +
+        "إذا عطيتني رقم رصيدك، بحسبلك مثال واضح.\n\n" +
+        "اكتبلي: رصيدك كم (USDT)؟",
+      follow: ["كم رصيدك بالـ USDT؟", "هل الربح نسبة ثابتة ولا بتتغير؟"]
+    },
+    {
+      keys: ['ضاعف', 'مضاعفة', 'اكبر', 'زيادة الربح', 'ارباحي', 'ضاعف ارباحي'],
+      answer:
+        "في طرق لزيادة أرباحك:\n" +
+        "1) دعوة الأصدقاء (Referral) — كل دعوة ناجحة بتزيد مكافآتك.\n" +
+        "2) رفع المستوى/الخطة إذا متاح.\n" +
+        "3) الالتزام بالاستلام اليومي بدون انقطاع.\n\n" +
+        "بدك أشرح لك نظام دعوة الأصدقاء وكيف تستفيد منه؟",
+      follow: ["بدك شرح دعوة الأصدقاء؟", "هل عندك كود دعوة؟"]
+    },
+    {
+      keys: ['دعوة', 'دعوه', 'اصدقاء', 'reffer', 'referral', 'invite'],
+      answer:
+        "عن طريق دعوة الأصدقاء بتقدري تضاعفي أرباحك:\n" +
+        "• شاركي رابط/كود الدعوة.\n" +
+        "• لما يسجل صديقك ويصير فعّال، بتاخدي مكافأة.\n\n" +
+        "بدك تفعّلي رابط الدعوة عندك؟ قوليلي إذا عندك (Invite Code) أو لا.",
+      follow: ["عندك Invite Code؟", "بدك رسالة جاهزة تبعتيها لأصدقائك؟"]
+    },
+    {
+      keys: ['سحب', 'withdraw', 'اسحب', 'withdrawal'],
+      answer:
+        "بالسحب عادة في شروط لازم تنتبهي إلها:\n" +
+        "• الحد الأدنى للسحب.\n" +
+        "• وقت المعالجة.\n" +
+        "• رسوم الشبكة.\n\n" +
+        "قوليلي: شو العملة اللي بدك تسحبيها (USDT ولا غيرها)؟",
+      follow: ["USDT ولا عملة ثانية؟", "قديش الحد الأدنى للسحب عندك؟"]
+    },
+    {
+      keys: ['ايداع', 'إيداع', 'deposit'],
+      answer:
+        "للإيداع: تأكدي من اختيار الشبكة الصحيحة قبل ما تبعتي.\n" +
+        "بالعادة USDT ممكن يكون على (TRC20 / ERC20 / BSC)، ولازم تطابق الشبكة.\n\n" +
+        "شو الشبكة اللي عم تستخدميها؟",
+      follow: ["TRC20 ولا BSC ولا ERC20؟", "بدك خطوات الإيداع؟"]
+    },
+    {
+      keys: ['مرحبا', 'هلا', 'هاي', 'hello', 'hi', 'اهلا'],
+      answer:
+        "أهلاً فيكي 🤍 أنا Jopai.\n" +
+        "اسأليني مثلاً:\n" +
+        "• كيف أربح؟\n" +
+        "• كم ربح اليوم حسب رصيدي؟\n" +
+        "• كيف أضاعف أرباحي؟\n" +
+        "• كيف أستفيد من دعوة الأصدقاء؟"
+    }
+  ];
+
+  function bestMatch(q) {
+    var s = norm(q);
+    if (!s) return null;
+
+    var best = null;
+    var bestScore = 0;
+
+    for (var i = 0; i < KB.length; i++) {
+      var item = KB[i];
+      var score = 0;
+      for (var k = 0; k < item.keys.length; k++) {
+        var key = norm(item.keys[k]);
+        if (!key) continue;
+        // تطابق بسيط: إذا الجملة تحتوي الكلمة
+        if (s.indexOf(key) !== -1) score += 2;
+        // تطابق جزئي: إذا كلمة من المفتاح موجودة
+        var parts = key.split(' ');
+        for (var p = 0; p < parts.length; p++) {
+          if (parts[p].length >= 3 && s.indexOf(parts[p]) !== -1) score += 1;
+        }
+      }
+      if (score > bestScore) {
+        bestScore = score;
+        best = item;
+      }
     }
 
-    // call Supabase Edge Function
-    var url = SB.url + '/functions/v1/jopai-chat';
-    var res = await fetch(url, {
-      method: 'POST',
-      headers: Object.assign({}, SB.headers(), {
-        // supabase edge functions expect json
-        'Content-Type': 'application/json'
-      }),
-      body: JSON.stringify({ user_id: userId, message: message })
-    });
-
-    if (!res.ok) {
-      var t = '';
-      try { t = await res.text(); } catch (e) {}
-      console.error('jopai-chat error:', t);
-      bubble('صار خطأ بالسيرفر. جرّب مرة ثانية.', 'ai');
-      return;
-    }
-
-    var data = await res.json();
-    bubble((data && data.answer) ? data.answer : 'ما فهمت عليك، فيك تعيد السؤال؟', 'ai');
+    return bestScore > 0 ? best : null;
   }
 
-  async function onSend() {
+  function fallbackReply(q) {
+    return (
+      "فهمت عليك 👌\n" +
+      "بس خبريني قصدك أي واحد؟\n" +
+      "1) كيف تربحي؟\n" +
+      "2) كم ربح اليوم حسب رصيدك؟\n" +
+      "3) كيف تضاعفي أرباحك؟\n" +
+      "4) دعوة الأصدقاء\n\n" +
+      "اكتبي رقم الخيار أو اسألي بسؤال أقصر."
+    );
+  }
+
+  function onSend() {
     var text = (input && input.value ? String(input.value) : '').trim();
     if (!text) return;
 
     input.value = '';
     bubble(text, 'me');
 
-    if (sendBtn) sendBtn.disabled = true;
-    try {
-      await askJopai(text);
-    } finally {
-      if (sendBtn) sendBtn.disabled = false;
-      try { input.focus(); } catch (e) {}
+    var hit = bestMatch(text);
+    if (!hit) {
+      bubble(fallbackReply(text), 'ai');
+      return;
+    }
+
+    bubble(hit.answer, 'ai');
+
+    // أسئلة متابعة (اختياري)
+    if (hit.follow && hit.follow.length) {
+      var f = hit.follow.slice(0, 2).map(function (x) { return "• " + x; }).join("\n");
+      bubble("قبل ما أكمل، جاوبيني:\n" + f, 'ai');
     }
   }
 
