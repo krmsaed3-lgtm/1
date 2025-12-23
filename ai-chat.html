@@ -2,88 +2,173 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>Jopai AI</title>
-
+  <title>Jopai - Tools</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <style>
-    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;background:#0C0B10;color:#fff}
-    .app{max-width:480px;margin:0 auto;min-height:100vh;padding-bottom:110px}
-    .app-header{position:sticky;top:0;z-index:10;display:flex;align-items:center;justify-content:center;
-      padding:14px 14px;background:#0C0B10;border-bottom:1px solid rgba(255,255,255,.06)}
-    .header-icon-btn{display:none !important;}
-    .app-header-title{font-weight:800;letter-spacing:.2px}
-    .app-main{padding:14px}
-
-    .robot-wrap{display:flex;justify-content:center;margin:6px 0 10px}
-    .robot-wrap img{width:90px;height:90px;object-fit:contain}
-
-    .intro-text{color:#a9b1bd;font-size:12px;line-height:1.4;margin:0 0 12px;text-align:center}
-
-    #chatLog{display:flex;flex-direction:column;gap:10px;padding:10px 2px 14px;min-height:45vh}
-    .bubble{max-width:90%;padding:10px 12px;border-radius:14px;white-space:pre-wrap;line-height:1.35}
-    .bubble.me{align-self:flex-start;background:rgba(0,209,255,.14);border:1px solid rgba(0,209,255,.22)}
-    .bubble.ai{align-self:flex-end;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.10)}
-    .bubble.err{align-self:flex-end;background:rgba(255,0,0,.10);border:1px solid rgba(255,0,0,.20)}
-
-    .input-wrap{position:sticky;bottom:90px;background:#0C0B10;padding:10px 0 0;border-top:1px solid rgba(255,255,255,.06)}
-    .chat-input-row{display:flex;gap:10px;align-items:center}
-    .chat-input{flex:1;padding:12px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.12);
-      background:#101019;color:#fff;outline:none}
-    .send-btn{width:48px;height:44px;border-radius:12px;border:0;background:#00d1ff;color:#001018;
-      font-size:18px;font-weight:800}
-    .send-btn:disabled{opacity:.6}
-
-    .bottom-nav {
-      position: fixed; left: 0; right: 0; bottom: 0;
-      height: 78px; display: flex; align-items: center; justify-content: space-around;
-      padding: 8px 0 30px 0; background-color: #0C0B10;
-      box-shadow: 0 -1px 0 rgba(255, 255, 255, 0.04);
+    :root{
+      --bg:#05060b;
+      --card:#05070f;
+      --text:#ffffff;
+      --muted:#9ca3af;
+      --blue:#18c1ff;   /* نفس ملفك القديم */ /* :contentReference[oaicite:1]{index=1} */
+      --green:#22e1a5;  /* نفس ملفك القديم */ /* :contentReference[oaicite:2]{index=2} */
+      --grad: linear-gradient(90deg, #18c1ff, #22e1a5); /* زر Run */
     }
-    .bottom-item {flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 11px; color: #7b8593;}
-    .bottom-icon-img {width: 26px; height: 26px; object-fit: contain;}
-    .bottom-item.power .bottom-icon-img.power-img {width: 40px; height: 40px; border-radius: 999px;}
-    .bottom-item.active span {color: #00d1ff;}
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,sans-serif}
+    .app{min-height:100vh;max-width:480px;margin:0 auto;padding:12px 10px 100px}
 
-    @media (min-width: 480px) {
-      .bottom-nav {left: 50%; right: auto; transform: translateX(-50%); max-width: 480px;}
+    /* Header */
+    .top-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;padding:0 2px}
+    .logo-wrap{display:flex;align-items:center;gap:10px}
+    .logo-icon{
+      width:34px;height:34px;border-radius:10px;
+      background: radial-gradient(circle at 20% 20%, var(--green) 0, var(--blue) 45%, #050816 100%);
+      display:flex;align-items:center;justify-content:center;overflow:hidden;
+    }
+    .logo-icon span{font-weight:900;font-size:12px;color:#031015}
+    .logo-text{font-size:12px;color:var(--muted)}
+    .circle-btn{
+      width:34px;height:34px;border-radius:999px;background:#05070f;
+      display:flex;align-items:center;justify-content:center;color:#cbd5e1;font-weight:900
+    }
+    .circle-btn{display:none;} /* إذا بدك تخفي أزرار الرأس نهائيًا */
+
+    /* Hero */
+    .hero{padding:8px 4px 14px;text-align:center}
+    .hero-title{font-size:26px;font-weight:900;letter-spacing:.3px}
+    .hero-title span{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+    .hero-sub{margin:10px auto 0;max-width:360px;font-size:12px;line-height:1.6;color:var(--muted)}
+    .hero-cta{
+      margin:14px auto 0;display:inline-flex;align-items:center;gap:10px;
+      padding:10px 18px;border-radius:999px;background:rgba(24,193,255,.12);
+      border:1px solid rgba(24,193,255,.35); color:#e5f7ff; font-size:12px;
+    }
+    .hero-cta b{color:#e5f7ff}
+
+    /* Cards */
+    .section-label{font-size:12px;color:var(--muted);margin:10px 2px 6px}
+    .grid{display:flex;flex-direction:column;gap:10px;margin-top:6px}
+    .card{background:var(--card);border-radius:16px;padding:12px 12px 14px;border:1px solid rgba(255,255,255,.06)}
+    .card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+    .card-title{font-size:14px;font-weight:800;margin-bottom:4px}
+    .card-desc{font-size:11px;color:var(--muted);line-height:1.5;max-width:80%}
+    .badge{
+      width:36px;height:36px;border-radius:12px;background:rgba(24,193,255,.15);
+      display:flex;align-items:center;justify-content:center;border:1px solid rgba(24,193,255,.25);
+      font-size:16px
+    }
+    .card-bottom{display:flex;align-items:center;justify-content:space-between;margin-top:12px;gap:10px}
+    .mini{font-size:11px;color:var(--muted)}
+    .run-btn{
+      padding:7px 18px;border-radius:999px;border:none;background:var(--grad);
+      color:#05060b;font-size:13px;font-weight:800;cursor:pointer;
+    }
+
+    /* Bottom nav (نفس نمطك الحالي) */
+    .bottom-nav{
+      position:fixed;left:0;right:0;bottom:0;height:78px;
+      display:flex;align-items:center;justify-content:space-around;
+      padding:8px 0 30px 0;background:#0C0B10;
+      box-shadow:0 -1px 0 rgba(255,255,255,.04);
+    }
+    .bottom-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11px;color:#7b8593}
+    .bottom-icon-img{width:26px;height:26px;object-fit:contain}
+    .bottom-item.power .bottom-icon-img.power-img{width:40px;height:40px;border-radius:999px}
+    .bottom-item.active span{color:#00d1ff}
+    @media (min-width:480px){
+      .bottom-nav{left:50%;right:auto;transform:translateX(-50%);max-width:480px}
     }
   </style>
 </head>
 <body>
-
   <div class="app">
-    <header class="app-header">
-      <div class="app-header-title">Jopai</div>
-    </header>
-
-    <main class="app-main">
-      <div class="robot-wrap">
-        <img src="ai-chat-robot.gif" alt="Jopai Robot" />
+    <div class="top-row">
+      <div class="logo-wrap">
+        <div class="logo-icon"><span>JP</span></div>
+        <div class="logo-text">Jopai</div>
       </div>
+      <div class="circle-btn">⋯</div>
+    </div>
 
-      <div class="intro-text">
-        اسأل Jopai أي سؤال… وأنا بردّ عليك بشكل واضح وبسيط.
+    <section class="hero">
+      <div class="hero-title"><span>Jopai</span> Tools</div>
+      <div class="hero-sub">
+        اختاري بطاقة… واضغطي Run، رح يفتح الشات ويكتب السؤال تلقائيًا.
       </div>
-
-      <div id="chatLog">
-        <div class="bubble ai">أهلاً! أنا Jopai 🤍 اكتب سؤالك تحت.</div>
+      <div class="hero-cta">
+        <b>بدون بحث</b> — كل شيء واضح وسريع
       </div>
+    </section>
 
-      <div class="input-wrap">
-        <div class="chat-input-row">
-          <input class="chat-input" type="text" placeholder="اكتب سؤالك هنا..." />
-          <button class="send-btn" type="button">&#10148;</button>
+    <div class="section-label">الأكثر استخدامًا</div>
+
+    <div class="grid">
+      <div class="card">
+        <div class="card-top">
+          <div>
+            <div class="card-title">كيف أربح؟</div>
+            <div class="card-desc">شرح بسيط لطريقة الربح وكيف ينحسب حسب الرصيد.</div>
+          </div>
+          <div class="badge">💡</div>
+        </div>
+        <div class="card-bottom">
+          <div class="mini">سؤال جاهز</div>
+          <button class="run-btn" data-q="كيف أربح؟">Run</button>
         </div>
       </div>
-    </main>
+
+      <div class="card">
+        <div class="card-top">
+          <div>
+            <div class="card-title">كم ربح اليوم حسب رصيدي؟</div>
+            <div class="card-desc">يعطيك تفسير واضح وكيف تحسبي الربح اليومي.</div>
+          </div>
+          <div class="badge">📊</div>
+        </div>
+        <div class="card-bottom">
+          <div class="mini">سؤال جاهز</div>
+          <button class="run-btn" data-q="كم ربح اليوم حسب رصيدي؟">Run</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-top">
+          <div>
+            <div class="card-title">كيف أضاعف أرباحي؟</div>
+            <div class="card-desc">طرق زيادة الأرباح مثل الالتزام اليومي ورفع المستوى.</div>
+          </div>
+          <div class="badge">🚀</div>
+        </div>
+        <div class="card-bottom">
+          <div class="mini">سؤال جاهز</div>
+          <button class="run-btn" data-q="كيف يمكنني مضاعفة أرباحي؟">Run</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-top">
+          <div>
+            <div class="card-title">دعوة الأصدقاء</div>
+            <div class="card-desc">كيف تستفيدي من الإحالات وتزيدي المكافآت.</div>
+          </div>
+          <div class="badge">👥</div>
+        </div>
+        <div class="card-bottom">
+          <div class="mini">سؤال جاهز</div>
+          <button class="run-btn" data-q="كيف أستفيد من دعوة الأصدقاء؟">Run</button>
+        </div>
+      </div>
+    </div>
+
   </div>
 
   <nav class="bottom-nav">
-    <div class="bottom-item tools">
+    <div class="bottom-item tools active">
       <img alt="AI-Tools" class="bottom-icon-img" src="images/tools-icon.png"/>
       <span>AI–Tools</span>
     </div>
-    <div class="bottom-item chat active">
+    <div class="bottom-item chat">
       <img alt="AI Chat" class="bottom-icon-img" src="images/chat-icon.png"/>
       <span>AI Chat</span>
     </div>
@@ -101,14 +186,25 @@
     </div>
   </nav>
 
-  <!-- ضروري -->
-  <script src="sb-config.js"></script>
-  <script src="auth.js"></script>
-  <script src="sb-user.js"></script>
+  <script>
+    // Run -> فتح الشات مع سؤال جاهز
+    document.querySelectorAll('.run-btn').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        var q = btn.getAttribute('data-q') || '';
+        window.location.href = 'ai-chat.html?q=' + encodeURIComponent(q);
+      });
+    });
 
-  <!-- هذا لازم يكون عندك -->
-  <script src="jopai.js"></script>
-
-  <script src="common-nav.js"></script>
+    // Bottom nav
+    function go(sel, href){
+      var el = document.querySelector(sel);
+      if(el) el.addEventListener('click', function(){ window.location.href = href; });
+    }
+    go('.bottom-item.tools','jopai-tools.html');
+    go('.bottom-item.chat','ai-chat.html');
+    go('.bottom-item.power','ai-power.html');
+    go('.bottom-item.assets','my-assets.html');
+    go('.bottom-item.mine','mine.html');
+  </script>
 </body>
 </html>
