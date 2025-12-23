@@ -5,16 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Jopai AI</title>
 
-  <!-- إذا عندك ai-chat-style.css شغال خليها، إذا لا، الصفحة رح تبقى مرتبة لأن عندنا ستايل داخلي -->
-  <link rel="stylesheet" href="ai-chat-style.css" />
-
   <style>
     body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;background:#0C0B10;color:#fff}
     .app{max-width:480px;margin:0 auto;min-height:100vh;padding-bottom:110px}
-    .app-header{position:sticky;top:0;z-index:10;display:flex;align-items:center;justify-content:space-between;
+    .app-header{position:sticky;top:0;z-index:10;display:flex;align-items:center;justify-content:center;
       padding:14px 14px;background:#0C0B10;border-bottom:1px solid rgba(255,255,255,.06)}
-    .header-icon-btn{width:34px;height:34px;display:flex;align-items:center;justify-content:center;
-      border-radius:10px;background:rgba(255,255,255,.06);color:#fff;user-select:none}
+    .header-icon-btn{display:none !important;}
     .app-header-title{font-weight:800;letter-spacing:.2px}
     .app-main{padding:14px}
 
@@ -23,11 +19,11 @@
 
     .intro-text{color:#a9b1bd;font-size:12px;line-height:1.4;margin:0 0 12px;text-align:center}
 
-    /* Chat area */
     #chatLog{display:flex;flex-direction:column;gap:10px;padding:10px 2px 14px;min-height:45vh}
     .bubble{max-width:90%;padding:10px 12px;border-radius:14px;white-space:pre-wrap;line-height:1.35}
     .bubble.me{align-self:flex-start;background:rgba(0,209,255,.14);border:1px solid rgba(0,209,255,.22)}
     .bubble.ai{align-self:flex-end;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.10)}
+    .bubble.err{align-self:flex-end;background:rgba(255,0,0,.10);border:1px solid rgba(255,0,0,.20)}
 
     .input-wrap{position:sticky;bottom:90px;background:#0C0B10;padding:10px 0 0;border-top:1px solid rgba(255,255,255,.06)}
     .chat-input-row{display:flex;gap:10px;align-items:center}
@@ -37,7 +33,6 @@
       font-size:18px;font-weight:800}
     .send-btn:disabled{opacity:.6}
 
-    /* Bottom nav (كما عندك) */
     .bottom-nav {
       position: fixed; left: 0; right: 0; bottom: 0;
       height: 78px; display: flex; align-items: center; justify-content: space-around;
@@ -58,9 +53,7 @@
 
   <div class="app">
     <header class="app-header">
-      <div class="header-icon-btn">&#9776;</div>
       <div class="app-header-title">Jopai</div>
-      <div class="header-icon-btn">+</div>
     </header>
 
     <main class="app-main">
@@ -72,12 +65,10 @@
         اسأل Jopai أي سؤال… وأنا بردّ عليك بشكل واضح وبسيط.
       </div>
 
-      <!-- رسائل الشات -->
       <div id="chatLog">
         <div class="bubble ai">أهلاً! أنا Jopai 🤍 اكتب سؤالك تحت.</div>
       </div>
 
-      <!-- الإدخال -->
       <div class="input-wrap">
         <div class="chat-input-row">
           <input class="chat-input" type="text" placeholder="اكتب سؤالك هنا..." />
@@ -110,10 +101,12 @@
     </div>
   </nav>
 
-  <!-- لازم هذا الترتيب -->
+  <!-- ضروري -->
   <script src="sb-config.js"></script>
   <script src="auth.js"></script>
   <script src="sb-user.js"></script>
+
+  <!-- هذا لازم يكون عندك -->
   <script src="jopai.js"></script>
 
   <script src="common-nav.js"></script>
