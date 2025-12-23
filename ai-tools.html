@@ -12,12 +12,15 @@
       --text:#ffffff;
       --muted:#9ca3af;
 
-      /* لون/تدرّج زر Run (مثل اللي طلبتيه) */
+      /* Run gradient */
       --run-blue:#18C1FF;
       --run-green:#22E1A5;
       --run-grad: linear-gradient(90deg, var(--run-blue), var(--run-green));
-    }
 
+      /* Bottom nav sizing */
+      --nav-h: 72px;
+      --nav-pad: calc(env(safe-area-inset-bottom, 0px) + 10px);
+    }
     *{box-sizing:border-box}
     html,body{height:100%}
     body{
@@ -34,42 +37,24 @@
       max-width:480px;
       margin:0 auto;
       min-height:100vh;
-      padding:14px 12px 110px;
+      padding:14px 12px calc(var(--nav-h) + var(--nav-pad) + 18px);
     }
 
     /* Top bar */
     .topbar{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      margin-bottom:14px;
-      padding:0 2px;
+      display:flex;align-items:center;justify-content:space-between;
+      margin-bottom:14px;padding:0 2px;
     }
-    .brand{
-      display:flex;
-      align-items:center;
-      gap:10px;
-    }
+    .brand{display:flex;align-items:center;gap:10px}
     .mark{
       width:36px;height:36px;border-radius:12px;
       background: radial-gradient(circle at 20% 20%, var(--run-green) 0, var(--run-blue) 55%, #0a1022 100%);
       border:1px solid rgba(255,255,255,.10);
       display:flex;align-items:center;justify-content:center;
-      font-weight:900;
-      color:#031015;
-      user-select:none;
+      font-weight:900;color:#031015;user-select:none;
     }
-    .brand h1{
-      font-size:14px;
-      margin:0;
-      font-weight:900;
-      letter-spacing:.2px;
-    }
-    .brand .sub{
-      font-size:11px;
-      color:var(--muted);
-      margin-top:2px;
-    }
+    .brand h1{font-size:14px;margin:0;font-weight:900;letter-spacing:.2px}
+    .brand .sub{font-size:11px;color:var(--muted);margin-top:2px}
 
     /* Hero */
     .hero{
@@ -77,132 +62,64 @@
       border:1px solid var(--stroke);
       border-radius:18px;
       padding:14px;
-      display:flex;
-      gap:12px;
-      align-items:center;
+      display:flex;gap:12px;align-items:center;
     }
     .hero-text{flex:1;min-width:0}
-    .hero-title{
-      margin:0;
-      font-size:22px;
-      font-weight:950;
-      letter-spacing:.2px;
-      line-height:1.1;
-    }
-    .hero-title .grad{
-      background:var(--run-grad);
-      -webkit-background-clip:text;
-      background-clip:text;
-      color:transparent;
-    }
-    .hero-desc{
-      margin:8px 0 0;
-      font-size:12px;
-      color:var(--muted);
-      line-height:1.55;
-    }
+    .hero-title{margin:0;font-size:22px;font-weight:950;letter-spacing:.2px;line-height:1.1}
+    .hero-title .grad{background:var(--run-grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+    .hero-desc{margin:8px 0 0;font-size:12px;color:var(--muted);line-height:1.55}
     .hero-pill{
-      margin-top:10px;
-      display:inline-flex;
-      gap:8px;
-      align-items:center;
-      padding:8px 12px;
-      border-radius:999px;
+      margin-top:10px;display:inline-flex;gap:8px;align-items:center;
+      padding:8px 12px;border-radius:999px;
       border:1px solid rgba(24,193,255,.25);
       background: rgba(24,193,255,.10);
-      color:#e9fbff;
-      font-size:11px;
-      white-space:nowrap;
+      color:#e9fbff;font-size:11px;white-space:nowrap;
     }
-
-    /* Simple illustration (inline SVG wrapper) */
     .hero-illu{
-      width:112px;
-      height:112px;
-      flex:0 0 auto;
-      border-radius:18px;
+      width:112px;height:112px;flex:0 0 auto;border-radius:18px;
       background: rgba(255,255,255,.04);
       border:1px solid rgba(255,255,255,.08);
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      overflow:hidden;
+      display:flex;align-items:center;justify-content:center;overflow:hidden;
     }
     .hero-illu svg{width:104px;height:104px;opacity:.95}
 
-    /* Section title */
-    .section-title{
-      margin:14px 2px 8px;
-      font-size:12px;
-      color:var(--muted);
-    }
-
-    /* Cards */
+    .section-title{margin:14px 2px 8px;font-size:12px;color:var(--muted)}
     .cards{display:flex;flex-direction:column;gap:10px}
     .card{
       background: var(--panel);
       border:1px solid var(--stroke);
       border-radius:16px;
       padding:12px;
-      display:flex;
-      gap:12px;
-      align-items:flex-start;
-      justify-content:space-between;
+      display:flex;gap:12px;align-items:flex-start;justify-content:space-between;
     }
     .card-left{display:flex;gap:10px;align-items:flex-start;min-width:0}
     .icon{
       width:36px;height:36px;border-radius:12px;
       border:1px solid rgba(24,193,255,.20);
       background: rgba(24,193,255,.10);
-      display:flex;align-items:center;justify-content:center;
-      font-size:16px;
-      flex:0 0 auto;
+      display:flex;align-items:center;justify-content:center;font-size:16px;flex:0 0 auto;
     }
-    .card h3{
-      margin:0;
-      font-size:14px;
-      font-weight:900;
-    }
-    .card p{
-      margin:6px 0 0;
-      font-size:11px;
-      color:var(--muted);
-      line-height:1.5;
-    }
+    .card h3{margin:0;font-size:14px;font-weight:900}
+    .card p{margin:6px 0 0;font-size:11px;color:var(--muted);line-height:1.5}
     .run{
-      border:0;
-      cursor:pointer;
-      background: var(--run-grad);
-      color:#05060b;
-      font-weight:900;
-      border-radius:999px;
-      padding:8px 16px;
-      font-size:13px;
-      flex:0 0 auto;
+      border:0;cursor:pointer;background: var(--run-grad);
+      color:#05060b;font-weight:900;border-radius:999px;padding:8px 16px;font-size:13px;flex:0 0 auto;
     }
 
-    /* Bottom nav (بنفس روح موقعك) */
+    /* Bottom Nav (FIXED + Safe area) */
     .bottom-nav{
       position:fixed;
       left:0; right:0; bottom:0;
-      height:78px;
-      padding:8px 0 30px 0;
+      height:var(--nav-h);
+      padding:8px 0 var(--nav-pad);
       background:#0C0B10;
       box-shadow:0 -1px 0 rgba(255,255,255,.04);
-      display:flex;
-      align-items:center;
-      justify-content:space-around;
+      display:flex;align-items:flex-start;justify-content:space-around;
+      z-index:999;
     }
     .bottom-item{
-      flex:1;
-      display:flex;
-      flex-direction:column;
-      align-items:center;
-      gap:4px;
-      font-size:11px;
-      color:#7b8593;
-      user-select:none;
-      cursor:pointer;
+      flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;
+      font-size:11px;color:#7b8593;user-select:none;cursor:pointer;
     }
     .bottom-item.active span{color:#00d1ff}
     .bottom-icon-img{width:26px;height:26px;object-fit:contain}
@@ -225,7 +142,6 @@
       </div>
     </div>
 
-    <!-- HERO -->
     <section class="hero">
       <div class="hero-text">
         <h2 class="hero-title"><span class="grad">Jopai</span> يساعدك بسرعة</h2>
@@ -236,7 +152,6 @@
         <div class="hero-pill">⚡ أسئلة جاهزة • ردود فورية</div>
       </div>
 
-      <!-- رسم بسيط بدل صورة (حتى ما تتعبي بملف صور) -->
       <div class="hero-illu" aria-hidden="true">
         <svg viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
           <defs>
@@ -245,15 +160,12 @@
               <stop offset="1" stop-color="#22E1A5"/>
             </linearGradient>
           </defs>
-          <!-- coins -->
           <circle cx="86" cy="30" r="12" fill="url(#g)" opacity="0.95"/>
           <circle cx="98" cy="48" r="9" fill="url(#g)" opacity="0.75"/>
           <circle cx="80" cy="52" r="7" fill="url(#g)" opacity="0.6"/>
-          <!-- phone -->
           <rect x="22" y="22" width="56" height="78" rx="12" fill="#0B1224" stroke="rgba(255,255,255,.18)" stroke-width="2"/>
           <rect x="30" y="34" width="40" height="50" rx="8" fill="rgba(255,255,255,.06)" />
           <circle cx="50" cy="90" r="4" fill="rgba(255,255,255,.22)"/>
-          <!-- hand/head -->
           <circle cx="38" cy="16" r="10" fill="rgba(255,255,255,.10)" stroke="rgba(255,255,255,.14)" stroke-width="2"/>
           <path d="M16 70 C22 58, 36 54, 44 62 C52 70, 48 84, 36 86 C24 88, 12 82, 16 70 Z"
                 fill="rgba(255,255,255,.07)" stroke="rgba(255,255,255,.12)" stroke-width="2"/>
@@ -310,7 +222,6 @@
     </div>
   </div>
 
-  <!-- Bottom Nav (نفس المسارات عندك - إذا اسم ملف مختلف قوليلي وبغيّرهم) -->
   <nav class="bottom-nav">
     <div class="bottom-item tools active" data-go="ai-tools.html">
       <img alt="AI-Tools" class="bottom-icon-img" src="images/tools-icon.png"/>
@@ -335,15 +246,12 @@
   </nav>
 
   <script>
-    // Run -> يفتح ai-chat.html ويبعث السؤال
     document.querySelectorAll('.run').forEach(function(btn){
       btn.addEventListener('click', function(){
         var q = btn.getAttribute('data-q') || '';
         window.location.href = 'ai-chat.html?q=' + encodeURIComponent(q);
       });
     });
-
-    // Bottom nav
     document.querySelectorAll('.bottom-item').forEach(function(item){
       item.addEventListener('click', function(){
         var href = item.getAttribute('data-go');

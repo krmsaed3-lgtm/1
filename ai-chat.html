@@ -15,6 +15,9 @@
       --run-blue:#18C1FF;
       --run-green:#22E1A5;
       --grad: linear-gradient(90deg, var(--run-blue), var(--run-green));
+
+      --nav-h: 72px;
+      --nav-pad: calc(env(safe-area-inset-bottom, 0px) + 10px);
     }
     *{box-sizing:border-box}
     body{
@@ -25,7 +28,10 @@
                   var(--bg);
       color:var(--text);
     }
-    .wrap{max-width:480px;margin:0 auto;min-height:100vh;padding-bottom:110px}
+    .wrap{
+      max-width:480px;margin:0 auto;min-height:100vh;
+      padding-bottom: calc(var(--nav-h) + var(--nav-pad) + 18px);
+    }
     .top{
       position:sticky;top:0;z-index:10;
       display:flex;align-items:center;justify-content:center;
@@ -33,13 +39,12 @@
       background:rgba(12,11,16,.88);
       backdrop-filter: blur(10px);
       border-bottom:1px solid rgba(255,255,255,.06);
-      font-weight:900;
-      letter-spacing:.2px;
+      font-weight:900;letter-spacing:.2px;
     }
     .msgs{
       padding:14px 12px 10px;
       display:flex;flex-direction:column;gap:10px;
-      min-height:65vh;
+      min-height:55vh;
     }
     .b{
       max-width:88%;
@@ -50,24 +55,21 @@
       border:1px solid rgba(255,255,255,.10);
       background: rgba(255,255,255,.06);
     }
-    .me{
-      align-self:flex-start;
-      border:1px solid rgba(24,193,255,.22);
-      background: rgba(24,193,255,.12);
-    }
-    .ai{
-      align-self:flex-end;
-      border:1px solid rgba(255,255,255,.10);
-      background: rgba(255,255,255,.06);
-    }
+    .me{align-self:flex-start;border:1px solid rgba(24,193,255,.22);background: rgba(24,193,255,.12);}
+    .ai{align-self:flex-end;}
+
+    /* composer sits ABOVE bottom nav */
     .composer{
-      position:sticky;
-      bottom:88px;
+      position:fixed;
+      left:0; right:0;
+      bottom: calc(var(--nav-h) + var(--nav-pad));
       padding:10px 12px 12px;
       background:rgba(12,11,16,.88);
       backdrop-filter: blur(10px);
       border-top:1px solid rgba(255,255,255,.06);
+      z-index:998;
     }
+    .composer-inner{max-width:480px;margin:0 auto;}
     .row{display:flex;gap:10px;align-items:center}
     .chat-input{
       flex:1;
@@ -90,20 +92,29 @@
     }
     .send-btn:disabled{opacity:.6}
 
-    /* Bottom nav */
+    /* Bottom nav (FIXED + safe area) */
     .bottom-nav{
-      position:fixed;left:0;right:0;bottom:0;height:78px;
-      display:flex;align-items:center;justify-content:space-around;
-      padding:8px 0 30px 0;background:#0C0B10;
+      position:fixed;left:0;right:0;bottom:0;
+      height:var(--nav-h);
+      padding:8px 0 var(--nav-pad);
+      background:#0C0B10;
       box-shadow:0 -1px 0 rgba(255,255,255,.04);
+      display:flex;align-items:flex-start;justify-content:space-around;
+      z-index:999;
     }
     .bottom-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11px;color:#7b8593;cursor:pointer}
     .bottom-icon-img{width:26px;height:26px;object-fit:contain}
     .bottom-item.power .bottom-icon-img.power-img{width:40px;height:40px;border-radius:999px}
     .bottom-item.active span{color:#00d1ff}
     @media (min-width:480px){
-      .bottom-nav{left:50%;right:auto;transform:translateX(-50%);max-width:480px}
+      .bottom-nav{left:50%;right:auto;transform:translateX(-50%);max-width:480px;}
+      .composer{left:50%;right:auto;transform:translateX(-50%);max-width:480px;}
     }
+
+    /* iPhone keyboard fix: when typing, hide bottom nav + move composer down */
+    body.kb .bottom-nav{display:none;}
+    body.kb .composer{bottom: env(safe-area-inset-bottom, 0px);}
+    body.kb .wrap{padding-bottom: 90px;}
   </style>
 </head>
 <body>
@@ -113,9 +124,10 @@
     <div id="chatLog" class="msgs">
       <div class="b ai">أهلاً 🤍 أنا Jopai. اكتبي سؤالك تحت.</div>
     </div>
+  </div>
 
-    <!-- مربع الكتابة (مثل قبل) -->
-    <div class="composer">
+  <div class="composer">
+    <div class="composer-inner">
       <div class="row">
         <input class="chat-input" type="text" placeholder="اكتب سؤالك هنا..." />
         <button class="send-btn" type="button">➤</button>
@@ -146,22 +158,26 @@
     </div>
   </nav>
 
-  <!-- ملفاتك -->
   <script src="sb-config.js"></script>
   <script src="auth.js"></script>
   <script src="sb-user.js"></script>
-
-  <!-- منطق الشات (ردود من Supabase FAQ + fallback) -->
   <script src="jopai.js"></script>
 
   <script>
-    // Bottom nav
+    // Bottom nav navigation
     document.querySelectorAll('.bottom-item').forEach(function(item){
       item.addEventListener('click', function(){
         var href = item.getAttribute('data-go');
         if (href) window.location.href = href;
       });
     });
+
+    // Keyboard handling (iOS): hide bottom nav when typing
+    var input = document.querySelector('.chat-input');
+    if (input){
+      input.addEventListener('focus', function(){ document.body.classList.add('kb'); });
+      input.addEventListener('blur', function(){ setTimeout(function(){ document.body.classList.remove('kb'); }, 120); });
+    }
   </script>
 </body>
 </html>
