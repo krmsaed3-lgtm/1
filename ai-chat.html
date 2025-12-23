@@ -94,7 +94,6 @@
 
     /* Bottom nav (FIXED + safe area) */
     .bottom-nav{
-      direction:ltr;
       position:fixed;left:0;right:0;bottom:0;
       height:var(--nav-h);
       padding:8px 0 var(--nav-pad);
@@ -137,27 +136,27 @@
   </div>
 
   <nav class="bottom-nav">
-  <div class="bottom-item mine" data-go="mine.html">
-      <img alt="Mine" class="bottom-icon-img" src="images/mine-icon.png"/>
-      <span>Mine</span>
+    <div class="bottom-item tools" data-go="ai-tools.html">
+      <img alt="AI-Tools" class="bottom-icon-img" src="images/tools-icon.png"/>
+      <span>AI–Tools</span>
     </div>
-  <div class="bottom-item assets" data-go="my-assets.html">
-      <img alt="Assets" class="bottom-icon-img" src="images/assets-icon.png"/>
-      <span>Assets</span>
-    </div>
-  <div class="bottom-item power" data-go="ai-power.html">
-      <img alt="AI Power" class="bottom-icon-img power-img" src="images/ai-power.gif"/>
-      <span>AI Power</span>
-    </div>
-  <div class="bottom-item chat active" data-go="ai-chat.html">
+    <div class="bottom-item chat active" data-go="ai-chat.html">
       <img alt="AI Chat" class="bottom-icon-img" src="images/chat-icon.png"/>
       <span>AI Chat</span>
     </div>
-  <div class="bottom-item tools" data-go="ai-tools.html">
-      <img alt="AI–Tools" class="bottom-icon-img" src="images/tools-icon.png"/>
-      <span>AI–Tools</span>
+    <div class="bottom-item power" data-go="ai-power.html">
+      <img alt="AI Power" class="bottom-icon-img power-img" src="images/ai-power.gif"/>
+      <span>AI Power</span>
     </div>
-</nav>
+    <div class="bottom-item assets" data-go="my-assets.html">
+      <img alt="Assets" class="bottom-icon-img" src="images/assets-icon.png"/>
+      <span>Assets</span>
+    </div>
+    <div class="bottom-item mine" data-go="mine.html">
+      <img alt="Mine" class="bottom-icon-img" src="images/mine-icon.png"/>
+      <span>Mine</span>
+    </div>
+  </nav>
 
   <script src="sb-config.js"></script>
   <script src="auth.js"></script>
