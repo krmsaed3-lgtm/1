@@ -409,6 +409,21 @@
       }
     }
   </style>
+
+<style id="balance-ui-tweaks">
+  /* When an asset has no balance, make actions feel "inactive" */
+  .currency-row.no-balance .currency-actions-inner .currency-btn[data-action="Withdraw"],
+  .currency-row.no-balance .currency-actions-inner .currency-btn[data-action="Bills"]{
+    opacity: .35;
+    pointer-events: none;
+    filter: grayscale(1);
+  }
+  /* If you want to HIDE Wallet too when no balance (as you requested) */
+  .currency-row.no-balance .currency-actions-inner .currency-btn[data-action="Deposit"]{
+    display: none !important;
+  }
+</style>
+
 </head>
 <body>
 <div class="page">
@@ -765,5 +780,50 @@
 <script src="sb-balance.js"></script>
 <!-- Enforce login redirects -->
 <script src="common-nav.js"></script>
+
+<script id="balance-ui-script">
+(function(){
+  "use strict";
+
+  function parseAmount(txt){
+    if (!txt) return 0;
+    // keep digits, dot, minus
+    var clean = (txt + "").replace(/[^0-9.\-]/g, "");
+    var n = parseFloat(clean);
+    return isFinite(n) ? n : 0;
+  }
+
+  function apply(){
+    document.querySelectorAll(".currency-row").forEach(function(row){
+      var amtEl = row.querySelector('.currency-amount[data-asset]');
+      if (!amtEl) return;
+      var n = parseAmount(amtEl.textContent);
+      if (n <= 0) row.classList.add("no-balance");
+      else row.classList.remove("no-balance");
+    });
+  }
+
+  // Run now, then keep watching for balance updates
+  function start(){
+    apply();
+    // MutationObserver to react when sb-balance.js updates the DOM
+    try {
+      var target = document.querySelector(".currency-list") || document.body;
+      var obs = new MutationObserver(function(){ apply(); });
+      obs.observe(target, {subtree:true, childList:true, characterData:true});
+    } catch(e) {
+      // Fallback: periodic check
+      setInterval(apply, 1000);
+    }
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", start);
+  } else {
+    start();
+  }
+})();
+</script>
+
 </body>
 </html>
