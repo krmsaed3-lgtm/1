@@ -386,52 +386,122 @@
       color: #00d1ff;
     }
   
-    .run-modal-backdrop {
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.6);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 999;
-    }
-    .run-modal {
-      background-color: #101b20;
-      border-radius: 16px;
-      padding: 18px 20px;
-      max-width: 280px;
-      width: 80%;
-      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.7);
-      text-align: center;
-    }
-    .run-modal-title {
-      font-size: 14px;
-      font-weight: 500;
-      margin-bottom: 8px;
-    }
-    .run-modal-text {
-      font-size: 12px;
-      color: rgba(255, 255, 255, 0.75);
-      margin-bottom: 12px;
-    }
-    .run-modal-spinner {
-      width: 26px;
-      height: 26px;
-      border-radius: 50%;
-      border: 2px solid rgba(0, 209, 255, 0.25);
-      border-top-color: #00d1ff;
-      margin: 0 auto 4px;
-      animation: run-spin 0.8s linear infinite;
-    }
-    .run-modal-countdown {
-      font-size: 11px;
-      color: #00d1ff;
-    }
-    @keyframes run-spin {
-      to {
-        transform: rotate(360deg);
-      }
-    }
+    
+.run-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.62);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+}
+
+.run-modal {
+  width: 260px;
+  height: 260px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 30% 20%, rgba(0, 209, 255, 0.16), rgba(0,0,0,0) 55%),
+    radial-gradient(circle at 70% 80%, rgba(70, 238, 172, 0.14), rgba(0,0,0,0) 55%),
+    #0f1a20;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow:
+    0 26px 70px rgba(0, 0, 0, 0.75),
+    0 0 0 1px rgba(0, 209, 255, 0.06) inset;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 18px;
+  position: relative;
+  overflow: hidden;
+}
+
+.run-ring {
+  width: 170px;
+  height: 170px;
+  position: relative;
+  display: grid;
+  place-items: center;
+  margin-bottom: 10px;
+}
+
+.run-ring svg {
+  width: 170px;
+  height: 170px;
+  transform: rotate(-90deg);
+  filter: drop-shadow(0 10px 22px rgba(0, 0, 0, 0.55));
+}
+
+.run-ring-bg {
+  stroke: rgba(255, 255, 255, 0.10);
+  stroke-width: 10;
+  fill: none;
+}
+
+.run-ring-progress {
+  stroke: #ffd54a;
+  stroke-width: 10;
+  fill: none;
+  stroke-linecap: round;
+  transition: stroke 220ms linear;
+}
+
+.run-ring-center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transform: translateZ(0);
+}
+
+.run-modal-title {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  margin-bottom: 6px;
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.run-modal-percent {
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1;
+  margin-bottom: 6px;
+}
+
+.run-modal-countdown {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.run-modal-text {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.65);
+  max-width: 210px;
+  line-height: 1.4;
+}
+
+.run-modal-glow {
+  position: absolute;
+  inset: -40px;
+  background: radial-gradient(circle at 50% 40%, rgba(0, 209, 255, 0.10), rgba(0,0,0,0) 60%);
+  pointer-events: none;
+  animation: run-glow 2.8s ease-in-out infinite;
+}
+
+@keyframes run-glow {
+  0%, 100% { transform: scale(1); opacity: 0.65; }
+  50% { transform: scale(1.06); opacity: 0.95; }
+}
+}
 
   </style>
 </head>
@@ -794,13 +864,26 @@
 </div>
 </div>
 
-<div class="run-modal-backdrop" id="runModal">
-  <div class="run-modal">
-    <div class="run-modal-title">Running task…</div>
+<div class="run-modal-backdrop" id="runModal" aria-hidden="true">
+  <div class="run-modal" role="dialog" aria-modal="true" aria-label="Run progress">
+    <div class="run-modal-glow"></div>
+
+    <div class="run-ring">
+      <svg viewBox="0 0 180 180" aria-hidden="true">
+        <circle class="run-ring-bg" cx="90" cy="90" r="74"></circle>
+        <circle class="run-ring-progress" id="runRing" cx="90" cy="90" r="74"></circle>
+      </svg>
+
+      <div class="run-ring-center">
+        <div class="run-modal-title">Running…</div>
+        <div class="run-modal-percent" id="runModalPercent">0%</div>
+        <div class="run-modal-countdown" id="runModalCountdown">30s</div>
+      </div>
+    </div>
+
     <div class="run-modal-text">Please wait while your AI power task is running.</div>
-    <div class="run-modal-spinner"></div>
-    <div class="run-modal-countdown" id="runModalCountdown">8s</div>
   </div>
+</div>
 </div>
 
 <div class="tabbar">
@@ -909,6 +992,10 @@
 
   var modal = document.getElementById("runModal");
   var countdownEl = document.getElementById("runModalCountdown");
+  var percentEl = document.getElementById("runModalPercent");
+  var ringEl = document.getElementById("runRing");
+
+  var RUN_UI_SECONDS = 30;
 
   // GPU cards
   var cards = Array.from(document.querySelectorAll(".gpu-card"));
@@ -931,25 +1018,82 @@
     return cardEl.querySelector(".gpu-button-wrap .btn-gradient");
   }
 
-  function showModal(seconds) {
-    if (!modal || !countdownEl) return function(){};
-    modal.style.display = "flex";
-    countdownEl.textContent = seconds + "s";
-    return function hide() { modal.style.display = "none"; };
-  }
+  
+function clamp(n, a, b) { return n < a ? a : (n > b ? b : n); }
 
-  function runWithCountdown(seconds, onFinish) {
-    seconds = seconds || 8;
-    var hide = showModal(seconds);
-    var remaining = seconds;
+function colorForProgress(pct) {
+  // 0–33%: yellow, 34–66%: green, 67–100%: red
+  if (pct < 34) return "#ffd54a";
+  if (pct < 67) return "#46EEAC";
+  return "#ff4d4d";
+}
 
-    return new Promise(function (resolve, reject) {
-      var timer = setInterval(function () {
-        remaining -= 1;
-        if (countdownEl) countdownEl.textContent = (remaining >= 0 ? remaining : 0) + "s";
-        if (remaining < 0) {
-          clearInterval(timer);
-          try { hide(); } catch(e){}
+function ringSetup() {
+  if (!ringEl) return { circumference: 0 };
+  var r = Number(ringEl.getAttribute("r")) || 74;
+  var c = 2 * Math.PI * r;
+  ringEl.style.strokeDasharray = String(c);
+  ringEl.style.strokeDashoffset = String(c);
+  ringEl.style.stroke = colorForProgress(0);
+  return { circumference: c };
+}
+
+function setRingProgress(circumference, pct) {
+  pct = clamp(pct, 0, 100);
+  if (percentEl) percentEl.textContent = Math.round(pct) + "%";
+  if (!ringEl) return;
+  var offset = circumference * (1 - pct / 100);
+  ringEl.style.strokeDashoffset = String(offset);
+  ringEl.style.stroke = colorForProgress(pct);
+}
+
+function showModal(seconds) {
+  if (!modal || !countdownEl) return function(){};
+  modal.style.display = "flex";
+  modal.setAttribute("aria-hidden", "false");
+
+  var ring = ringSetup();
+  setRingProgress(ring.circumference, 0);
+  countdownEl.textContent = seconds + "s";
+
+  return function hide() {
+    modal.style.display = "none";
+    modal.setAttribute("aria-hidden", "true");
+  };
+}
+
+function runWithCountdown(seconds, onFinish) {
+  seconds = Number(seconds || RUN_UI_SECONDS || 30);
+  seconds = clamp(seconds, 1, 600);
+
+  var hide = showModal(seconds);
+  var ring = ringSetup();
+
+  return new Promise(function (resolve, reject) {
+    var start = Date.now();
+    var lastShown = seconds;
+
+    var timer = setInterval(function () {
+      var elapsed = (Date.now() - start) / 1000;
+      var pct = (elapsed / seconds) * 100;
+      setRingProgress(ring.circumference, pct);
+
+      var remaining = Math.max(0, Math.ceil(seconds - elapsed));
+      if (remaining !== lastShown) {
+        lastShown = remaining;
+        if (countdownEl) countdownEl.textContent = remaining + "s";
+      }
+
+      if (elapsed >= seconds) {
+        clearInterval(timer);
+        try { hide(); } catch (e) {}
+        Promise.resolve().then(onFinish).then(resolve).catch(reject);
+      }
+    }, 100);
+  });
+}
+
+catch(e){}
           Promise.resolve().then(onFinish).then(resolve).catch(reject);
         }
       }, 1000);
@@ -1009,7 +1153,7 @@
         }
 
         btn.disabled = true;
-        runWithCountdown(8, function () {
+        runWithCountdown(RUN_UI_SECONDS, function () {
           return rpc("perform_ipower_action", { p_user: userId });
         }).then(function (rows) {
           var r = Array.isArray(rows) ? rows[0] : rows;
