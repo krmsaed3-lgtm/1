@@ -21,55 +21,33 @@
       color:var(--text);
       -webkit-text-size-adjust:100%;
     }
-
     .page{min-height:100vh;display:flex;flex-direction:column}
 
-    /* Header */
     .header{
-      position:sticky; top:0; z-index:10;
+      position:sticky;top:0;z-index:10;
       height:56px;
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
+      display:flex;align-items:center;justify-content:space-between;
       padding:0 14px;
       border-bottom:1px solid var(--border);
       background:rgba(5,7,11,0.92);
       backdrop-filter: blur(8px);
     }
-    .left{
-      display:flex;align-items:center;gap:10px;min-width:0;
-    }
+    .left{display:flex;align-items:center;gap:10px;min-width:0}
     .back{
       width:34px;height:34px;border-radius:10px;
       display:flex;align-items:center;justify-content:center;
       background:rgba(255,255,255,0.04);
       border:1px solid rgba(255,255,255,0.06);
-      cursor:pointer; user-select:none;
-      font-size:20px; line-height:1;
+      cursor:pointer;user-select:none;
+      font-size:20px;line-height:1;
     }
-    .title{
-      font-size:16px;font-weight:700;
-      white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-    }
-    .allread{
-      font-size:14px;
-      color:var(--muted);
-      cursor:pointer;
-      user-select:none;
-    }
+    .title{font-size:16px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .allread{font-size:14px;color:var(--muted);cursor:pointer;user-select:none}
 
-    /* Content */
-    .content{
-      flex:1;
-      width:100%;
-      display:flex;
-      flex-direction:column;
-      align-items:center;
-      padding:18px 0 90px 0;
-    }
+    .content{flex:1;width:100%;display:flex;flex-direction:column;align-items:center;padding:18px 0 90px 0}
 
-    /* Empty state */
-    .empty-wrap{
+    /* empty */
+    #sm-empty-wrap{
       margin-top:80px;
       display:flex;
       flex-direction:column;
@@ -85,19 +63,27 @@
       border:1px solid rgba(255,255,255,0.06);
     }
     .empty-icon img{width:46px;height:46px;object-fit:contain}
-    .empty-text{
-      font-size:14px;
-      line-height:1.6;
-      color:var(--muted);
-    }
+    .empty-text{font-size:14px;line-height:1.6;color:var(--muted)}
 
-    /* List container (JS will fill it) */
-    #sm-list{
+    /* list */
+    #sm-list{width:100%;max-width:560px;padding:0 14px;display:none}
+    .msg-card{
       width:100%;
-      max-width:560px;
-      padding:0 14px;
-      display:none;
+      border:1px solid rgba(255,255,255,0.06);
+      background:var(--card);
+      border-radius:14px;
+      padding:12px;
+      margin:10px 0;
     }
+    .msg-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+    .msg-title{
+      font-size:14px;font-weight:600;color:#fff;
+      display:flex;align-items:center;gap:8px;
+      min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+    }
+    .dot{width:8px;height:8px;border-radius:999px;background:#ff3b30;display:inline-block;flex:0 0 auto}
+    .msg-time{font-size:11px;color:var(--muted2);white-space:nowrap}
+    .msg-body{margin-top:8px;font-size:13px;line-height:1.55;color:rgba(255,255,255,0.72)}
 
     @media (max-width:380px){
       .title{font-size:15px}
@@ -114,34 +100,27 @@
         <div class="back" onclick="history.back()">‹</div>
         <div class="title">Site message</div>
       </div>
-      <div class="allread header-right">All read</div>
+      <div class="allread" id="sm-allread">All read</div>
     </header>
 
     <main class="content">
-      <!-- Empty -->
-      <div class="empty-wrap" id="sm-empty-wrap">
-        <div class="empty-icon" id="sm-empty-icon">
+      <div id="sm-empty-wrap">
+        <div class="empty-icon">
           <img alt="Empty" src="images/notice-2-on-DPdBOjno.png" />
         </div>
-        <div class="empty-text" id="sm-empty-text">
+        <div class="empty-text">
           No More Data<br/>Available
         </div>
       </div>
 
-      <!-- Messages -->
       <div id="sm-list"></div>
     </main>
   </div>
 
-  <!-- مهم: خلي الترتيب كما هو -->
+  <!-- لازم يكون عندك sb-config.js بالصفحات اللي فيها auth.js -->
+  <script src="sb-config.js"></script>
   <script src="auth.js"></script>
-  <script src="sb-user.js"></script>
   <script src="common-nav.js"></script>
   <script src="site-message.js"></script>
-
-  <!-- لو بدك كسر كاش GitHub Pages، غيري v -->
-  <script>
-    // optional: console.log('site-message loaded');
-  </script>
 </body>
 </html>

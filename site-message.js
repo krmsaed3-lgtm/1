@@ -1,121 +1,80 @@
+// site-message.js
 ;(function () {
   'use strict';
 
-  var emptyIconEl = document.getElementById('sm-empty-icon');
-  var emptyTextEl = document.getElementById('sm-empty-text');
+  var emptyWrap = document.getElementById('sm-empty-wrap');
   var listEl = document.getElementById('sm-list');
-  var allReadEl = document.querySelector('.header-right');
+  var allReadEl = document.getElementById('sm-allread');
 
-  function getUid() {
+  function uid() {
     try { return localStorage.getItem('currentUserId') || null; } catch (e) { return null; }
   }
-
-  function loadMsgs() {
-    var uid = getUid();
-    if (!uid) return [];
-    var key = 'jopai_msgs_' + uid;
-    try { return JSON.parse(localStorage.getItem(key)[]; } catch (e) { return []; }
+  function key() {
+    var id = uid();
+    return id ? ('jopai_msgs_' + id) : null;
+  }
+  function load() {
+    var k = key();
+    if (!k) return [];
+    try { return JSON.parse(localStorage.getItem(k)[]; } catch (e) { return []; }
+  }
+  function save(msgs) {
+    var k = key();
+    if (!k) return;
+    try { localStorage.setItem(k, JSON.stringify(msgs || [])); } catch (e) {}
   }
 
-  function saveMsgs(msgs) {
-    var uid = getUid();
-    if (!uid) return;
-    var key = 'jopai_msgs_' + uid;
-    try { localStorage.setItem(key, JSON.stringify(msgs || [])); } catch (e) {}
-  }
-
-  function showEmpty() {
-    if (listEl) listEl.style.display = 'none';
-    if (emptyIconEl) emptyIconEl.style.display = 'flex';
-    if (emptyTextEl) emptyTextEl.style.display = 'block';
-  }
-
-  function showList() {
-    if (listEl) listEl.style.display = 'block';
-    if (emptyIconEl) emptyIconEl.style.display = 'none';
-    if (emptyTextEl) emptyTextEl.style.display = 'none';
-  }
-
-  function escapeHtml(s) {
+  function esc(s) {
     return String(s || '')
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#039;');
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;').replace(/"/g,'&quot;')
+      .replace(/'/g,'&#039;');
   }
-
-  function formatDate(iso) {
+  function fmt(iso) {
     if (!iso) return '';
-    try {
-      var d = new Date(iso);
-      if (isNaN(d.getTime())) return '';
-      return d.toLocaleString();
-    } catch (e) { return ''; }
-  }
-
-  function injectStyles() {
-    var css = [
-      '#sm-list{ width:100%; max-width:520px; margin:0 auto; padding:0 16px 90px 16px; }',
-      '.sm-card{ width:100%; border:1px solid rgba(255,255,255,0.06); background:rgba(255,255,255,0.02); border-radius:14px; padding:12px; margin:10px 0; }',
-      '.sm-top{ display:flex; align-items:center; justify-content:space-between; gap:10px; }',
-      '.sm-titlewrap{ display:flex; align-items:center; min-width:0; }',
-      '.sm-dot{ width:8px; height:8px; border-radius:999px; background:#ff3b30; display:inline-block; margin-right:8px; }',
-      '.sm-title{ font-size:14px; font-weight:600; color:#fff; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }',
-      '.sm-time{ font-size:11px; color:rgba(255,255,255,0.55); white-space:nowrap; }',
-      '.sm-body{ margin-top:8px; font-size:13px; line-height:1.55; color:rgba(255,255,255,0.72); }'
-    ].join('\n');
-
-    var style = document.createElement('style');
-    style.type = 'text/css';
-    style.appendChild(document.createTextNode(css));
-    document.head.appendChild(style);
+    try { var d=new Date(iso); return isNaN(d)?'':d.toLocaleString(); } catch(e){ return ''; }
   }
 
   function render() {
-    var msgs = loadMsgs();
+    var msgs = load();
+
     if (!msgs.length) {
-      showEmpty();
+      if (emptyWrap) emptyWrap.style.display = 'flex';
+      if (listEl) listEl.style.display = 'none';
       return;
     }
 
-    msgs = msgs.slice().sort(function (a, b) {
-      return new Date(b.created_at0);
+    msgs = msgs.slice().sort(function(a,b){
+      return new Date(b.created_at||0) - new Date(a.created_at||0);
     });
 
-    showList();
+    if (emptyWrap) emptyWrap.style.display = 'none';
+    if (listEl) listEl.style.display = 'block';
 
     listEl.innerHTML = msgs.map(function (m) {
-      var dot = m.is_read ? '' : '<span class="sm-dot"></span>';
-      return (
-        '<div class="sm-card">' +
-          '<div class="sm-top">' +
-            '<div class="sm-titlewrap">' +
-              dot +
-              '<div class="sm-title">' + escapeHtml(m.title || 'Message') + '</div>' +
-            '</div>' +
-            '<div class="sm-time">' + escapeHtml(formatDate(m.created_at)) + '</div>' +
-          '</div>' +
-          '<div class="sm-body">' + escapeHtml(m.body || '') + '</div>' +
-        '</div>'
-      );
+      return `
+        <div class="msg-card">
+          <div class="msg-top">
+            <div class="msg-title">
+              ${m.is_read ? '' : '<span class="dot"></span>'}
+              ${esc(m.title || 'Message')}
+            </div>
+            <div class="msg-time">${esc(fmt(m.created_at))}</div>
+          </div>
+          <div class="msg-body">${esc(m.body || '')}</div>
+        </div>
+      `;
     }).join('');
   }
 
   function markAllRead() {
-    var msgs = loadMsgs();
+    var msgs = load();
     if (!msgs.length) return;
     msgs = msgs.map(function (m) { m.is_read = true; return m; });
-    saveMsgs(msgs);
+    save(msgs);
     render();
   }
 
-  function init() {
-    injectStyles();
-    if (allReadEl) allReadEl.addEventListener('click', markAllRead);
-    render();
-  }
-
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
-  else init();
+  if (allReadEl) allReadEl.addEventListener('click', markAllRead);
+  render();
 })();
