@@ -1,125 +1,129 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar" dir="rtl">
 <head>
-<meta charset="utf-8"/>
-<title>Records</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+  <meta charset="UTF-8">
+  <title>الفواتير</title>
 
-<style>
-/* === نفس التصميم الأصلي بدون تغيير === */
-:root {
-  --bg-main:#05060b;
-  --bg-card:#0c0f18;
-  --bg-input:#151824;
-  --border:#171924;
-  --text:#fff;
-  --text-sub:#7b8194;
-  --accent:#22e1a5;
-}
-*{box-sizing:border-box;margin:0;padding:0}
-body{
-  background:var(--bg-main);
-  color:var(--text);
-  font-family:system-ui,-apple-system;
-}
-.app{
-  max-width:480px;
-  margin:0 auto;
-  padding:12px;
-}
-.top-bar{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  margin-bottom:12px;
-}
-.title{font-size:16px;font-weight:500}
-.bill-list{display:flex;flex-direction:column;gap:10px}
-.bill-item{
-  background:var(--bg-card);
-  border:1px solid var(--border);
-  border-radius:12px;
-  padding:10px 12px;
-}
-.bill-main-row{
-  display:flex;
-  justify-content:space-between;
-}
-.bill-type{font-size:13px}
-.bill-amount{color:var(--accent);font-weight:600}
-.bill-sub-row{
-  display:flex;
-  justify-content:space-between;
-  font-size:11px;
-  color:var(--text-sub);
-  margin-top:4px;
-}
-.empty{
-  text-align:center;
-  color:var(--text-sub);
-  margin-top:40px;
-}
-</style>
+  <style>
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, Arial, sans-serif;
+      background: #f5f6fa;
+      color: #222;
+    }
+
+    header {
+      background: #1e1e2f;
+      color: #fff;
+      padding: 15px;
+      text-align: center;
+      font-size: 18px;
+    }
+
+    .container {
+      padding: 16px;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 10px;
+      padding: 14px;
+      margin-bottom: 12px;
+      box-shadow: 0 2px 6px rgba(0,0,0,.08);
+      cursor: pointer;
+      transition: transform .1s;
+    }
+
+    .card:hover {
+      transform: scale(1.01);
+    }
+
+    .card-title {
+      font-weight: bold;
+      margin-bottom: 6px;
+    }
+
+    .card-info {
+      font-size: 14px;
+      color: #666;
+    }
+
+    .amount {
+      color: #e74c3c;
+      font-weight: bold;
+      margin-top: 6px;
+    }
+  </style>
 </head>
-
 <body>
-<div class="app">
-  <div class="top-bar">
-    <div></div>
-    <div class="title">Records</div>
-    <div></div>
+
+<header>قائمة الفواتير</header>
+
+<div class="container">
+  <div class="card" data-id="1">
+    <div class="card-title">فاتورة كهرباء</div>
+    <div class="card-info">تاريخ: 2025-01-10</div>
+    <div class="amount">150.00 $</div>
   </div>
 
-  <div id="billsContainer" class="empty">No records yet.</div>
+  <div class="card" data-id="2">
+    <div class="card-title">فاتورة ماء</div>
+    <div class="card-info">تاريخ: 2025-01-12</div>
+    <div class="amount">45.00 $</div>
+  </div>
+
+  <div class="card" data-id="3">
+    <div class="card-title">فاتورة إنترنت</div>
+    <div class="card-info">تاريخ: 2025-01-15</div>
+    <div class="amount">60.00 $</div>
+  </div>
 </div>
 
-<script src="records.js"></script>
-
 <script>
-(function(){
-  var box = document.getElementById('billsContainer');
-  if(!box) return;
+  /* ====== نظام تتبع التحركات ====== */
 
-  var data = [];
-  try {
-    data = JSON.parse(localStorage.getItem('transactions_json')) || [];
-  } catch(e){}
+  const logs = [];
 
-  if(!data.length){
-    box.className = 'empty';
-    box.textContent = 'No records yet.';
-    return;
+  function logEvent(type, data = {}) {
+    const entry = {
+      type,
+      data,
+      time: new Date().toISOString()
+    };
+    logs.push(entry);
+    console.log("LOG:", entry);
+
+    // جاهز للإرسال لسيرفر لاحقًا
+    // fetch("/log", { method: "POST", body: JSON.stringify(entry) })
   }
 
-  box.className = 'bill-list';
-  box.innerHTML = '';
+  // تحميل الصفحة
+  logEvent("page_load");
 
-  data.slice().reverse().forEach(function(tx){
-    var el = document.createElement('div');
-    el.className = 'bill-item';
-
-    var type =
-      tx.type === 'deposit' ? 'Deposit' :
-      tx.type === 'withdraw' ? 'Withdraw' :
-      tx.type === 'income' ? 'Income' :
-      'Record';
-
-    var amount = (Number(tx.amount)||0).toFixed(2)+' '+(tx.currency||'USDT');
-    var time = tx.createdAt ? tx.createdAt.replace('T',' ').slice(0,19) : '';
-
-    el.innerHTML =
-      '<div class="bill-main-row">'+
-        '<span class="bill-type">'+type+'</span>'+
-        '<span class="bill-amount">'+amount+'</span>'+
-      '</div>'+
-      '<div class="bill-sub-row">'+
-        '<span>SUCCESS</span>'+
-        '<span>'+time+'</span>'+
-      '</div>';
-
-    box.appendChild(el);
+  // النقر على الفواتير
+  document.querySelectorAll(".card").forEach(card => {
+    card.addEventListener("click", () => {
+      logEvent("bill_click", {
+        billId: card.dataset.id,
+        title: card.querySelector(".card-title").innerText
+      });
+    });
   });
-})();
+
+  // التمرير
+  window.addEventListener("scroll", () => {
+    logEvent("scroll", {
+      scrollY: window.scrollY
+    });
+  });
+
+  // مدة البقاء
+  const startTime = Date.now();
+  window.addEventListener("beforeunload", () => {
+    logEvent("time_on_page", {
+      seconds: Math.round((Date.now() - startTime) / 1000)
+    });
+  });
 </script>
 
 </body>
