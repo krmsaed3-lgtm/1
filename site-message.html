@@ -1,133 +1,143 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
-<title>Site message</title>
-<meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport"/>
-<style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>Site message</title>
+
+  <style>
+    :root{
+      --bg:#05070b;
+      --text:#fff;
+      --muted:rgba(255,255,255,.7);
+      --muted2:rgba(255,255,255,.55);
+      --border:rgba(255,255,255,.08);
+      --card:rgba(255,255,255,.02);
+      --danger:#ff3b30;
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{
+      font-family: system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      background:var(--bg);
+      color:var(--text);
+      -webkit-text-size-adjust:100%;
+    }
+    .page{min-height:100vh;display:flex;flex-direction:column}
+
+    .header{
+      position:sticky;top:0;z-index:10;
+      height:56px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding:0 14px;
+      border-bottom:1px solid var(--border);
+      background:rgba(5,7,11,.92);
+      backdrop-filter: blur(8px);
+    }
+    .left{display:flex;align-items:center;gap:10px;min-width:0}
+    .back{
+      width:34px;height:34px;border-radius:10px;
+      display:flex;align-items:center;justify-content:center;
+      background:rgba(255,255,255,.04);
+      border:1px solid rgba(255,255,255,.06);
+      cursor:pointer;user-select:none;
+      font-size:20px;line-height:1;
+    }
+    .title{
+      font-size:16px;font-weight:700;
+      white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+    }
+    .allread{
+      font-size:14px;color:var(--muted);
+      cursor:pointer;user-select:none;
+      padding:6px 10px;border-radius:10px;
+      background:rgba(255,255,255,.04);
+      border:1px solid rgba(255,255,255,.06);
     }
 
-    body {
-      background-color: #05070b;
-      color: #ffffff;
-      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
-      height: 100vh;
+    .content{
+      width:100%;
+      max-width:620px;
+      margin:0 auto;
+      padding:14px 14px 90px 14px;
     }
 
-    .page {
-      display: flex;
-      flex-direction: column;
-      height: 100vh;
+    .empty{
+      margin-top:80px;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      gap:14px;
+      text-align:center;
+    }
+    .emptyIcon{
+      width:86px;height:86px;border-radius:18px;
+      display:flex;align-items:center;justify-content:center;
+      background:rgba(255,255,255,.03);
+      border:1px solid rgba(255,255,255,.06);
+    }
+    .emptyIcon span{
+      width:44px;height:44px;border-radius:14px;
+      display:flex;align-items:center;justify-content:center;
+      background:rgba(255,255,255,.05);
+      font-size:22px;
+    }
+    .emptyText{
+      font-size:14px;line-height:1.6;color:var(--muted);
     }
 
-    .header {
-      height: 44px;
-      padding: 0 16px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.03);
-      flex-shrink: 0;
+    .msg-card{
+      width:100%;
+      border:1px solid rgba(255,255,255,.06);
+      background:var(--card);
+      border-radius:14px;
+      padding:12px;
+      margin:10px 0;
     }
-
-    .header-side {
-      width: 60px;
-      display: flex;
-      align-items: center;
+    .msg-top{
+      display:flex;align-items:center;justify-content:space-between;gap:10px;
     }
-
-    .header-title {
-      font-size: 16px;
-      font-weight: 500;
-      text-align: center;
-      flex: 1;
+    .msg-title{
+      font-size:14px;font-weight:650;color:#fff;
+      display:flex;align-items:center;gap:8px;
+      min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
     }
-
-    .header-right {
-      font-size: 12px;
-      color: rgba(255, 255, 255, 0.6);
-      justify-content: flex-end;
-      width: 60px;
-      display: flex;
-      justify-content: flex-end;
+    .dot{
+      width:8px;height:8px;border-radius:999px;background:var(--danger);
+      display:inline-block;flex:0 0 auto;
     }
+    .msg-time{font-size:11px;color:var(--muted2);white-space:nowrap}
+    .msg-body{margin-top:8px;font-size:13px;line-height:1.55;color:rgba(255,255,255,.72)}
 
-    .back-btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: flex-start;
-      width: 24px;
-      height: 24px;
-    }
-
-    .back-icon {
-      width: 10px;
-      height: 10px;
-      border-left: 2px solid #ffffff;
-      border-bottom: 2px solid #ffffff;
-      transform: rotate(45deg);
-    }
-
-    .content {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding-bottom: 80px;
-    }
-
-    .icon-wrapper {
-      width: 120px;
-      height: 120px;
-      border-radius: 60px;
-      background: rgba(255, 255, 255, 0.03);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-bottom: 16px;
-    }
-
-    .icon-wrapper img {
-      width: 72px;
-      height: 72px;
-      display: block;
-    }
-
-    .message-text {
-      font-size: 14px;
-      color: rgba(255, 255, 255, 0.6);
-      text-align: center;
-      line-height: 1.4;
+    @media (max-width:380px){
+      .title{font-size:15px}
+      .allread{font-size:13px}
+      .emptyText{font-size:13.5px}
     }
   </style>
 </head>
+
 <body>
-<div class="page">
-<div class="header">
-<div class="header-side">
-<a aria-label="Back" class="back-btn" href="javascript:history.back();">
-<span class="back-icon"></span>
-</a>
-</div>
-<div class="header-title">Site message</div>
-<div class="header-right">All read</div>
-</div>
-<div class="content">
-<div class="icon-wrapper">
-<img alt="Empty" src="images/notice-2-on-DPdBOjno.png"/>
-</div>
-<div class="message-text">
-        No More Data<br/>Available
+  <div class="page">
+    <header class="header">
+      <div class="left">
+        <div class="back" onclick="history.back()">‹</div>
+        <div class="title">Site message</div>
       </div>
-</div>
-</div>
-<script src="auth.js"></script>
-<script src="common-nav.js"></script>
+      <div class="allread" id="allReadBtn">All read</div>
+    </header>
+
+    <main class="content">
+      <div class="empty" id="emptyBox">
+        <div class="emptyIcon"><span>✉️</span></div>
+        <div class="emptyText">No More Data<br/>Available</div>
+      </div>
+
+      <div id="listBox" style="display:none;"></div>
+    </main>
+  </div>
+
+  <script src="site-message.js"></script>
 </body>
 </html>
