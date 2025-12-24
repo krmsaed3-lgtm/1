@@ -5,14 +5,17 @@
 
   function read() {
     try {
-      return JSON.parse(localStorage.getItem(KEY)) || [];
+      var data = localStorage.getItem(KEY);
+      return data ? JSON.parse(data) : [];
     } catch (e) {
       return [];
     }
   }
 
   function write(list) {
-    localStorage.setItem(KEY, JSON.stringify(list));
+    try {
+      localStorage.setItem(KEY, JSON.stringify(list));
+    } catch (e) {}
   }
 
   function add(tx) {
@@ -25,9 +28,10 @@
     return new Date().toISOString();
   }
 
+  // واجهة عامة بدون ES6
   window.RecordLogger = {
 
-    deposit(amount, currency) {
+    deposit: function (amount, currency) {
       add({
         type: 'deposit',
         amount: Number(amount) || 0,
@@ -37,7 +41,7 @@
       });
     },
 
-    withdraw(amount, currency) {
+    withdraw: function (amount, currency) {
       add({
         type: 'withdraw',
         amount: Number(amount) || 0,
@@ -47,7 +51,7 @@
       });
     },
 
-    profit(amount, currency) {
+    profit: function (amount, currency) {
       add({
         type: 'income',
         amount: Number(amount) || 0,
@@ -55,6 +59,12 @@
         status: 'SUCCESS',
         createdAt: now()
       });
+    },
+
+    // اختياري للفحص
+    getAll: function () {
+      return read();
     }
   };
+
 })();
