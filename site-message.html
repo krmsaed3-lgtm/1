@@ -16,7 +16,6 @@
     *{box-sizing:border-box;margin:0;padding:0}
     body{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--text)}
     .page{min-height:100vh;display:flex;flex-direction:column}
-
     .header{
       position:sticky;top:0;z-index:10;height:56px;
       display:flex;align-items:center;justify-content:space-between;
@@ -37,9 +36,7 @@
       cursor:pointer;user-select:none;padding:6px 10px;border-radius:10px;
       background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);
     }
-
     .content{width:100%;max-width:620px;margin:0 auto;padding:14px 14px 90px 14px}
-
     .debug{
       border:1px solid rgba(255,255,255,.1);
       background:rgba(255,255,255,.03);
@@ -50,7 +47,6 @@
       color:rgba(255,255,255,.8);
       word-break:break-word;
     }
-
     .empty{margin-top:60px;display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center}
     .emptyIcon{
       width:86px;height:86px;border-radius:18px;display:flex;align-items:center;justify-content:center;
@@ -61,7 +57,6 @@
       background:rgba(255,255,255,.05);font-size:22px;
     }
     .emptyText{font-size:14px;line-height:1.6;color:var(--muted)}
-
     .msg-card{width:100%;border:1px solid rgba(255,255,255,.06);background:var(--card);border-radius:14px;padding:12px;margin:10px 0}
     .msg-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
     .msg-title{
@@ -84,7 +79,7 @@
     </header>
 
     <main class="content">
-      <div class="debug" id="debugBox">JS: not loaded</div>
+      <div class="debug" id="debugBox">JS: starting...</div>
 
       <div class="empty" id="emptyBox">
         <div class="emptyIcon"><span>✉️</span></div>
@@ -95,6 +90,128 @@
     </main>
   </div>
 
-  <script src="site-message.js"></script>
+  <script>
+    (function () {
+      'use strict';
+
+      var debugBox = document.getElementById('debugBox');
+      var emptyBox = document.getElementById('emptyBox');
+      var listBox  = document.getElementById('listBox');
+      var allRead  = document.
+getElementById('allReadBtn');
+
+      function setDebug(t){ if (debugBox) debugBox.textContent = t; }
+
+      function getUserId(){
+        try { return localStorage.getItem('currentUserId') || 'device'; }
+        catch (e) { return 'device'; }
+      }
+
+      function msgsKey(){ return 'jopai_msgs_' + getUserId(); }
+      function createdKey(){ return 'jopai_welcome_created_' + getUserId(); }
+
+      function load(){
+        try { return JSON.parse(localStorage.getItem(msgsKey())[]; }
+        catch (e) { return []; }
+      }
+
+      function save(msgs){
+        try { localStorage.setItem(msgsKey(), JSON.stringify(msgs || [])); }
+        catch (e) {}
+      }
+
+      function esc(s){
+        return String(s || '')
+          .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+          .replace(/>/g,'&gt;').replace(/"/g,'&quot;')
+          .replace(/'/g,'&#039;');
+      }
+
+      function fmt(iso){
+        if(!iso) return '';
+        try{
+          var d = new Date(iso);
+          return isNaN(d) ? '' : d.toLocaleString();
+        }catch(e){ return ''; }
+      }
+
+      function ensureWelcomeOnce(){
+        try{
+          if (localStorage.getItem(createdKey())) return;
+
+          var msgs = load();
+          msgs.unshift({
+            id: String(Date.now()),
+            title: 'Welcome to jopai',
+            body: 'Welcome! We are glad to have you on jopai.',
+            is_read: false,
+            created_at: new Date().toISOString()
+          });
+
+          save(msgs);
+          localStorage.setItem(createdKey(), '1');
+          setDebug('JS: OK (welcome created)');
+        }catch(e){
+          setDebug('JS error (welcome): ' + (e && e.message ? e.message : String(e)));
+        }
+      }
+
+      function render(){
+        try{
+          var msgs = load().slice().sort(function(a,b){
+            return new Date(b.created_at||0) - new Date(a.created_at||0);
+          });
+
+          if (!msgs.length){
+            if (emptyBox) emptyBox.style.display = 'flex';
+            if (listBox) listBox.style.display = 'none';
+            setDebug('JS: OK (no messages)');
+            return;
+          }
+
+          if (emptyBox) emptyBox.style.display = 'none';
+          if (listBox) listBox.style.display = 'block';
+
+          listBox.innerHTML = msgs.map(function(m){
+            return (
+              '<div class="msg-card">' +
+                '<div class="msg-top">' +
+                  '<div class="msg-title">' +
+                    (m.is_read ? '' : '<span class="dot"></span>') +
+                    esc(m.title || 'Message') +
+                  '</div>' +
+                  '<div class="msg-time">' + esc(fmt(m.created_at)) + '</div>' +
+                '</div>' +
+                '<div class="msg-body">' + esc(m.body || '') + '</div>' +
+              '</div>'
+            );
+          }).join('');
+
+          setDebug('JS: OK (rendered ' + msgs.length + ')');
+        }catch(e){
+          setDebug('JS error (render): ' + (e && e.message ? e.message : String(e)));
+        }
+      }
+
+      function markAllRead(){
+        try{
+          var msgs = load();
+          if (!msgs.length) return;
+          for (var i=0;i<msgs.length;i++) msgs[i].is_read = true;
+          save(msgs);
+          render();
+          setDebug('JS: OK (all read)');
+        }catch(e){
+          setDebug('JS error (all read): ' + (e && e.message ? e.message : String(e)));
+        }
+      }
+
+      if (allRead) allRead.addEventListener('click', markAllRead);
+
+      setDebug('JS: OK (loaded)');
+      ensureWelcomeOnce();
+      render();
+    })();
+  </script>
 </body>
 </html>
