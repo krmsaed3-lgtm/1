@@ -1,104 +1,100 @@
-;(function () {
-  'use strict';
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>Site message</title>
+  <style>
+    :root{
+      --bg:#05070b; --text:#fff;
+      --muted:rgba(255,255,255,.7);
+      --muted2:rgba(255,255,255,.55);
+      --border:rgba(255,255,255,.08);
+      --card:rgba(255,255,255,.02);
+      --danger:#ff3b30;
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--text)}
+    .page{min-height:100vh;display:flex;flex-direction:column}
 
-  const emptyBox = document.getElementById('emptyBox');
-  const listBox  = document.getElementById('listBox');
-  const allRead  = document.getElementById('allReadBtn');
-
-  // إذا عندك نظام يسجّل currentUserId خليه يستخدمه، إذا لا رح يشتغل "حسب الجهاز"
-  function getUserId() {
-    try { return localStorage.getItem('currentUserId') || 'device'; }
-    catch { return 'device'; }
-  }
-
-  function msgsKey() {
-    return 'jopai_msgs_' + getUserId();
-  }
-
-  function createdKey() {
-    return 'jopai_welcome_created_' + getUserId();
-  }
-
-  function load() {
-    try { return JSON.parse(localStorage.getItem(msgsKey())[]; }
-    catch { return []; }
-  }
-
-  function save(msgs) {
-    try { localStorage.setItem(msgsKey(), JSON.stringify(msgs || [])); } catch {}
-  }
-
-  function ensureWelcomeOnce() {
-    try {
-      if (localStorage.getItem(createdKey())) return;
-
-      // أنشئ رسالة ترحيب واحدة فقط
-      const msgs = load();
-      msgs.unshift({
-        id: String(Date.now()),
-        title: 'Welcome to jopai',
-        body: 'Welcome! We are glad to have you on jopai.',
-        is_read: false,
-        created_at: new Date().toISOString()
-      });
-
-      save(msgs);
-      localStorage.setItem(createdKey(), '1');
-    } catch {}
-  }
-
-  function esc(s){
-    return String(s || '')
-      .replace(/&/g,'&amp;').replace(/</g,'&lt;')
-      .replace(/>/g,'&gt;').replace(/"/g,'&quot;')
-      .replace(/'/g,'&#039;');
-  }
-
-  function fmt(iso){
-    if(!iso) return '';
-    try{
-      const d = new Date(iso);
-      return isNaN(d) ? '' : d.toLocaleString();
-    }catch{ return ''; }
-  }
-
-  function render() {
-    const msgs = load().slice().sort((a,b)=> new Date(b.created_at||0)-new Date(a.created_at||0));
-
-    if (!msgs.length) {
-      emptyBox.style.display = 'flex';
-      listBox.style.display = 'none';
-      return;
+    .header{
+      position:sticky;top:0;z-index:10;height:56px;
+      display:flex;align-items:center;justify-content:space-between;
+      padding:0 14px;border-bottom:1px solid var(--border);
+      background:rgba(5,7,11,.92);backdrop-filter: blur(8px);
+    }
+    .left{display:flex;align-items:center;gap:10px;min-width:0}
+    .back{
+      width:34px;height:34px;border-radius:10px;
+      display:flex;align-items:center;justify-content:center;
+      background:rgba(255,255,255,.04);
+      border:1px solid rgba(255,255,255,.06);
+      cursor:pointer;user-select:none;font-size:20px;line-height:1;
+    }
+    .title{font-size:16px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .allread{
+      font-size:14px;color:var(--muted);
+      cursor:pointer;user-select:none;padding:6px 10px;border-radius:10px;
+      background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);
     }
 
-    emptyBox.style.display = 'none';
-    listBox.style.display = 'block';
+    .content{width:100%;max-width:620px;margin:0 auto;padding:14px 14px 90px 14px}
 
-    listBox.innerHTML = msgs.map(m => `
-      <div class="msg-card">
-        <div class="msg-top">
-          <div class="msg-title">
-            ${m.is_read ? '' : '<span class="dot"></span>'}
-            ${esc(m.title || 'Message')}
-          </div>
-          <div class="msg-time">${esc(fmt(m.created_at))}</div>
-        </div>
-        <div class="msg-body">${esc(m.body || '')}</div>
+    .debug{
+      border:1px solid rgba(255,255,255,.1);
+      background:rgba(255,255,255,.03);
+      border-radius:12px;
+      padding:10px 12px;
+      margin:10px 0 12px 0;
+      font-size:12px;
+      color:rgba(255,255,255,.8);
+      word-break:break-word;
+    }
+
+    .empty{margin-top:60px;display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center}
+    .emptyIcon{
+      width:86px;height:86px;border-radius:18px;display:flex;align-items:center;justify-content:center;
+      background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);
+    }
+    .emptyIcon span{
+      width:44px;height:44px;border-radius:14px;display:flex;align-items:center;justify-content:center;
+      background:rgba(255,255,255,.05);font-size:22px;
+    }
+    .emptyText{font-size:14px;line-height:1.6;color:var(--muted)}
+
+    .msg-card{width:100%;border:1px solid rgba(255,255,255,.06);background:var(--card);border-radius:14px;padding:12px;margin:10px 0}
+    .msg-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+    .msg-title{
+      font-size:14px;font-weight:650;color:#fff;
+      display:flex;align-items:center;gap:8px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+    }
+    .dot{width:8px;height:8px;border-radius:999px;background:var(--danger);display:inline-block;flex:0 0 auto}
+    .msg-time{font-size:11px;color:var(--muted2);white-space:nowrap}
+    .msg-body{margin-top:8px;font-size:13px;line-height:1.55;color:rgba(255,255,255,.72)}
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header class="header">
+      <div class="left">
+        <div class="back" onclick="history.back()">‹</div>
+        <div class="title">Site message</div>
       </div>
-    `).join('');
-  }
+      <div class="allread" id="allReadBtn">All read</div>
+    </header>
 
-  function markAllRead() {
-    const msgs = load();
-    if (!msgs.length) return;
-    msgs.forEach(m => m.is_read = true);
-    save(msgs);
-    render();
-  }
+    <main class="content">
+      <div class="debug" id="debugBox">JS: not loaded</div>
 
-  // ✅ أول ما تفتح الصفحة: أنشئ الترحيب مرة واحدة ثم اعرض
-  ensureWelcomeOnce();
-  render();
+      <div class="empty" id="emptyBox">
+        <div class="emptyIcon"><span>✉️</span></div>
+        <div class="emptyText">No More Data<br/>Available</div>
+      </div>
 
-  allRead.addEventListener('click', markAllRead);
-})();
+      <div id="listBox" style="display:none;"></div>
+    </main>
+  </div>
+
+  <script src="site-message.js"></script>
+</body>
+</html>
