@@ -1,133 +1,128 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
-<title>Site message</title>
-<meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport"/>
-<style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>Site message</title>
 
+  <style>
     body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
       background-color: #05070b;
       color: #ffffff;
-      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
-      height: 100vh;
     }
 
     .page {
+      min-height: 100vh;
       display: flex;
       flex-direction: column;
-      height: 100vh;
     }
 
     .header {
-      height: 44px;
-      padding: 0 16px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.03);
-      flex-shrink: 0;
+      padding: 0 16px;
+      height: 56px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
     }
 
-    .header-side {
-      width: 60px;
+    .header-left {
       display: flex;
       align-items: center;
+      gap: 10px;
+      font-size: 16px;
+      font-weight: 600;
     }
 
-    .header-title {
-      font-size: 16px;
-      font-weight: 500;
-      text-align: center;
-      flex: 1;
+    .back-button {
+      cursor: pointer;
+      width: 28px;
+      height: 28px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      background: rgba(255,255,255,0.04);
+    }
+
+    .back-button:active {
+      transform: scale(0.98);
     }
 
     .header-right {
-      font-size: 12px;
-      color: rgba(255, 255, 255, 0.6);
-      justify-content: flex-end;
-      width: 60px;
-      display: flex;
-      justify-content: flex-end;
-    }
-
-    .back-btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: flex-start;
-      width: 24px;
-      height: 24px;
-    }
-
-    .back-icon {
-      width: 10px;
-      height: 10px;
-      border-left: 2px solid #ffffff;
-      border-bottom: 2px solid #ffffff;
-      transform: rotate(45deg);
+      font-size: 14px;
+      color: rgba(255,255,255,0.7);
+      cursor: pointer;
+      user-select: none;
     }
 
     .content {
-      flex: 1;
+      padding-top: 70px;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding-bottom: 80px;
+      text-align: center;
     }
 
     .icon-wrapper {
-      width: 120px;
-      height: 120px;
-      border-radius: 60px;
-      background: rgba(255, 255, 255, 0.03);
+      width: 80px;
+      height: 80px;
+      border-radius: 18px;
       display: flex;
       align-items: center;
       justify-content: center;
-      margin-bottom: 16px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.06);
     }
 
     .icon-wrapper img {
-      width: 72px;
-      height: 72px;
-      display: block;
+      width: 44px;
+      height: 44px;
+      object-fit: contain;
     }
 
     .message-text {
+      margin-top: 16px;
       font-size: 14px;
-      color: rgba(255, 255, 255, 0.6);
-      text-align: center;
-      line-height: 1.4;
+      line-height: 1.6;
+      color: rgba(255,255,255,0.7);
     }
   </style>
 </head>
+
 <body>
-<div class="page">
-<div class="header">
-<div class="header-side">
-<a aria-label="Back" class="back-btn" href="javascript:history.back();">
-<span class="back-icon"></span>
-</a>
-</div>
-<div class="header-title">Site message</div>
-<div class="header-right">All read</div>
-</div>
-<div class="content">
-<div class="icon-wrapper">
-<img alt="Empty" src="images/notice-2-on-DPdBOjno.png"/>
-</div>
-<div class="message-text">
-        No More Data<br/>Available
+  <div class="page">
+    <header class="header">
+      <div class="header-left">
+        <div class="back-button" onclick="history.back()">‹</div>
+        <div>Site message</div>
       </div>
-</div>
-</div>
-<script src="auth.js"></script>
-<script src="common-nav.js"></script>
+
+      <div class="header-right">All read</div>
+    </header>
+
+    <main class="content">
+      <!-- Empty state -->
+      <div class="icon-wrapper" id="sm-empty-icon">
+        <img alt="Empty" src="images/notice-2-on-DPdBOjno.png" />
+      </div>
+
+      <div class="message-text" id="sm-empty-text">
+        No More Data<br />Available
+      </div>
+
+      <!-- Messages list -->
+      <div id="sm-list" style="display:none;"></div>
+    </main>
+  </div>
+
+  <!-- مهم: sb-user.js لازم يشتغل قبل site-message.js -->
+  <script src="auth.js"></script>
+  <script src="sb-user.js"></script>
+  <script src="common-nav.js"></script>
+  <script src="site-message.js"></script>
 </body>
 </html>
