@@ -1,118 +1,67 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="utf-8"/>
-<title>Records</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-
-<style>
-:root {
-  --bg-main:#05060b;--bg-card:#11141f;--bg-input:#151824;
-  --border:#262a3a;--text:#fff;--muted:#7b8194;
-  --accent:#22e1a5;
-}
-*{box-sizing:border-box;margin:0;padding:0}
-body{background:var(--bg-main);color:var(--text);font-family:system-ui}
-.app{max-width:480px;margin:auto;padding:12px}
-.top{display:flex;justify-content:space-between;align-items:center}
-.btn{height:44px;border-radius:999px;border:0;cursor:pointer}
-.confirm{background:linear-gradient(90deg,#18c1ff,#22e1a5)}
-.reset{background:#2f333f;color:#9a9fb0}
-.input{height:44px;border-radius:10px;background:var(--bg-input);
-border:1px solid var(--border);color:var(--muted);padding:0 10px}
-.list{margin-top:16px;display:flex;flex-direction:column;gap:10px}
-.item{background:#0c0f18;border:1px solid #171924;
-border-radius:12px;padding:10px}
-.row{display:flex;justify-content:space-between;font-size:13px}
-.muted{color:var(--muted);font-size:11px}
-.empty{text-align:center;color:var(--muted);margin-top:30px}
-</style>
-</head>
-
-<body>
-<div class="app">
-
-  <div class="top">
-    <div>←</div>
-    <div>Records</div>
-    <div>●</div>
-  </div>
-
-  <br>
-
-  <input id="from" class="input" type="date"><br><br>
-  <input id="to" class="input" type="date"><br><br>
-
-  <div style="display:flex;gap:10px">
-    <button class="btn reset" id="reset">Reset</button>
-    <button class="btn confirm" id="confirm">Confirm</button>
-  </div>
-
-  <div id="list" class="empty">No records yet</div>
-
-</div>
-
-<script src="sb-config.js"></script>
-<script src="wallet.js"></script>
-
 <script>
-let allTx = [];
+let allRecords = [];
 
-function render(list){
-  const box = document.getElementById('list');
-  if(!list.length){
-    box.className='empty';
-    box.innerText='No records yet';
+function loadRecords() {
+  try {
+    allRecords = JSON.parse(localStorage.getItem('records') || '[]');
+  } catch {
+    allRecords = [];
+  }
+  applyFilters();
+}
+
+function render(list) {
+  const box = document.getElementById('billsContainer');
+
+  if (!list.length) {
+    box.className = 'empty-state';
+    box.textContent = 'No records yet';
     return;
   }
-  box.className='list';
-  box.innerHTML='';
-  list.forEach(tx=>{
-    const el=document.createElement('div');
-    el.className='item';
-    el.innerHTML=`
-      <div class="row">
-        <b>${tx.type.toUpperCase()}</b>
-        <b style="color:var(--accent)">${tx.amount} ${tx.currency}</b>
+
+  box.className = 'bill-list';
+  box.innerHTML = '';
+
+  list.forEach(r => {
+    const item = document.createElement('div');
+    item.className = 'bill-item';
+
+    item.innerHTML = `
+      <div class="bill-main-row">
+        <span class="bill-type">${r.type}</span>
+        <span class="bill-amount">${r.amount} ${r.currency}</span>
       </div>
-      <div class="row muted">
-        <span>${tx.status}</span>
-        <span>${tx.createdAt.slice(0,19).replace('T',' ')}</span>
-      </div>`;
-    box.appendChild(el);
+      <div class="bill-sub-row">
+        <span class="bill-status">${r.status}</span>
+        <span class="bill-time">${r.createdAt.replace('T',' ').slice(0,19)}</span>
+      </div>
+    `;
+
+    box.appendChild(item);
   });
 }
 
-async function load(){
-  try{
-    allTx = await DemoWallet.getTransactions();
-    apply();
-  }catch(e){
-    console.log(e);
-  }
-}
+function applyFilters() {
+  const start = document.getElementById('startDate').value;
+  const end = document.getElementById('endDate').value;
 
-function apply(){
-  const f=document.getElementById('from').value;
-  const t=document.getElementById('to').value;
-
-  let out = allTx.filter(x=>{
-    const d=new Date(x.createdAt);
-    if(f && d < new Date(f)) return false;
-    if(t && d > new Date(t+'T23:59:59')) return false;
+  let out = allRecords.filter(r => {
+    const d = new Date(r.createdAt);
+    if (start && d < new Date(start)) return false;
+    if (end && d > new Date(end + 'T23:59:59')) return false;
     return true;
   });
+
   render(out);
 }
 
-document.getElementById('confirm').onclick=apply;
-document.getElementById('reset').onclick=()=>{
-  from.value='';to.value='';
-  render(allTx);
+document.querySelector('.btn-confirm').onclick = applyFilters;
+document.querySelector('.btn-reset').onclick = () => {
+  startDate.value = '';
+  endDate.value = '';
+  render(allRecords);
 };
 
-load();
-setInterval(load,2000);
+loadRecords();
+setInterval(loadRecords, 1000);
 </script>
-</body>
-</html>
