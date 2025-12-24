@@ -1,43 +1,66 @@
-<script src="records.js"></script>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Records</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+<style>
+body {
+  background:#05060b;
+  color:#fff;
+  font-family:system-ui;
+}
+.app {
+  max-width:420px;
+  margin:20px auto;
+}
+.bill {
+  background:#11141f;
+  padding:12px;
+  border-radius:10px;
+  margin-bottom:10px;
+}
+.type { font-size:14px; }
+.amount { font-weight:bold; }
+.time { font-size:11px; color:#7b8194; }
+.empty { text-align:center; color:#7b8194; margin-top:40px; }
+</style>
+</head>
+
+<body>
+<div class="app">
+  <h3>Records</h3>
+  <div id="list" class="empty">No records yet.</div>
+</div>
+
+<script src="records.js"></script>
 <script>
 (function () {
-  var container = document.getElementById('billsContainer');
-  if (!container) return;
-
-  function showEmpty() {
-    container.className = 'empty-state';
-    container.textContent = 'No records yet.';
-  }
-
-  function render(list) {
-    if (!list || !list.length) {
-      showEmpty();
-      return;
-    }
-
-    container.className = 'bill-list';
-    container.innerHTML = '';
-
-    list.forEach(function (tx) {
-      var div = document.createElement('div');
-      div.className = 'bill-item';
-      div.innerHTML =
-        '<div class="bill-main-row">' +
-          '<span>' + tx.type + '</span>' +
-          '<span>' + tx.amount + ' ' + tx.currency + '</span>' +
-        '</div>';
-      container.appendChild(div);
-    });
-  }
+  var el = document.getElementById('list');
+  if (!el) return;
 
   var data = [];
   try {
     data = JSON.parse(localStorage.getItem('transactions_json')) || [];
-  } catch (e) {}
+  } catch(e){}
 
-  render(data);
+  if (!data.length) return;
+
+  el.className = '';
+  el.innerHTML = '';
+
+  data.reverse().forEach(function (tx) {
+    var div = document.createElement('div');
+    div.className = 'bill';
+    div.innerHTML =
+      '<div class="type">' + tx.type.toUpperCase() + '</div>' +
+      '<div class="amount">' + tx.amount + ' ' + tx.currency + '</div>' +
+      '<div class="time">' + tx.createdAt + '</div>';
+    el.appendChild(div);
+  });
 })();
 </script>
+
 </body>
 </html>
