@@ -125,5 +125,61 @@ allReadBtn.onclick = async () => {
 
 loadMessages();
 </script>
+<script>
+(function () {
+  const uid = localStorage.getItem('currentUserId');
+  const listEl = document.getElementById('msgList');
+  const emptyEl = document.getElementById('emptyBox');
+  const allReadBtn = document.getElementById('allRead');
+
+  if (!uid) return;
+
+  const key = jopai_msgs_${uid};
+
+  function load() {
+    try {
+      return JSON.parse(localStorage.getItem(key) || "[]");
+    } catch {
+      return [];
+    }
+  }
+
+  function save(msgs) {
+    localStorage.setItem(key, JSON.stringify(msgs));
+  }
+
+  function render() {
+    const msgs = load();
+
+    if (!msgs.length) {
+      emptyEl.style.display = "block";
+      listEl.style.display = "none";
+      return;
+    }
+
+    emptyEl.style.display = "none";
+    listEl.style.display = "block";
+
+    listEl.innerHTML = msgs.map(m => `
+      <div class="msg">
+        <div class="msg-title">
+          ${m.is_read ? "" : '<span class="dot"></span>'}
+          ${m.title}
+        </div>
+        <div class="msg-body">${m.body}</div>
+        <div class="msg-time">${new Date(m.created_at).toLocaleString()}</div>
+      </div>
+    `).join("");
+  }
+
+  allReadBtn.onclick = () => {
+    const msgs = load().map(m => ({...m, is_read:true}));
+    save(msgs);
+    render();
+  };
+
+  render();
+})();
+</script>
 </body>
 </html>
