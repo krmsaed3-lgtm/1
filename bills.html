@@ -1,110 +1,197 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Bills</title>
+<meta charset="UTF-8">
+<title>Bills</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <!-- ===== CSS الأصلي (منظف فقط) ===== -->
-  <style>
-    body {
-      margin: 0;
-      background: #f5f6fa;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial;
-    }
+<style>
+* {
+  box-sizing: border-box;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial;
+}
 
-    /* ===== مثال على ستايل محفوظ كما هو ===== */
-    .app {
-      max-width: 480px;
-      margin: auto;
-      background: #fff;
-      min-height: 100vh;
-    }
+body {
+  margin: 0;
+  background: #0b0f1a;
+  color: #fff;
+}
 
-    .header {
-      background: #1e1e2f;
-      color: #fff;
-      padding: 16px;
-      text-align: center;
-      font-weight: bold;
-    }
+/* Header */
+.header {
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  background: linear-gradient(#0b0f1a, #0e1323);
+  font-size: 18px;
+}
 
-    .bill-item {
-      padding: 14px;
-      border-bottom: 1px solid #eee;
-      cursor: pointer;
-    }
+.header .back {
+  position: absolute;
+  left: 16px;
+  font-size: 22px;
+}
 
-    .bill-item:hover {
-      background: #f1f1f1;
-    }
-  </style>
+/* Container */
+.container {
+  padding: 16px;
+}
+
+/* Filters */
+.filters {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.input {
+  background: #0e1628;
+  border: 1px solid #1f2a44;
+  border-radius: 8px;
+  padding: 12px;
+  color: #888;
+  font-size: 14px;
+}
+
+.select {
+  background: #0e1628;
+  border: 1px solid #1f2a44;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 12px;
+  color: #fff;
+}
+
+/* Buttons */
+.buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.btn-reset {
+  background: #3a3a3a;
+  color: #999;
+  border: none;
+  border-radius: 8px;
+  padding: 14px;
+  font-size: 16px;
+}
+
+.btn-confirm {
+  background: linear-gradient(90deg, #28c7fa, #2cffb1);
+  color: #000;
+  border: none;
+  border-radius: 8px;
+  padding: 14px;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+/* Cards */
+.card {
+  background: linear-gradient(180deg, #0f1a2e, #0b1222);
+  border-radius: 12px;
+  padding: 14px;
+  margin-bottom: 12px;
+}
+
+.card-top {
+  display: flex;
+  justify-content: space-between;
+  font-size: 15px;
+}
+
+.amount.plus {
+  color: #2cffb1;
+}
+
+.amount.minus {
+  color: #ff5a5a;
+}
+
+.card-mid {
+  margin: 6px 0;
+  font-size: 12px;
+  color: #888;
+}
+
+.card-bottom {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+}
+
+.success {
+  color: #2cff6a;
+}
+</style>
 </head>
 
 <body>
 
-<div class="app">
-  <div class="header">Bills</div>
-
-  <!-- ===== نفس عناصر الصفحة ===== -->
-  <div class="bill-item" data-bill="electric">
-    Electricity Bill
-  </div>
-
-  <div class="bill-item" data-bill="water">
-    Water Bill
-  </div>
-
-  <div class="bill-item" data-bill="internet">
-    Internet Bill
-  </div>
+<div class="header">
+  <div class="back">‹</div>
+  Bills
 </div>
 
-<script>
-/* ===============================
-   Tracking System (واضح ونظيف)
-   =============================== */
+<div class="container">
 
-const activityLog = [];
+  <div class="filters">
+    <div class="input">Start Time</div>
+    <div class="input">End Time</div>
+  </div>
 
-function track(event, data = {}) {
-  const entry = {
-    event,
-    data,
-    time: new Date().toISOString()
-  };
-  activityLog.push(entry);
-  console.log("TRACK:", entry);
+  <div class="select">All</div>
+  <div class="select">USDT</div>
 
-  // جاهز للربط لاحقًا
-  // fetch("/track", { method:"POST", body: JSON.stringify(entry) })
-}
+  <div class="buttons">
+    <button class="btn-reset">Reset</button>
+    <button class="btn-confirm">Confirm</button>
+  </div>
 
-// تحميل الصفحة
-track("page_load");
+  <!-- Card -->
+  <div class="card">
+    <div class="card-top">
+      <div>Mission Benefits USDT</div>
+      <div class="amount plus">+0.03</div>
+    </div>
+    <div class="card-mid">2025-12-01 02:23:16</div>
+    <div class="card-bottom">
+      <div>Account Balance</div>
+      <div class="success">Success&nbsp;&nbsp;3.06</div>
+    </div>
+  </div>
 
-// نقر على الفواتير
-document.querySelectorAll(".bill-item").forEach(item => {
-  item.addEventListener("click", () => {
-    track("bill_click", {
-      bill: item.dataset.bill,
-      text: item.innerText.trim()
-    });
-  });
-});
+  <div class="card">
+    <div class="card-top">
+      <div>Mission Investment Redemption USDT</div>
+      <div class="amount plus">+3</div>
+    </div>
+    <div class="card-mid">2025-12-01 02:23:15</div>
+    <div class="card-bottom">
+      <div>Account Balance</div>
+      <div class="success">Success&nbsp;&nbsp;3.03</div>
+    </div>
+  </div>
 
-// تمرير
-window.addEventListener("scroll", () => {
-  track("scroll", { y: window.scrollY });
-});
+  <div class="card">
+    <div class="card-top">
+      <div>Mission Investment USDT</div>
+      <div class="amount minus">-3</div>
+    </div>
+    <div class="card-mid">2025-12-01 02:23:12</div>
+    <div class="card-bottom">
+      <div>Account Balance</div>
+      <div class="success">Success&nbsp;&nbsp;0.03</div>
+    </div>
+  </div>
 
-// وقت البقاء
-const start = Date.now();
-window.addEventListener("beforeunload", () => {
-  track("time_on_page", {
-    seconds: Math.round((Date.now() - start) / 1000)
-  });
-});
-</script>
+</div>
 
 </body>
 </html>
