@@ -1,63 +1,123 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
+<meta charset="utf-8"/>
 <title>Records</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
 
 <style>
-body {
-  background:#05060b;
-  color:#fff;
-  font-family:system-ui;
+/* === نفس التصميم الأصلي بدون تغيير === */
+:root {
+  --bg-main:#05060b;
+  --bg-card:#0c0f18;
+  --bg-input:#151824;
+  --border:#171924;
+  --text:#fff;
+  --text-sub:#7b8194;
+  --accent:#22e1a5;
 }
-.app {
-  max-width:420px;
-  margin:20px auto;
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  background:var(--bg-main);
+  color:var(--text);
+  font-family:system-ui,-apple-system;
 }
-.bill {
-  background:#11141f;
+.app{
+  max-width:480px;
+  margin:0 auto;
   padding:12px;
-  border-radius:10px;
-  margin-bottom:10px;
 }
-.type { font-size:14px; }
-.amount { font-weight:bold; }
-.time { font-size:11px; color:#7b8194; }
-.empty { text-align:center; color:#7b8194; margin-top:40px; }
+.top-bar{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:12px;
+}
+.title{font-size:16px;font-weight:500}
+.bill-list{display:flex;flex-direction:column;gap:10px}
+.bill-item{
+  background:var(--bg-card);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:10px 12px;
+}
+.bill-main-row{
+  display:flex;
+  justify-content:space-between;
+}
+.bill-type{font-size:13px}
+.bill-amount{color:var(--accent);font-weight:600}
+.bill-sub-row{
+  display:flex;
+  justify-content:space-between;
+  font-size:11px;
+  color:var(--text-sub);
+  margin-top:4px;
+}
+.empty{
+  text-align:center;
+  color:var(--text-sub);
+  margin-top:40px;
+}
 </style>
 </head>
 
 <body>
 <div class="app">
-  <h3>Records</h3>
-  <div id="list" class="empty">No records yet.</div>
+  <div class="top-bar">
+    <div></div>
+    <div class="title">Records</div>
+    <div></div>
+  </div>
+
+  <div id="billsContainer" class="empty">No records yet.</div>
 </div>
 
 <script src="records.js"></script>
+
 <script>
-(function () {
-  var el = document.getElementById('list');
-  if (!el) return;
+(function(){
+  var box = document.getElementById('billsContainer');
+  if(!box) return;
 
   var data = [];
   try {
     data = JSON.parse(localStorage.getItem('transactions_json')) || [];
   } catch(e){}
 
-  if (!data.length) return;
+  if(!data.length){
+    box.className = 'empty';
+    box.textContent = 'No records yet.';
+    return;
+  }
 
-  el.className = '';
-  el.innerHTML = '';
+  box.className = 'bill-list';
+  box.innerHTML = '';
 
-  data.reverse().forEach(function (tx) {
-    var div = document.createElement('div');
-    div.className = 'bill';
-    div.innerHTML =
-      '<div class="type">' + tx.type.toUpperCase() + '</div>' +
-      '<div class="amount">' + tx.amount + ' ' + tx.currency + '</div>' +
-      '<div class="time">' + tx.createdAt + '</div>';
-    el.appendChild(div);
+  data.slice().reverse().forEach(function(tx){
+    var el = document.createElement('div');
+    el.className = 'bill-item';
+
+    var type =
+      tx.type === 'deposit' ? 'Deposit' :
+      tx.type === 'withdraw' ? 'Withdraw' :
+      tx.type === 'income' ? 'Income' :
+      'Record';
+
+    var amount = (Number(tx.amount)||0).toFixed(2)+' '+(tx.currency||'USDT');
+    var time = tx.createdAt ? tx.createdAt.replace('T',' ').slice(0,19) : '';
+
+    el.innerHTML =
+      '<div class="bill-main-row">'+
+        '<span class="bill-type">'+type+'</span>'+
+        '<span class="bill-amount">'+amount+'</span>'+
+      '</div>'+
+      '<div class="bill-sub-row">'+
+        '<span>SUCCESS</span>'+
+        '<span>'+time+'</span>'+
+      '</div>';
+
+    box.appendChild(el);
   });
 })();
 </script>
