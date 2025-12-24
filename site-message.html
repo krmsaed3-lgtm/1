@@ -1,185 +1,133 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-  <title>Site message</title>
+<meta charset="utf-8"/>
+<title>Site message</title>
+<meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport"/>
+<style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
-  <style>
-    *{box-sizing:border-box;margin:0;padding:0}
-    body{
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background:#05070b;
-      color:#fff;
+    body {
+      background-color: #05070b;
+      color: #ffffff;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+      height: 100vh;
     }
-    .page{min-height:100vh;display:flex;flex-direction:column}
-    .header{
-      height:56px;
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      padding:0 16px;
-      border-bottom:1px solid rgba(255,255,255,.08)
+
+    .page {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
     }
-    .header-title{font-size:16px;font-weight:600}
-    .header-right{font-size:14px;color:#aaa}
-    .content{padding:16px}
-    .empty{text-align:center;margin-top:80px;color:#aaa}
-    .list{display:none}
-    .msg{
-      border:1px solid rgba(255,255,255,.08);
-      border-radius:12px;
-      padding:12px;
-      margin-bottom:10px;
-      background:rgba(255,255,255,.02)
+
+    .header {
+      height: 44px;
+      padding: 0 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+      flex-shrink: 0;
     }
-    .msg-title{font-weight:600;font-size:14px}
-    .msg-body{font-size:13px;color:#ccc;margin-top:6px}
-    .msg-time{font-size:11px;color:#777;margin-top:4px}
-    .dot{
-      width:8px;height:8px;border-radius:50%;
-      background:#ff3b30;display:inline-block;margin-right:6px
+
+    .header-side {
+      width: 60px;
+      display: flex;
+      align-items: center;
+    }
+
+    .header-title {
+      font-size: 16px;
+      font-weight: 500;
+      text-align: center;
+      flex: 1;
+    }
+
+    .header-right {
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.6);
+      justify-content: flex-end;
+      width: 60px;
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: flex-start;
+      width: 24px;
+      height: 24px;
+    }
+
+    .back-icon {
+      width: 10px;
+      height: 10px;
+      border-left: 2px solid #ffffff;
+      border-bottom: 2px solid #ffffff;
+      transform: rotate(45deg);
+    }
+
+    .content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding-bottom: 80px;
+    }
+
+    .icon-wrapper {
+      width: 120px;
+      height: 120px;
+      border-radius: 60px;
+      background: rgba(255, 255, 255, 0.03);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 16px;
+    }
+
+    .icon-wrapper img {
+      width: 72px;
+      height: 72px;
+      display: block;
+    }
+
+    .message-text {
+      font-size: 14px;
+      color: rgba(255, 255, 255, 0.6);
+      text-align: center;
+      line-height: 1.4;
     }
   </style>
 </head>
-
 <body>
 <div class="page">
-  <div class="header">
-    <div class="header-title">Site message</div>
-    <div class="header-right" id="allRead">All read</div>
-  </div>
-
-  <div class="content">
-    <div class="empty" id="emptyBox">
-      No More Data<br/>Available
-    </div>
-    <div class="list" id="msgList"></div>
-  </div>
+<div class="header">
+<div class="header-side">
+<a aria-label="Back" class="back-btn" href="javascript:history.back();">
+<span class="back-icon"></span>
+</a>
 </div>
-
-<script src="sb-config.js"></script>
-<script src="sb-user.js"></script>
+<div class="header-title">Site message</div>
+<div class="header-right">All read</div>
+</div>
+<div class="content">
+<div class="icon-wrapper">
+<img alt="Empty" src="images/notice-2-on-DPdBOjno.png"/>
+</div>
+<div class="message-text">
+        No More Data<br/>Available
+      </div>
+</div>
+</div>
 <script src="auth.js"></script>
 <script src="common-nav.js"></script>
-<script>
-/* ====== SITE MESSAGE JS ====== */
-
-const listEl = document.getElementById('msgList');
-const emptyEl = document.getElementById('emptyBox');
-const allReadBtn = document.getElementById('allRead');
-
-function getUserId(){
-  return localStorage.getItem('currentUserId');
-}
-
-async function loadMessages(){
-  const uid = getUserId();
-  if(!uid) return;
-
-  const res = await fetch(
-    SB_CONFIG.url +
-    /rest/v1/site_messages?user_id=eq.${uid}&order=created_at.desc,
-    { headers: SB_CONFIG.headers() }
-  );
-
-  const data = await res.json();
-
-  if(!data.length){
-    emptyEl.style.display='block';
-    listEl.style.display='none';
-    return;
-  }
-
-  emptyEl.style.display='none';
-  listEl.style.display='block';
-
-  listEl.innerHTML = data.map(m => `
-    <div class="msg">
-      <div class="msg-title">
-        ${m.is_read ? '' : '<span class="dot"></span>'}
-        ${m.title}
-      </div>
-      <div class="msg-body">${m.body}</div>
-      <div class="msg-time">${new Date(m.created_at).toLocaleString()}</div>
-    </div>
-  `).join('');
-}
-
-allReadBtn.onclick = async () => {
-  const uid = getUserId();
-  await fetch(
-    SB_CONFIG.url +
-    /rest/v1/site_messages?user_id=eq.${uid}&is_read=eq.false,
-    {
-      method:'PATCH',
-      headers:{
-        ...SB_CONFIG.headers(),
-        'Content-Type':'application/json'
-      },
-      body: JSON.stringify({ is_read:true })
-    }
-  );
-  loadMessages();
-};
-
-loadMessages();
-</script>
-<script>
-(function () {
-  const uid = localStorage.getItem('currentUserId');
-  const listEl = document.getElementById('msgList');
-  const emptyEl = document.getElementById('emptyBox');
-  const allReadBtn = document.getElementById('allRead');
-
-  if (!uid) return;
-
-  const key = jopai_msgs_${uid};
-
-  function load() {
-    try {
-      return JSON.parse(localStorage.getItem(key) || "[]");
-    } catch {
-      return [];
-    }
-  }
-
-  function save(msgs) {
-    localStorage.setItem(key, JSON.stringify(msgs));
-  }
-
-  function render() {
-    const msgs = load();
-
-    if (!msgs.length) {
-      emptyEl.style.display = "block";
-      listEl.style.display = "none";
-      return;
-    }
-
-    emptyEl.style.display = "none";
-    listEl.style.display = "block";
-
-    listEl.innerHTML = msgs.map(m => `
-      <div class="msg">
-        <div class="msg-title">
-          ${m.is_read ? "" : '<span class="dot"></span>'}
-          ${m.title}
-        </div>
-        <div class="msg-body">${m.body}</div>
-        <div class="msg-time">${new Date(m.created_at).toLocaleString()}</div>
-      </div>
-    `).join("");
-  }
-
-  allReadBtn.onclick = () => {
-    const msgs = load().map(m => ({...m, is_read:true}));
-    save(msgs);
-    render();
-  };
-
-  render();
-})();
-</script>
 </body>
 </html>
