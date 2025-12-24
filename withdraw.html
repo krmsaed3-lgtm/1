@@ -618,21 +618,30 @@
     if(addressValue) addressValue.textContent = 'Please select an address';
   }
 
-  function addAddressFlow(){
+  async function addAddressFlow(){
     const {cur, net} = getState();
-    const addr = prompt('Enter your '+net+' address for '+cur+':');
+    const addr = await egModal.prompt({
+      title: 'Add Address',
+      msg: 'Enter your '+net+' address for '+cur+':',
+      okText: 'Save',
+      cancelText: 'Cancel',
+      placeholder: net+' address'
+    });
     if(addr === null) return; // cancelled
+
     const cleaned = String(addr||'').trim();
     if(!isValidAddress(cleaned, net)){
-      alert('Invalid address for '+net+'. Please check and try again.');
+      await egModal.alert('Invalid address for '+net+'. Please check and try again.', { title: 'Invalid Address', okText: 'OK' });
       return;
     }
+
     const list = loadList(cur, net);
     const exists = list.some(x => String(x).toLowerCase() === cleaned.toLowerCase());
     if(!exists) list.unshift(cleaned);
-    saveList(cur, net, list.slice(0,20)); // keep last 20
+    saveList(cur, net, list);
     selectAddress(cleaned);
-    alert('Address saved.');
+
+    await egModal.alert('Address saved.', { title: 'Success', okText: 'OK' });
   }
 
   function requireSelectedAddress(){
@@ -695,6 +704,5 @@
   loadSelected();
 })();
 </script>
-<script src="withdraw-email-verify.v2.js"></script>
 </body>
 </html>
