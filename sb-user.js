@@ -48,27 +48,3 @@
     getCurrentProfile: getCurrentProfile
   };
 })();
-// ===== jopai local welcome message (ONCE ONLY) =====
-(function () {
-  try {
-    const uid = localStorage.getItem('currentUserId');
-    if (!uid) return;
-
-    const key = 'jopai_msgs_' + uid;
-
-    // إذا الرسالة موجودة، لا تعمل شي
-    if (localStorage.getItem(key)) return;
-
-    const welcomeMessage = [{
-      id: Date.now().toString(),
-      title: 'Welcome to jopai',
-      body: 'Welcome! We are glad to have you on jopai.',
-      is_read: false,
-      created_at: new Date().toISOString()
-    }];
-
-    localStorage.setItem(key, JSON.stringify(welcomeMessage));
-  } catch (e) {
-    console.error('Welcome message error', e);
-  }
-})();
