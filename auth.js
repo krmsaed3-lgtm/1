@@ -288,6 +288,26 @@
       createdAt: row.created_at
     };
   }
+  function ensureLocalWelcomeMessageOnce(userId) {
+  try {
+    if (!userId) return;
+
+    var key = 'jopai_msgs_' + userId;
+
+    // إذا في رسائل مخزنة قبل، لا تعمل شي
+    if (localStorage.getItem(key)) return;
+
+    var msgs = [{
+      id: String(Date.now()),
+      title: 'Welcome to jopai',
+      body: 'Welcome! We are glad to have you on jopai.',
+      is_read: false,
+      created_at: new Date().toISOString()
+    }];
+
+    localStorage.setItem(key, JSON.stringify(msgs));
+  } catch (e) {}
+}
 
   window.ExaAuth = {
     fullPhone: fullPhone,
