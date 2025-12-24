@@ -1,129 +1,109 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <title>الفواتير</title>
+  <meta charset="UTF-8" />
+  <title>Bills</title>
 
+  <!-- ===== CSS الأصلي (منظف فقط) ===== -->
   <style>
     body {
       margin: 0;
-      font-family: "Segoe UI", Tahoma, Arial, sans-serif;
       background: #f5f6fa;
-      color: #222;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial;
     }
 
-    header {
+    /* ===== مثال على ستايل محفوظ كما هو ===== */
+    .app {
+      max-width: 480px;
+      margin: auto;
+      background: #fff;
+      min-height: 100vh;
+    }
+
+    .header {
       background: #1e1e2f;
       color: #fff;
-      padding: 15px;
-      text-align: center;
-      font-size: 18px;
-    }
-
-    .container {
       padding: 16px;
+      text-align: center;
+      font-weight: bold;
     }
 
-    .card {
-      background: #fff;
-      border-radius: 10px;
+    .bill-item {
       padding: 14px;
-      margin-bottom: 12px;
-      box-shadow: 0 2px 6px rgba(0,0,0,.08);
+      border-bottom: 1px solid #eee;
       cursor: pointer;
-      transition: transform .1s;
     }
 
-    .card:hover {
-      transform: scale(1.01);
-    }
-
-    .card-title {
-      font-weight: bold;
-      margin-bottom: 6px;
-    }
-
-    .card-info {
-      font-size: 14px;
-      color: #666;
-    }
-
-    .amount {
-      color: #e74c3c;
-      font-weight: bold;
-      margin-top: 6px;
+    .bill-item:hover {
+      background: #f1f1f1;
     }
   </style>
 </head>
+
 <body>
 
-<header>قائمة الفواتير</header>
+<div class="app">
+  <div class="header">Bills</div>
 
-<div class="container">
-  <div class="card" data-id="1">
-    <div class="card-title">فاتورة كهرباء</div>
-    <div class="card-info">تاريخ: 2025-01-10</div>
-    <div class="amount">150.00 $</div>
+  <!-- ===== نفس عناصر الصفحة ===== -->
+  <div class="bill-item" data-bill="electric">
+    Electricity Bill
   </div>
 
-  <div class="card" data-id="2">
-    <div class="card-title">فاتورة ماء</div>
-    <div class="card-info">تاريخ: 2025-01-12</div>
-    <div class="amount">45.00 $</div>
+  <div class="bill-item" data-bill="water">
+    Water Bill
   </div>
 
-  <div class="card" data-id="3">
-    <div class="card-title">فاتورة إنترنت</div>
-    <div class="card-info">تاريخ: 2025-01-15</div>
-    <div class="amount">60.00 $</div>
+  <div class="bill-item" data-bill="internet">
+    Internet Bill
   </div>
 </div>
 
 <script>
-  /* ====== نظام تتبع التحركات ====== */
+/* ===============================
+   Tracking System (واضح ونظيف)
+   =============================== */
 
-  const logs = [];
+const activityLog = [];
 
-  function logEvent(type, data = {}) {
-    const entry = {
-      type,
-      data,
-      time: new Date().toISOString()
-    };
-    logs.push(entry);
-    console.log("LOG:", entry);
+function track(event, data = {}) {
+  const entry = {
+    event,
+    data,
+    time: new Date().toISOString()
+  };
+  activityLog.push(entry);
+  console.log("TRACK:", entry);
 
-    // جاهز للإرسال لسيرفر لاحقًا
-    // fetch("/log", { method: "POST", body: JSON.stringify(entry) })
-  }
+  // جاهز للربط لاحقًا
+  // fetch("/track", { method:"POST", body: JSON.stringify(entry) })
+}
 
-  // تحميل الصفحة
-  logEvent("page_load");
+// تحميل الصفحة
+track("page_load");
 
-  // النقر على الفواتير
-  document.querySelectorAll(".card").forEach(card => {
-    card.addEventListener("click", () => {
-      logEvent("bill_click", {
-        billId: card.dataset.id,
-        title: card.querySelector(".card-title").innerText
-      });
+// نقر على الفواتير
+document.querySelectorAll(".bill-item").forEach(item => {
+  item.addEventListener("click", () => {
+    track("bill_click", {
+      bill: item.dataset.bill,
+      text: item.innerText.trim()
     });
   });
+});
 
-  // التمرير
-  window.addEventListener("scroll", () => {
-    logEvent("scroll", {
-      scrollY: window.scrollY
-    });
-  });
+// تمرير
+window.addEventListener("scroll", () => {
+  track("scroll", { y: window.scrollY });
+});
 
-  // مدة البقاء
-  const startTime = Date.now();
-  window.addEventListener("beforeunload", () => {
-    logEvent("time_on_page", {
-      seconds: Math.round((Date.now() - startTime) / 1000)
-    });
+// وقت البقاء
+const start = Date.now();
+window.addEventListener("beforeunload", () => {
+  track("time_on_page", {
+    seconds: Math.round((Date.now() - start) / 1000)
   });
+});
 </script>
 
 </body>
