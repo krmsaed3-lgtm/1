@@ -169,13 +169,13 @@ function hasEmail() {
     e.preventDefault();
     e.stopPropagation();
     if (e.stopImmediatePropagation) e.stopImmediatePropagation();
-
-    var go = await egOpenConfirm({
-      title: 'تنبيه أمني',
-      msg: 'لازم تضيفي الإيميل قبل ما تفوتي على صفحة السحب.',
-      okText: 'أضيف الإيميل هلا',
-      cancelText: 'إلغاء'
-    });
+	
+var go = await egOpenConfirm({
+  title: 'Security Notice',
+  msg: 'Please add your email address before proceeding to the withdrawal page.',
+  okText: 'Add Email',
+  cancelText: 'Cancel'
+});
 
     if (go) window.location.href = 'security-center.html';
   }
