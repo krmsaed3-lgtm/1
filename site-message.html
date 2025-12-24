@@ -4,41 +4,144 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <title>Site message</title>
+
   <style>
-    body { margin:0; font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; background:#05070b; color:#fff; }
-    .page { min-height:100vh; display:flex; flex-direction:column; }
-    .header { height:56px; display:flex; align-items:center; justify-content:space-between; padding:0 16px; border-bottom:1px solid rgba(255,255,255,0.08); }
-    .header-title { font-size:16px; font-weight:600; }
-    .header-right { font-size:14px; color:rgba(255,255,255,0.7); user-select:none; }
-    .content { padding-top:70px; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; }
-    .icon-wrapper { width:80px; height:80px; border-radius:18px; display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.06); }
-    .icon-wrapper img { width:44px; height:44px; object-fit:contain; }
-    .message-text { margin-top:16px; font-size:14px; line-height:1.6; color:rgba(255,255,255,0.7); }
+    :root{
+      --bg:#05070b;
+      --text:#ffffff;
+      --muted:rgba(255,255,255,0.7);
+      --muted2:rgba(255,255,255,0.55);
+      --border:rgba(255,255,255,0.08);
+      --card:rgba(255,255,255,0.02);
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{
+      font-family: system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      background:var(--bg);
+      color:var(--text);
+      -webkit-text-size-adjust:100%;
+    }
+
+    .page{min-height:100vh;display:flex;flex-direction:column}
+
+    /* Header */
+    .header{
+      position:sticky; top:0; z-index:10;
+      height:56px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding:0 14px;
+      border-bottom:1px solid var(--border);
+      background:rgba(5,7,11,0.92);
+      backdrop-filter: blur(8px);
+    }
+    .left{
+      display:flex;align-items:center;gap:10px;min-width:0;
+    }
+    .back{
+      width:34px;height:34px;border-radius:10px;
+      display:flex;align-items:center;justify-content:center;
+      background:rgba(255,255,255,0.04);
+      border:1px solid rgba(255,255,255,0.06);
+      cursor:pointer; user-select:none;
+      font-size:20px; line-height:1;
+    }
+    .title{
+      font-size:16px;font-weight:700;
+      white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+    }
+    .allread{
+      font-size:14px;
+      color:var(--muted);
+      cursor:pointer;
+      user-select:none;
+    }
+
+    /* Content */
+    .content{
+      flex:1;
+      width:100%;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      padding:18px 0 90px 0;
+    }
+
+    /* Empty state */
+    .empty-wrap{
+      margin-top:80px;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      text-align:center;
+      gap:14px;
+    }
+    .empty-icon{
+      width:86px;height:86px;border-radius:18px;
+      display:flex;align-items:center;justify-content:center;
+      background:rgba(255,255,255,0.03);
+      border:1px solid rgba(255,255,255,0.06);
+    }
+    .empty-icon img{width:46px;height:46px;object-fit:contain}
+    .empty-text{
+      font-size:14px;
+      line-height:1.6;
+      color:var(--muted);
+    }
+
+    /* List container (JS will fill it) */
+    #sm-list{
+      width:100%;
+      max-width:560px;
+      padding:0 14px;
+      display:none;
+    }
+
+    @media (max-width:380px){
+      .title{font-size:15px}
+      .allread{font-size:13px}
+      .empty-text{font-size:13.5px}
+    }
   </style>
 </head>
+
 <body>
   <div class="page">
     <header class="header">
-      <div class="header-title">Site message</div>
-      <div class="header-right">All read</div>
+      <div class="left">
+        <div class="back" onclick="history.back()">‹</div>
+        <div class="title">Site message</div>
+      </div>
+      <div class="allread header-right">All read</div>
     </header>
 
     <main class="content">
-      <div class="icon-wrapper" id="sm-empty-icon">
-        <img alt="Empty" src="images/notice-2-on-DPdBOjno.png"/>
+      <!-- Empty -->
+      <div class="empty-wrap" id="sm-empty-wrap">
+        <div class="empty-icon" id="sm-empty-icon">
+          <img alt="Empty" src="images/notice-2-on-DPdBOjno.png" />
+        </div>
+        <div class="empty-text" id="sm-empty-text">
+          No More Data<br/>Available
+        </div>
       </div>
 
-      <div class="message-text" id="sm-empty-text">
-        No More Data<br/>Available
-      </div>
-
-      <div id="sm-list" style="display:none;"></div>
+      <!-- Messages -->
+      <div id="sm-list"></div>
     </main>
   </div>
 
-  <script src="sb-config.js"></script>
+  <!-- مهم: خلي الترتيب كما هو -->
   <script src="auth.js"></script>
+  <script src="sb-user.js"></script>
   <script src="common-nav.js"></script>
   <script src="site-message.js"></script>
+
+  <!-- لو بدك كسر كاش GitHub Pages، غيري v -->
+  <script>
+    // optional: console.log('site-message loaded');
+  </script>
 </body>
 </html>
