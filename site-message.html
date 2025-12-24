@@ -1,12 +1,16 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <title>Site message</title>
-  <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport" />
-
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+<meta charset="utf-8"/>
+<title>Site message</title>
+<meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport"/>
+<style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
     body {
       background-color: #05070b;
@@ -32,10 +36,9 @@
     }
 
     .header-side {
-      width: 110px;
+      width: 60px;
       display: flex;
       align-items: center;
-      gap: 10px;
     }
 
     .header-title {
@@ -46,10 +49,12 @@
     }
 
     .header-right {
-      width: 140px;
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.6);
+      justify-content: flex-end;
+      width: 60px;
       display: flex;
       justify-content: flex-end;
-      align-items: center;
     }
 
     .back-btn {
@@ -68,35 +73,13 @@
       transform: rotate(45deg);
     }
 
-    .header-btn {
-      appearance: none;
-      border: 0;
-      background: transparent;
-      color: rgba(255, 255, 255, 0.7);
-      font-size: 12px;
-      padding: 6px 8px;
-      border-radius: 10px;
-    }
-
-    .header-btn:active { opacity: 0.7; }
-    .header-btn.is-disabled { opacity: 0.35; }
-
     .content {
       flex: 1;
-      overflow: auto;
-      -webkit-overflow-scrolling: touch;
-      padding: 12px 12px 90px;
-    }
-
-    /* States */
-    .state {
-      min-height: calc(100vh - 44px);
-      display: none;
+      display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       padding-bottom: 80px;
-      text-align: center;
     }
 
     .icon-wrapper {
@@ -121,118 +104,30 @@
       color: rgba(255, 255, 255, 0.6);
       text-align: center;
       line-height: 1.4;
-      max-width: 280px;
-    }
-
-    .hint {
-      margin-top: 10px;
-      font-size: 12px;
-      color: rgba(255, 255, 255, 0.45);
-    }
-
-    /* List */
-    #messageList {
-      display: none;
-    }
-
-    .msg-item {
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px solid rgba(255, 255, 255, 0.04);
-      border-radius: 16px;
-      padding: 12px 12px;
-      margin-bottom: 10px;
-      cursor: pointer;
-      user-select: none;
-    }
-
-    .msg-top {
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      gap: 10px;
-    }
-
-    .msg-title {
-      font-size: 14px;
-      font-weight: 600;
-      line-height: 1.2;
-      color: rgba(255, 255, 255, 0.92);
-    }
-
-    .msg-time {
-      font-size: 11px;
-      color: rgba(255, 255, 255, 0.45);
-      white-space: nowrap;
-      margin-top: 1px;
-    }
-
-    .msg-body {
-      margin-top: 8px;
-      font-size: 13px;
-      color: rgba(255, 255, 255, 0.7);
-      line-height: 1.35;
-      display: none;
-      white-space: pre-wrap;
-    }
-
-    .msg-item.is-open .msg-body { display: block; }
-
-    .msg-item.is-unread {
-      border-color: rgba(120, 102, 255, 0.35);
-      box-shadow: 0 0 0 1px rgba(120, 102, 255, 0.05) inset;
     }
   </style>
 </head>
-
 <body>
-  <div class="page">
-    <div class="header">
-      <div class="header-side">
-        <a aria-label="Back" class="back-btn" href="javascript:history.back();">
-          <span class="back-icon"></span>
-        </a>
-<button class="header-btn" id="refreshBtn" type="button">Refresh</button>
+<div class="page">
+<div class="header">
+<div class="header-side">
+<a aria-label="Back" class="back-btn" href="javascript:history.back();">
+<span class="back-icon"></span>
+</a>
+</div>
+<div class="header-title">Site message</div>
+<div class="header-right">All read</div>
+</div>
+<div class="content">
+<div class="icon-wrapper">
+<img alt="Empty" src="images/notice-2-on-DPdBOjno.png"/>
+</div>
+<div class="message-text">
+        No More Data<br/>Available
       </div>
-
-      <div class="header-title">Site message</div>
-
-      <div class="header-right">
-        <button class="header-btn is-disabled" id="markAllBtn" type="button" disabled>All read</button>
-      </div>
-    </div>
-
-    <div class="content">
-      <div id="loadingState" class="state">
-        <div class="icon-wrapper">
-          <img alt="Loading" src="images/notice-2-on-DPdBOjno.png" />
-        </div>
-        <div class="message-text">Loading...</div>
-      </div>
-
-      <div id="loginState" class="state">
-        <div class="icon-wrapper">
-          <img alt="Login" src="images/notice-2-on-DPdBOjno.png" />
-        </div>
-        <div class="message-text">Please log in to view your messages.</div>
-      </div>
-
-      <div id="emptyState" class="state">
-        <div class="icon-wrapper">
-          <img alt="Empty" src="images/notice-2-on-DPdBOjno.png" />
-        </div>
-        <div class="message-text">No messages yet.</div>
-        <div class="hint">New messages will appear here.</div>
-      </div>
-
-      <div id="messageList" aria-label="Messages list"></div>
-    </div>
-  </div>
-
-  <!-- Keep your existing scripts -->
-  <script src="auth.js"></script>
-  <script src="common-nav.js"></script>
-
-  <!-- New file -->
-  <script src="messages.js"></script>
+</div>
+</div>
+<script src="auth.js"></script>
+<script src="common-nav.js"></script>
 </body>
 </html>
