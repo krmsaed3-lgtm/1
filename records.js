@@ -1,30 +1,79 @@
 
 ;(function(){
   'use strict';
-  function norm(r){
-    return {
-      type: String(r.type||r.kind||'').toLowerCase(),
-      amount: Number(r.amount||0)||0,
-      currency: String(r.currency||'USDT').toUpperCase(),
-      status: String(r.status||'SUCCESS'),
-      createdAt: r.created_at||r.createdAt||new Date().toISOString(),
-      fee: Number(r.fee||0)||0,
-      net: Number(r.net||r.amount||0)||0
-    };
-  }
-  async function load(){
+
+  function readRecords(){
     try{
-      if (window.DemoWallet && DemoWallet.rpc){
-        const rows = await DemoWallet.rpc('get_wallet_records', {});
-        return Array.isArray(rows)? rows.map(norm):[];
-      }
-    }catch(e){}
-    try{
-      const raw = localStorage.getItem('transactions')||'[]';
-      const arr = JSON.parse(raw);
-      return Array.isArray(arr)? arr.map(norm):[];
+      var raw = localStorage.getItem('wallet_records') || '[]';
+      var arr = JSON.parse(raw);
+      return Array.isArray(arr) ? arr : [];
     }catch(e){ return []; }
   }
-  window.DemoWallet = window.DemoWallet||{};
-  window.DemoWallet.getTransactions = load;
+
+  function normalize(r){
+    return {
+      type: String(r.type || '').toLowerCase(),
+      amount: Number(r.amount || 0) || 0,
+      currency: String(r.currency || 'USDT').toUpperCase(),
+      status: String(r.status || 'SUCCESS'),
+      createdAt: r.createdAt || r.created_at || ''
+    };
+  }
+
+  function init(){
+    var container = document.getElementById('billsContainer');
+    var resetBtn = document.querySelector('.btn-reset');
+    var confirmBtn = document.querySelector('.btn-confirm');
+    var startInput = document.getElementById('startDate');
+    var endInput = document.getElementById('endDate');
+
+    var all = readRecords().map(normalize);
+
+    function render(list){
+      if(!list.length){
+        container.className = 'empty-state';
+        container.textContent = 'No records yet.';
+        return;
+      }
+      container.className = 'bill-list';
+      container.innerHTML = '';
+      list.forEach(function(tx){
+        var d = document.createElement('div');
+        d.className = 'bill-item';
+        d.innerHTML =
+          '<div class="bill-main-row">'+
+            '<span class="bill-type">'+tx.type+'</span>'+
+            '<span class="bill-amount">'+tx.amount.toFixed(2)+' '+tx.currency+'</span>'+
+          '</div>'+
+          '<div class="bill-sub-row">'+
+            '<span class="bill-status">'+tx.status+'</span>'+
+            '<span class="bill-time">'+tx.createdAt+'</span>'+
+          '</div>';
+        container.appendChild(d);
+      });
+    }
+
+    function apply(){
+      var s = startInput.value;
+      var e = endInput.value;
+      var out = all.filter(function(tx){
+        if(s && tx.createdAt < s) return false;
+        if(e && tx.createdAt > e) return false;
+        return true;
+      });
+      render(out);
+    }
+
+    resetBtn.onclick = function(){
+      startInput.value = '';
+      endInput.value = '';
+      render(all);
+    };
+
+    confirmBtn.onclick = apply;
+
+    render(all);
+  }
+
+  document.addEventListener('DOMContentLoaded', init);
 })();
