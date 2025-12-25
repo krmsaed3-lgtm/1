@@ -1,62 +1,69 @@
 (function(){
-  const KEY = 'app_records_v1';
+const KEY='app_records_v1';
 
-  function getAll(){
-    try{ return JSON.parse(localStorage.getItem(KEY)||'[]'); }
-    catch(e){ return []; }
-  }
+function getAll(){
+ try{return JSON.parse(localStorage.getItem(KEY)||'[]')}catch(e){return[]}
+}
 
-  function render(){
-    const list = document.getElementById('recordsList');
-    const empty = document.getElementById('emptyState');
-    list.innerHTML = '';
+function save(rows){
+ localStorage.setItem(KEY,JSON.stringify(rows));
+}
 
-    const from = document.getElementById('fromDate').value;
-    const to = document.getElementById('toDate').value;
-    const type = document.getElementById('typeFilter').value;
-    const cur = document.getElementById('currencyFilter').value;
+function add(type,amount,currency){
+ const rows=getAll();
+ rows.push({
+   type:type,
+   amount:amount,
+   currency:currency,
+   date:new Date().toISOString().slice(0,10)
+ });
+ save(rows);
+}
 
-    let rows = getAll();
+function render(){
+ const list=document.getElementById('recordsList');
+ const empty=document.getElementById('emptyState');
+ list.innerHTML='';
 
-    rows = rows.filter(r=>{
-      if(type!=='all' && r.type!==type) return false;
-      if(cur!=='all' && r.currency!==cur) return false;
-      if(from && r.date < from) return false;
-      if(to && r.date > to) return false;
-      return true;
-    });
+ let rows=getAll();
 
-    if(!rows.length){
-      empty.style.display='block';
-      return;
-    }
-    empty.style.display='none';
+ const f=document.getElementById('fromDate').value;
+ const t=document.getElementById('toDate').value;
+ const ty=document.getElementById('typeFilter').value;
+ const cu=document.getElementById('currencyFilter').value;
 
-    rows.reverse().forEach(r=>{
-      const d=document.createElement('div');
-      d.className='record';
-      d.innerHTML=`<div class="row">
-        <span class="type ${r.type}">${r.type.toUpperCase()}</span>
-        <span class="amount">${r.amount} ${r.currency}</span>
-      </div>
-      <div class="date">${r.date}</div>`;
-      list.appendChild(d);
-    });
-  }
+ rows=rows.filter(r=>{
+   if(ty!=='all'&&r.type!==ty)return false;
+   if(cu!=='all'&&r.currency!==cu)return false;
+   if(f&&r.date<f)return false;
+   if(t&&r.date>t)return false;
+   return true;
+ });
 
-  document.getElementById('confirmBtn').onclick = render;
-  render();
+ if(!rows.length){
+   empty.style.display='block';
+   return;
+ }
+ empty.style.display='none';
 
-  window.RecordLogger = {
-    add(type, amount, currency){
-      const rows = getAll();
-      rows.push({
-        type,
-        amount,
-        currency,
-        date: new Date().toISOString().slice(0,10)
-      });
-      localStorage.setItem(KEY, JSON.stringify(rows));
-    }
-  };
+ rows.reverse().forEach(r=>{
+   const d=document.createElement('div');
+   d.className='record';
+   d.innerHTML=`<div class="row">
+     <span class="type ${r.type}">${r.type.toUpperCase()}</span>
+     <span>${r.amount} ${r.currency}</span>
+   </div>
+   <div class="date">${r.date}</div>`;
+   list.appendChild(d);
+ });
+}
+
+document.getElementById('confirmBtn').onclick=render;
+render();
+
+window.RecordLogger={
+ deposit:(amt,cur)=>add('deposit',amt,cur),
+ withdraw:(amt,cur)=>add('withdraw',amt,cur),
+ profit:(amt,cur)=>add('profit',amt,cur)
+};
 })();
