@@ -297,11 +297,6 @@ var processing = false;
       });
 
       await egOpenConfirm({ title:'نجاح', msg:'تم إرسال طلب السحب ✅', okText:'تمام', cancelText:'إغلاق' });
-      try{
-        if(window.RecordLogger){
-          RecordLogger.withdraw(amount, cur);
-        }
-      }catch(e){}
 
       var qtyInput = document.getElementById('qtyInput');
       if (qtyInput) qtyInput.value = '';

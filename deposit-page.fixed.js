@@ -218,16 +218,3 @@
     boot();
   }
 })();
-
-/* === DIRECT RECORD LOG (DEPOSIT) === */
-(function(){
-  try{
-    if(!window.RecordLogger) return;
-    // simulate deposit confirmation when page is visited
-    var amt = Number(localStorage.getItem('last_deposit_amount') || 0);
-    if(amt > 0){
-      RecordLogger.deposit(amt, 'USDT');
-      localStorage.removeItem('last_deposit_amount');
-    }
-  }catch(e){}
-})();

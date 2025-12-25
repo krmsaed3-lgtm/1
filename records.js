@@ -1,69 +1,73 @@
-(function(){
-const KEY='app_records_v1';
+// records.js - Records page logic (demo balance)
+;(function () {
+  'use strict';
 
-function getAll(){
- try{return JSON.parse(localStorage.getItem(KEY)||'[]')}catch(e){return[]}
-}
+  if (!window.SB_CONFIG) {
+    console.error('SB_CONFIG not loaded');
+    return;
+  }
 
-function save(rows){
- localStorage.setItem(KEY,JSON.stringify(rows));
-}
+  var SB = window.SB_CONFIG;
 
-function add(type,amount,currency){
- const rows=getAll();
- rows.push({
-   type:type,
-   amount:amount,
-   currency:currency,
-   date:new Date().toISOString().slice(0,10)
- });
- save(rows);
-}
+  function getUserId() {
+    try {
+      return (localStorage.getItem('sb_user_id_v1') || '').trim();
+    } catch (e) {
+      return '';
+    }
+  }
 
-function render(){
- const list=document.getElementById('recordsList');
- const empty=document.getElementById('emptyState');
- list.innerHTML='';
+  async function fetchRecords() {
+    var userId = getUserId();
+    if (!userId) return [];
 
- let rows=getAll();
+    var url =
+      SB.url +
+      '/rest/v1/financial_transactions' +
+      '?user_id=eq.' + encodeURIComponent(userId) +
+      '&select=type,amount,source,balance_after,status,created_at' +
+      '&order=created_at.desc';
 
- const f=document.getElementById('fromDate').value;
- const t=document.getElementById('toDate').value;
- const ty=document.getElementById('typeFilter').value;
- const cu=document.getElementById('currencyFilter').value;
+    var res = await fetch(url, {
+      headers: SB.headers()
+    });
 
- rows=rows.filter(r=>{
-   if(ty!=='all'&&r.type!==ty)return false;
-   if(cu!=='all'&&r.currency!==cu)return false;
-   if(f&&r.date<f)return false;
-   if(t&&r.date>t)return false;
-   return true;
- });
+    if (!res.ok) {
+      console.error('Failed to load records');
+      return [];
+    }
 
- if(!rows.length){
-   empty.style.display='block';
-   return;
- }
- empty.style.display='none';
+    return res.json();
+  }
 
- rows.reverse().forEach(r=>{
-   const d=document.createElement('div');
-   d.className='record';
-   d.innerHTML=`<div class="row">
-     <span class="type ${r.type}">${r.type.toUpperCase()}</span>
-     <span>${r.amount} ${r.currency}</span>
-   </div>
-   <div class="date">${r.date}</div>`;
-   list.appendChild(d);
- });
-}
+  function render(records) {
+    var tbody = document.getElementById('records-body');
+    if (!tbody) return;
 
-document.getElementById('confirmBtn').onclick=render;
-render();
+    tbody.innerHTML = '';
 
-window.RecordLogger={
- deposit:(amt,cur)=>add('deposit',amt,cur),
- withdraw:(amt,cur)=>add('withdraw',amt,cur),
- profit:(amt,cur)=>add('profit',amt,cur)
-};
+    if (!records.length) {
+      tbody.innerHTML =
+        '<tr><td colspan="6" style="text-align:center;color:#7b8194">No records</td></tr>';
+      return;
+    }
+
+    records.forEach(function (r) {
+      var tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${r.type}</td>
+        <td>${Number(r.amount).toFixed(2)}</td>
+        <td>${r.source || '-'}</td>
+        <td>${Number(r.balance_after).toFixed(2)}</td>
+        <td>${r.status}</td>
+        <td>${new Date(r.created_at).toLocaleString()}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', async function () {
+    var records = await fetchRecords();
+    render(records);
+  });
 })();

@@ -112,11 +112,6 @@
           // If we got a server response, show it
           if (earned != null) {
             alert('Success! +' + fmt2(earned) + ' USDT');
-          try{
-            if(window.RecordLogger && earned){
-              RecordLogger.profit(Number(earned), 'USDT');
-            }
-          }catch(e){}
           } else {
             alert('Success!');
           }

@@ -1,35 +1,34 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-<title>Records</title>
-<link rel="stylesheet" href="records.css">
+  <meta charset="UTF-8" />
+  <title>Records</title>
+  <style>
+    body { font-family: Arial, sans-serif; background:#0f1220; color:#fff; }
+    table { width:100%; border-collapse: collapse; margin-top:20px; }
+    th, td { padding:10px; border-bottom:1px solid #2a2f4a; text-align:left; }
+    th { background:#1b1f36; }
+  </style>
 </head>
 <body>
-<div class="page">
-  <header class="nav-bar">Records</header>
 
-  <div class="filters">
-    <input type="date" id="fromDate">
-    <input type="date" id="toDate">
-    <select id="typeFilter">
-      <option value="all">All</option>
-      <option value="deposit">Deposit</option>
-      <option value="withdraw">Withdraw</option>
-      <option value="profit">Profit</option>
-    </select>
-    <select id="currencyFilter">
-      <option value="all">All</option>
-      <option value="USDT">USDT</option>
-    </select>
-    <button id="confirmBtn">Confirm</button>
-  </div>
+<h2>Records</h2>
 
-  <div id="recordsList" class="records"></div>
-  <div id="emptyState" class="empty">No records yet.</div>
-</div>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Amount</th>
+      <th>Source</th>
+      <th>Balance</th>
+      <th>Status</th>
+      <th>Date</th>
+    </tr>
+  </thead>
+  <tbody id="records-body"></tbody>
+</table>
 
+<script src="sb-config.js"></script>
 <script src="records.js"></script>
 </body>
 </html>
