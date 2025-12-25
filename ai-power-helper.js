@@ -1,3 +1,5 @@
+
+/* FINAL PATCH: AI Power profit records logging enabled */
 // ai-power-helper.js - Binds AI Power "Run" buttons to perform_ipower_action() (server-side)
 ;(function () {
   'use strict';
@@ -155,4 +157,16 @@
   } else {
     bind();
   }
+})();
+
+
+/* === RECORD LOGGING (PROFIT) === */
+(function(){
+  if(!window.RecordLogger) return;
+  document.addEventListener('ai:profit', function(e){
+    try{
+      var amt = e.detail && e.detail.amount;
+      if(amt) RecordLogger.profit(amt, 'USDT');
+    }catch(_){}
+  });
 })();

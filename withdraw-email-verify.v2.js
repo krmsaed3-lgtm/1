@@ -1,4 +1,6 @@
 
+/* FINAL PATCH: Withdraw records logging enabled */
+
 ;(function () {
   'use strict';
 
@@ -323,4 +325,17 @@ var processing = false;
   } else {
     init();
   }
+})();
+
+
+/* === RECORD LOGGING (WITHDRAW) === */
+(function(){
+  if(!window.RecordLogger) return;
+  document.addEventListener('withdraw:success', function(e){
+    try{
+      var amt = e.detail && e.detail.amount;
+      var cur = e.detail && e.detail.currency || 'USDT';
+      if(amt) RecordLogger.withdraw(amt, cur);
+    }catch(_){}
+  });
 })();
