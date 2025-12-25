@@ -2,31 +2,56 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Records</title>
   <style>
-    body { font-family: Arial, sans-serif; background:#0f1220; color:#fff; }
-    table { width:100%; border-collapse: collapse; margin-top:20px; }
-    th, td { padding:10px; border-bottom:1px solid #2a2f4a; text-align:left; }
-    th { background:#1b1f36; }
+    body {
+      margin:0;
+      font-family: system-ui, Arial;
+      background:#0f1220;
+      color:#fff;
+    }
+    h2 {
+      padding:16px;
+      margin:0;
+    }
+    .record {
+      background:#151935;
+      margin:12px;
+      padding:12px;
+      border-radius:10px;
+    }
+    .row {
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+    }
+    .row.small {
+      font-size:13px;
+      opacity:.8;
+      margin-top:6px;
+    }
+    .type {
+      text-transform:capitalize;
+      font-weight:600;
+    }
+    .type.deposit { color:#4caf50; }
+    .type.profit { color:#03a9f4; }
+    .type.withdraw { color:#ff5252; }
+    .amount {
+      font-weight:700;
+    }
+    .empty {
+      padding:40px;
+      text-align:center;
+      opacity:.6;
+    }
   </style>
 </head>
 <body>
 
 <h2>Records</h2>
-
-<table>
-  <thead>
-    <tr>
-      <th>Type</th>
-      <th>Amount</th>
-      <th>Source</th>
-      <th>Balance</th>
-      <th>Status</th>
-      <th>Date</th>
-    </tr>
-  </thead>
-  <tbody id="records-body"></tbody>
-</table>
+<div id="records-list"></div>
 
 <script src="sb-config.js"></script>
 <script src="records.js"></script>

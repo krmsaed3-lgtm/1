@@ -1,4 +1,4 @@
-// records.js - Records page logic (demo balance)
+// records.js - Mobile records page (demo balance)
 ;(function () {
   'use strict';
 
@@ -28,46 +28,46 @@
       '&select=type,amount,source,balance_after,status,created_at' +
       '&order=created_at.desc';
 
-    var res = await fetch(url, {
-      headers: SB.headers()
-    });
-
-    if (!res.ok) {
-      console.error('Failed to load records');
-      return [];
-    }
-
+    var res = await fetch(url, { headers: SB.headers() });
+    if (!res.ok) return [];
     return res.json();
   }
 
-  function render(records) {
-    var tbody = document.getElementById('records-body');
-    if (!tbody) return;
+  function formatDate(d) {
+    return new Date(d).toLocaleString();
+  }
 
-    tbody.innerHTML = '';
+  function render(records) {
+    var list = document.getElementById('records-list');
+    list.innerHTML = '';
 
     if (!records.length) {
-      tbody.innerHTML =
-        '<tr><td colspan="6" style="text-align:center;color:#7b8194">No records</td></tr>';
+      list.innerHTML = '<div class="empty">No records yet</div>';
       return;
     }
 
     records.forEach(function (r) {
-      var tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td>${r.type}</td>
-        <td>${Number(r.amount).toFixed(2)}</td>
-        <td>${r.source || '-'}</td>
-        <td>${Number(r.balance_after).toFixed(2)}</td>
-        <td>${r.status}</td>
-        <td>${new Date(r.created_at).toLocaleString()}</td>
+      var item = document.createElement('div');
+      item.className = 'record';
+      item.innerHTML = `
+        <div class="row">
+          <span class="type ${r.type}">${r.type}</span>
+          <span class="amount">${Number(r.amount).toFixed(2)}</span>
+        </div>
+        <div class="row small">
+          <span>${r.source || '-'}</span>
+          <span>${r.status}</span>
+        </div>
+        <div class="row small">
+          <span>Balance: ${Number(r.balance_after).toFixed(2)}</span>
+          <span>${formatDate(r.created_at)}</span>
+        </div>
       `;
-      tbody.appendChild(tr);
+      list.appendChild(item);
     });
   }
 
   document.addEventListener('DOMContentLoaded', async function () {
-    var records = await fetchRecords();
-    render(records);
+    render(await fetchRecords());
   });
 })();
