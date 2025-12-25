@@ -1,0 +1,37 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8"/>
+<title>Records</title>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<style>
+body{background:#05060b;color:#fff;font-family:system-ui}
+.app{max-width:420px;margin:0 auto;padding:14px}
+.btn-row{display:flex;gap:10px;margin:10px 0}
+.btn{flex:1;height:44px;border-radius:20px;border:0}
+.btn-reset{background:#333;color:#aaa}
+.btn-confirm{background:#18c1ff;color:#000}
+.bill-item{background:#0c0f18;border:1px solid #222;border-radius:10px;padding:10px;margin:8px 0}
+.bill-main-row{display:flex;justify-content:space-between}
+.bill-sub-row{font-size:12px;opacity:.7}
+.empty-state{text-align:center;opacity:.6;margin-top:20px}
+.select-row{display:flex;justify-content:space-between;margin:8px 0;cursor:pointer}
+</style>
+</head>
+<body>
+<div class="app">
+<h3 style="text-align:center">Records</h3>
+<input id="startDate" type="date">
+<input id="endDate" type="date">
+<div class="select-row" id="typeRow"><span id="typeLabel">All</span><span>▼</span></div>
+<div class="select-row" id="currencyRow"><span id="currencyLabel">USDT</span><span>▼</span></div>
+<div class="btn-row">
+<button class="btn btn-reset">Reset</button>
+<button class="btn btn-confirm">Confirm</button>
+</div>
+<div id="billsContainer" class="empty-state">No records yet.</div>
+</div>
+<script src="records-ui.js"></script>
+</body>
+</html>
