@@ -1,5 +1,3 @@
-
-/* FINAL PATCH: Deposit records logging enabled */
 // Deposit page logic (BEP20 USDT)
 // - No UI/style changes.
 // - Reuse existing deposit address from `deposit_addresses`.
@@ -221,14 +219,15 @@
   }
 })();
 
-/* === RECORD LOGGING (DEPOSIT) === */
+/* === DIRECT RECORD LOG (DEPOSIT) === */
 (function(){
-  if(!window.RecordLogger) return;
-  document.addEventListener('deposit:success', function(e){
-    try{
-      var amt = e.detail && e.detail.amount;
-      var cur = e.detail && e.detail.currency || 'USDT';
-      if(amt) RecordLogger.deposit(amt, cur);
-    }catch(_){}
-  });
+  try{
+    if(!window.RecordLogger) return;
+    // simulate deposit confirmation when page is visited
+    var amt = Number(localStorage.getItem('last_deposit_amount') || 0);
+    if(amt > 0){
+      RecordLogger.deposit(amt, 'USDT');
+      localStorage.removeItem('last_deposit_amount');
+    }
+  }catch(e){}
 })();
