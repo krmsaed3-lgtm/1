@@ -1,19 +1,14 @@
 (function () {
   'use strict';
 
-  // Requires: sb-config.js (window.SB_CONFIG)
-  // Optional: auth.js (sets sb_user_id_v1)
   function getCurrentUserId() {
     try {
-      return String(
-        localStorage.getItem('sb_user_id_v1') ||
-        localStorage.getItem('currentUserId') ||
-        ''
-      );
+      return String(localStorage.getItem('sb_user_id_v1') || localStorage.getItem('currentUserId') || '');
     } catch (e) { return ''; }
   }
 
   const SB = window.SB_CONFIG;
+
   function ensureConfig() {
     if (!SB || !SB.url || !SB.headers) throw new Error('Supabase config not loaded');
   }
@@ -34,10 +29,7 @@
   }
 
   async function rpc(name, body) {
-    return sbFetch('/rest/v1/rpc/' + encodeURIComponent(name), {
-      method: 'POST',
-      body: JSON.stringify(body || {})
-    });
+    return sbFetch('/rest/v1/rpc/' + encodeURIComponent(name), { method: 'POST', body: JSON.stringify(body || {}) });
   }
 
   async function fetchUserRow(userId) {
@@ -62,7 +54,6 @@
     if (el) el.classList.add('is-visible');
     if (key === 'email') setupEmailState();
   }
-
   function closeModal(key) {
     const el = document.getElementById('modal-' + key);
     if (el) el.classList.remove('is-visible');
@@ -84,14 +75,12 @@
   document.querySelectorAll('.security-item.is-clickable').forEach(function (item) {
     item.addEventListener('click', function () {
       const key = item.getAttribute('data-security');
-      if (!key) return;
-      openModal(key);
+      if (key) openModal(key);
     });
   });
 
-  // -------------------------
-  // LOGIN PASSWORD (DB)
-  // -------------------------
+  // LOGIN PASSWORD (first time set + later change)
+  // RPC: set_or_change_login_password(p_user, p_current, p_new) returns boolean
   const lpNew = document.getElementById('lp-new');
   const lpConfirm = document.getElementById('lp-confirm');
   const lpCurrent = document.getElementById('lp-current');
@@ -100,30 +89,25 @@
   function validateLoginPassword() {
     const newVal = lpNew.value || '';
     const confirmVal = lpConfirm.value || '';
-    const currentVal = lpCurrent.value || '';
 
     let newError = '';
     let confirmError = '';
-    let currentError = '';
 
     if (newVal.length && newVal.length < 8) newError = 'Password must be at least 8 characters.';
     lpConfirm.disabled = newVal.length < 8;
 
     if (!lpConfirm.disabled && confirmVal && confirmVal !== newVal) confirmError = 'Passwords do not match.';
-    if (currentVal && currentVal.length < 8) currentError = 'Current password must be at least 8 characters.';
 
     document.getElementById('lp-new-error').textContent = newError;
     document.getElementById('lp-confirm-error').textContent = confirmError;
-    document.getElementById('lp-current-error').textContent = currentError;
 
-    const canSubmit = newVal.length >= 8 && confirmVal === newVal && currentVal.length >= 8;
-    lpSubmit.disabled = !canSubmit;
+    lpSubmit.disabled = !(newVal.length >= 8 && confirmVal === newVal);
   }
 
-  if (lpNew && lpConfirm && lpCurrent) {
+  if (lpNew && lpConfirm) {
     lpNew.addEventListener('input', validateLoginPassword);
     lpConfirm.addEventListener('input', validateLoginPassword);
-    lpCurrent.addEventListener('input', validateLoginPassword);
+    if (lpCurrent) lpCurrent.addEventListener('input', validateLoginPassword);
   }
 
   if (lpSubmit) {
@@ -134,10 +118,11 @@
 
       lpSubmit.disabled = true;
       try {
-        const ok = await rpc('change_login_password', { p_user: userId, p_old: lpCurrent.value, p_new: lpNew.value });
+        const ok = await rpc('set_or_change_login_password', { p_user: userId, p_current: (lpCurrent ? lpCurrent.value : ''), p_new: lpNew.value });
         if (ok === true || ok === 't') {
           showToast('Login password updated');
-          lpNew.value = ''; lpConfirm.value = ''; lpCurrent.value = '';
+          lpNew.value = ''; lpConfirm.value = '';
+          if (lpCurrent) lpCurrent.value = '';
           validateLoginPassword();
           closeModal('login-password');
         } else {
@@ -151,15 +136,14 @@
     });
   }
 
-  // -------------------------
-  // FUND PASSWORD (DB)
-  // -------------------------
+  // FUND PASSWORD (set only) requires correct login password
+  // RPC: set_fund_password(p_user, p_login, p_new_fund) returns boolean
   const fpNew = document.getElementById('fp-new');
   const fpConfirm = document.getElementById('fp-confirm');
-  const fpLogin = document.getElementById('fp-login'); // UI only
+  const fpLogin = document.getElementById('fp-login');
   const fpSubmit = document.getElementById('fp-submit');
 
-  function isSixDigits(value) { return /^\d{6}$/.test(value); }
+  function isSixDigits(v) { return /^\d{6}$/.test(v || ''); }
 
   function validateFundPassword() {
     const newVal = fpNew.value || '';
@@ -180,8 +164,7 @@
     document.getElementById('fp-confirm-error').textContent = confirmError;
     document.getElementById('fp-login-error').textContent = loginError;
 
-    const canSubmit = isSixDigits(newVal) && confirmVal === newVal && loginVal.length >= 8;
-    fpSubmit.disabled = !canSubmit;
+    fpSubmit.disabled = !(isSixDigits(newVal) && confirmVal === newVal && loginVal.length >= 8);
   }
 
   if (fpNew && fpConfirm && fpLogin) {
@@ -198,10 +181,9 @@
 
       fpSubmit.disabled = true;
       try {
-        // NOTE: login password field is UI-only here.
-        const ok = await rpc('change_fund_password', { p_user: userId, p_old: '', p_new: fpNew.value });
+        const ok = await rpc('set_fund_password', { p_user: userId, p_login: fpLogin.value, p_new_fund: fpNew.value });
         if (ok === true || ok === 't') {
-          showToast('Fund password updated');
+          showToast('Fund password set');
           fpNew.value = ''; fpConfirm.value = ''; fpLogin.value = '';
           validateFundPassword();
           closeModal('fund-password');
@@ -216,9 +198,7 @@
     });
   }
 
-  // -------------------------
-  // EMAIL (DB via email_verifications)
-  // -------------------------
+  // EMAIL
   const emailModalTitle = document.getElementById('email-modal-title');
   const emailStateNew = document.getElementById('email-state-new');
   const emailStateChange = document.getElementById('email-state-change');
@@ -228,19 +208,12 @@
   const emPassword = document.getElementById('em-password');
   const emSubmit = document.getElementById('em-submit');
 
-  // Change state UI elements exist but we keep "Set Email" only for now (DB truth)
-  function validateEmailFormat(value) {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value || '');
+  function validateEmailFormat(v) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v || '');
   }
 
   function resetEmailErrors() {
-    const ids = [
-      'em-email-error','em-code-error','em-password-error',
-      'em-old-email-error','em-old-code-error',
-      'em-new-email-error','em-new-code-error',
-      'em-change-password-error'
-    ];
-    ids.forEach(function (id) {
+    ['em-email-error','em-code-error','em-password-error'].forEach(function (id) {
       const el = document.getElementById(id);
       if (el) el.textContent = '';
     });
@@ -248,21 +221,14 @@
 
   async function setupEmailState() {
     const userId = getCurrentUserId();
-    if (!userId) {
-      if (emailModalTitle) emailModalTitle.textContent = 'Set Email';
-      if (emailStateNew) emailStateNew.style.display = 'block';
-      if (emailStateChange) emailStateChange.style.display = 'none';
-      resetEmailErrors();
-      updateEmailSubmitState();
-      return;
-    }
+    if (emailModalTitle) emailModalTitle.textContent = 'Set Email';
+    if (emailStateNew) emailStateNew.style.display = 'block';
+    if (emailStateChange) emailStateChange.style.display = 'none';
+
+    if (!userId) { resetEmailErrors(); updateEmailSubmitState(); return; }
 
     try {
       const u = await fetchUserRow(userId);
-      // If email exists, keep UI in "Set Email" mode but prefill and allow verify again.
-      if (emailModalTitle) emailModalTitle.textContent = 'Set Email';
-      if (emailStateNew) emailStateNew.style.display = 'block';
-      if (emailStateChange) emailStateChange.style.display = 'none';
       if (u && u.email && emEmail) emEmail.value = u.email;
     } catch (_e) {}
     resetEmailErrors();
@@ -270,11 +236,10 @@
   }
 
   function updateEmailSubmitState() {
-    // UI requires password field, but backend does not need it now.
     const emailVal = emEmail ? emEmail.value : '';
     const codeVal = emCode ? emCode.value : '';
     const passVal = emPassword ? emPassword.value : '';
-    const enabled = validateEmailFormat(emailVal) && codeVal && String(codeVal).length === 6 && passVal.length >= 8;
+    const enabled = validateEmailFormat(emailVal) && String(codeVal || '').length === 6 && passVal.length >= 8;
     if (emSubmit) emSubmit.disabled = !enabled;
   }
 
@@ -300,7 +265,6 @@
       try {
         await rpc('request_email_verification', { p_user: userId, p_email: emailVal });
         showToast('Code created');
-        document.getElementById('em-email-error').textContent = '';
       } catch (e) {
         document.getElementById('em-email-error').textContent = String(e && e.message ? e.message : e);
       } finally {
@@ -315,18 +279,8 @@
       const userId = getCurrentUserId();
       if (!userId) return showToast('Please login first');
 
-      const emailVal = (emEmail.value || '').trim();
       const codeVal = (emCode.value || '').trim();
-
       resetEmailErrors();
-      if (!validateEmailFormat(emailVal)) {
-        document.getElementById('em-email-error').textContent = 'Enter a valid email.';
-        return;
-      }
-      if (!codeVal || String(codeVal).length !== 6) {
-        document.getElementById('em-code-error').textContent = 'Enter 6-digit code.';
-        return;
-      }
 
       emSubmit.disabled = true;
       try {
@@ -347,6 +301,7 @@
     });
   }
 
-  // Initial email submit state
   updateEmailSubmitState();
+  validateLoginPassword();
+  validateFundPassword();
 })();
