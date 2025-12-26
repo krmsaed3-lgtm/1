@@ -1,0 +1,407 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1" />
+  <title>Swap</title>
+  <style>
+    :root{--bg:#05070a;--stroke:rgba(255,255,255,.08);--muted:rgba(255,255,255,.60);--text:#eaf0ff;--shadow:0 16px 40px rgba(0,0,0,.55);--r:22px}
+    *{box-sizing:border-box}
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:radial-gradient(80% 60% at 50% 40%,rgba(47,183,255,.08),transparent 55%),radial-gradient(60% 50% at 30% 80%,rgba(34,224,189,.10),transparent 55%),var(--bg);color:var(--text);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:18px}
+    .phone{width:min(420px,100%);border-radius:28px;padding:14px;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.06);box-shadow:var(--shadow)}
+    .topbar{display:flex;align-items:center;justify-content:space-between;padding:6px 6px 14px}
+    .iconbtn{width:40px;height:40px;border-radius:14px;background:rgba(255,255,255,.04);border:1px solid var(--stroke);display:flex;align-items:center;justify-content:center;cursor:pointer;user-select:none}
+    .iconbtn:active{transform:scale(.98)}
+    .title{font-weight:700;opacity:.95}
+    .card{background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,.015));border:1px solid var(--stroke);border-radius:var(--r);padding:14px}
+    .row{display:flex;align-items:center;justify-content:space-between;gap:12px}
+    .label{font-size:12px;color:var(--muted)}
+    .balance{font-size:12px;color:var(--muted)}
+    .inputRow{margin-top:10px;display:flex;align-items:center;gap:10px}
+    .amt{flex:1;border-radius:16px;background:rgba(0,0,0,.25);border:1px solid var(--stroke);padding:12px 12px;color:var(--text);outline:none;font-size:16px}
+    .amt::placeholder{color:rgba(255,255,255,.28)}
+    .tokenWrap{position:relative;width:128px;flex:0 0 128px}
+    .tokenSelect{width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 10px;border-radius:16px;background:rgba(255,255,255,.04);border:1px solid var(--stroke);cursor:pointer;user-select:none}
+    .tokenLeft{display:flex;align-items:center;gap:8px;min-width:0}
+    .tokenIcon{width:22px;height:22px;border-radius:8px;background:rgba(255,255,255,.06);display:flex;align-items:center;justify-content:center;overflow:hidden}
+    .tokenIcon img{width:100%;height:100%;object-fit:cover}
+    .tokenSym{font-weight:700;font-size:13px;white-space:nowrap}
+    .chev{opacity:.7}
+    .menu{position:absolute;top:52px;left:0;right:0;background:rgba(12,20,32,.98);border:1px solid rgba(255,255,255,.10);border-radius:16px;overflow:hidden;box-shadow:0 18px 50px rgba(0,0,0,.55);display:none;z-index:50}
+    .menu.open{display:block}
+    .token-option{display:flex;align-items:center;gap:10px;padding:11px 12px;cursor:pointer;border-top:1px solid rgba(255,255,255,.06);font-weight:650;font-size:13px}
+    .token-option:first-child{border-top:none}
+    .token-option:hover{background:rgba(255,255,255,.05)}
+    .token-option .token-icon{width:22px;height:22px;border-radius:8px;overflow:hidden;background:rgba(255,255,255,.06)}
+    .token-option img{width:100%;height:100%;object-fit:cover}
+    .switcher{display:flex;align-items:center;justify-content:center;margin:12px 0}
+    .switchBtn{width:42px;height:42px;border-radius:16px;background:rgba(255,255,255,.04);border:1px solid var(--stroke);display:flex;align-items:center;justify-content:center;cursor:pointer}
+    .swapBtn{margin-top:14px;width:100%;height:48px;border:none;border-radius:18px;font-weight:800;letter-spacing:.2px;color:#031310;background:linear-gradient(90deg,rgba(47,183,255,.55),rgba(34,224,189,.95));cursor:pointer}
+    .swapBtn:disabled{opacity:.45;cursor:not-allowed;filter:saturate(.6)}
+    .info{margin-top:12px;padding:12px 14px;border-radius:18px;background:rgba(0,0,0,.22);border:1px solid rgba(255,255,255,.06);font-size:13px}
+    .infoRow{display:flex;justify-content:space-between;gap:14px;padding:6px 0;border-top:1px solid rgba(255,255,255,.06)}
+    .infoRow:first-child{border-top:none}
+    .muted{color:var(--muted)}
+    .toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);background:rgba(10,16,24,.94);border:1px solid rgba(255,255,255,.10);border-radius:16px;padding:10px 12px;font-size:13px;color:var(--text);box-shadow:0 16px 50px rgba(0,0,0,.6);opacity:0;pointer-events:none;transition:opacity .18s ease;max-width:min(520px,90vw);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .toast.show{opacity:1}
+    .hint{margin-top:10px;font-size:12px;color:rgba(255,255,255,.55);line-height:1.35}
+    .dbg{margin-top:8px;font-size:11px;color:rgba(255,255,255,.45)}
+  </style>
+</head>
+<body>
+  <div class="phone">
+    <div class="topbar">
+      <div class="iconbtn" id="backBtn" title="Back">‹</div>
+      <div class="title">Swap</div>
+      <div style="display:flex;gap:10px;">
+        <div class="iconbtn" id="refreshBtn" title="Refresh">⟳</div>
+        <div class="iconbtn" id="saveBtn" title="Save">⎙</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="row">
+        <div class="label">From</div>
+        <div class="balance">Balance: <span id="from-balance">0</span></div>
+      </div>
+
+      <div class="inputRow">
+        <input id="from-amount" class="amt" inputmode="decimal" placeholder="0 (min 100)" />
+        <div class="tokenWrap" id="from-token-wrapper">
+          <div class="tokenSelect" id="from-token-select">
+            <div class="tokenLeft">
+              <div class="tokenIcon"><img id="from-token-icon" src="images/usdt.png" alt="USDT"></div>
+              <div class="tokenSym" id="from-token-symbol">USDT</div>
+            </div>
+            <div class="chev">▾</div>
+          </div>
+          <div class="menu" id="from-token-menu"></div>
+        </div>
+      </div>
+
+      <div class="hint">Fee: 1% (1 per 100). Real mode: balances are updated instantly.</div>
+      <div class="dbg" id="dbg">Booting...</div><pre id="dbgjson" class="dbg" style="white-space:pre-wrap;word-break:break-word;margin:8px 0 0;max-height:120px;overflow:auto;"></pre>
+    </div>
+
+    <div class="switcher">
+      <div class="switchBtn" id="switchBtn" title="Switch">⇅</div>
+    </div>
+
+    <div class="card">
+      <div class="row">
+        <div class="label">To</div>
+        <div class="balance">Balance: <span id="to-balance">0</span></div>
+      </div>
+
+      <div class="inputRow">
+        <input id="to-amount" class="amt" inputmode="decimal" placeholder="0" disabled />
+        <div class="tokenWrap" id="to-token-wrapper">
+          <div class="tokenSelect" id="to-token-select">
+            <div class="tokenLeft">
+              <div class="tokenIcon"><img id="to-token-icon" src="images/usdc.png" alt="USDC"></div>
+              <div class="tokenSym" id="to-token-symbol">USDC</div>
+            </div>
+            <div class="chev">▾</div>
+          </div>
+          <div class="menu" id="to-token-menu"></div>
+        </div>
+      </div>
+    </div>
+
+    <button class="swapBtn" id="swap-btn" disabled>Swap</button>
+
+    <div class="info">
+      <div class="infoRow"><div class="muted">Rate</div><div id="rate-text">-</div></div>
+      <div class="infoRow"><div class="muted">Fee</div><div id="fee-text">-</div></div>
+      <div class="infoRow"><div class="muted">Expected to get</div><div id="expected-text">-</div></div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <script src="sb-config.js"></script>
+  <script src="auth.js"></script>
+  <script src="wallet.js"></script>
+
+  <script>
+  ;(function(){
+    'use strict';
+    function $(id){ return document.getElementById(id); }
+    function toast(msg){
+      var t = $('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      clearTimeout(window.__toastT);
+      window.__toastT = setTimeout(function(){ t.classList.remove('show'); }, 2800);
+    }
+    function num(v){ var n = parseFloat(v); return isFinite(n) ? n : 0; }
+    function fmt(n, d){
+      n = Number(n); if(!isFinite(n)) n = 0;
+      var s = (d==null ? n.toFixed(8) : n.toFixed(d));
+      return s.replace(/\.0+$/,'').replace(/(\.\d*[1-9])0+$/,'$1');
+    }
+
+    var TOKENS = [
+      {sym:'USDT', img:'images/usdt.png', cg:'tether'},
+      {sym:'USDC', img:'images/usdc.png', cg:'usd-coin'},
+      {sym:'BTC',  img:'images/btc.png',  cg:'bitcoin'},
+      {sym:'ETH',  img:'images/eth.png',  cg:'ethereum'},
+      {sym:'TRX',  img:'images/trx.png',  cg:'tron'}
+    ];
+
+    var MIN_SWAP = 100;
+    var FEE_RATE = 0.01;
+
+    var state = {
+      from:'USDT',
+      to:'USDC',
+      pricesUSD: { USDT:1, USDC:1, BTC:60000, ETH:3000, TRX:0.1 },
+      balances: { USDT:0, USDC:0, BTC:0, ETH:0, TRX:0 }
+    };
+
+    var el = {
+      dbg: $('dbg'),
+      dbgjson: $('dbgjson'),
+      backBtn: $('backBtn'),
+      refreshBtn: $('refreshBtn'),
+      switchBtn: $('switchBtn'),
+      fromAmount: $('from-amount'),
+      toAmount: $('to-amount'),
+      fromBalance: $('from-balance'),
+      toBalance: $('to-balance'),
+      swapBtn: $('swap-btn'),
+      rateText: $('rate-text'),
+      feeText: $('fee-text'),
+      expectedText: $('expected-text'),
+
+      fromSelect: $('from-token-select'),
+      toSelect: $('to-token-select'),
+      fromMenu: $('from-token-menu'),
+      toMenu: $('to-token-menu'),
+      fromIcon: $('from-token-icon'),
+      toIcon: $('to-token-icon'),
+      fromSym: $('from-token-symbol'),
+      toSym: $('to-token-symbol'),
+      fromWrap: $('from-token-wrapper'),
+      toWrap: $('to-token-wrapper')
+    };
+
+    function token(sym){
+      return TOKENS.find(function(t){ return t.sym === sym; }) || TOKENS[0];
+    }
+
+    function renderMenus(){
+      function mkOption(side, t){
+        var div = document.createElement('div');
+        div.className = 'token-option';
+        div.innerHTML = '<div class="token-icon"><img src="'+t.img+'" alt="'+t.sym+'"></div><span>'+t.sym+'</span>';
+        div.addEventListener('click', function(){ selectToken(side, t.sym); });
+        return div;
+      }
+      el.fromMenu.innerHTML = '';
+      el.toMenu.innerHTML = '';
+      TOKENS.forEach(function(t){
+        el.fromMenu.appendChild(mkOption('from', t));
+        el.toMenu.appendChild(mkOption('to', t));
+      });
+    }
+
+    function openMenu(side){
+      var menu = side === 'from' ? el.fromMenu : el.toMenu;
+      var other = side === 'from' ? el.toMenu : el.fromMenu;
+      other.classList.remove('open');
+      menu.classList.toggle('open');
+    }
+
+    function closeMenus(){
+      el.fromMenu.classList.remove('open');
+      el.toMenu.classList.remove('open');
+    }
+
+    function selectToken(side, sym){
+      if(side === 'from'){ state.from = sym; } else { state.to = sym; }
+      if(state.from === state.to){ state.to = (state.from === 'USDT') ? 'USDC' : 'USDT'; }
+      el.fromSym.textContent = state.from;
+      el.toSym.textContent = state.to;
+      el.fromIcon.src = token(state.from).img;
+      el.toIcon.src = token(state.to).img;
+      closeMenus();
+      updateUI();
+    }
+
+    function switchTokens(){
+      var tmp = state.from; state.from = state.to; state.to = tmp;
+      if(state.from === state.to){ state.to = (state.from === 'USDT') ? 'USDC' : 'USDT'; }
+      el.fromSym.textContent = state.from;
+      el.toSym.textContent = state.to;
+      el.fromIcon.src = token(state.from).img;
+      el.toIcon.src = token(state.to).img;
+      updateUI();
+    }
+
+    function rate(from, to){
+      var pf = state.pricesUSD[from];
+      var pt = state.pricesUSD[to];
+      if(!pf || !pt) return 0;
+      return pf / pt;
+    }
+
+    function updateBalancesUI(){
+      el.fromBalance.textContent = fmt(state.balances[state.from], 6);
+      el.toBalance.textContent = fmt(state.balances[state.to], 6);
+    }
+
+    function updateExpected(){
+      var amount = num(el.fromAmount.value);
+      var bal = Number(state.balances[state.from] || 0);
+
+      el.swapBtn.disabled = true;
+      el.toAmount.value = '';
+      el.expectedText.textContent = '-';
+      el.feeText.textContent = '-';
+
+      var r = rate(state.from, state.to);
+      el.rateText.textContent = r > 0 ? ('1 ' + state.from + ' = ' + fmt(r, 8) + ' ' + state.to) : '-';
+
+      if(!(amount > 0)) return;
+      if(amount < MIN_SWAP) return;
+      if(amount > bal) return;
+      if(!(r > 0)) return;
+      if(state.from === state.to) return;
+
+      var fee = amount * FEE_RATE;
+      var net = amount - fee;
+      var out = net * r;
+
+      el.feeText.textContent = fmt(fee, 8) + ' ' + state.from;
+      el.toAmount.value = fmt(out, 8);
+      el.expectedText.textContent = fmt(out, 8) + ' ' + state.to;
+
+      el.swapBtn.disabled = false;
+    }
+
+    function setBalancesFromRow(row){
+      if(!row || typeof row !== 'object') return;
+      state.balances.USDT = Number(row.usdt_balance ?? row.usdt ?? row.balance ?? 0) || 0;
+      state.balances.USDC = Number(row.usdc_balance ?? row.usdc ?? 0) || 0;
+      state.balances.BTC  = Number(row.btc_balance  ?? row.btc  ?? 0) || 0;
+      state.balances.ETH  = Number(row.eth_balance  ?? row.eth  ?? 0) || 0;
+      state.balances.TRX  = Number(row.trx_balance  ?? row.trx  ?? 0) || 0;
+    }
+
+    async function loadBalances(){
+      var uid = (window.DemoWallet && typeof window.DemoWallet.getUserId === 'function') ? window.DemoWallet.getUserId() : '';
+      el.dbg.textContent = uid ? ('Session: ' + uid) : 'Session: (missing)';
+      if(!uid) return;
+
+      // Preferred: get_swap_balances
+      try{
+        var r1 = await window.DemoWallet.rpc('get_swap_balances', { p_user: uid });
+        if(Array.isArray(r1)) r1 = r1[0] || null;
+        if(r1 && r1.user_id){ setBalancesFromRow(r1); try{ el.dbgjson.textContent = 'get_swap_balances\n' + JSON.stringify(r1, null, 2); }catch(_){ } return; }
+        // if no row yet, continue to fallback
+      }catch(e){ /* fallback */ }
+
+      // Fallback: get_assets_summary (USDT only)
+      try{
+        var s = await window.DemoWallet.getAssetsSummary(uid);
+        if(Array.isArray(s)) s = s[0] || null;
+        if(s){ setBalancesFromRow(s); try{ el.dbgjson.textContent = 'get_assets_summary\n' + JSON.stringify(s, null, 2); }catch(_){ } }
+      }catch(e){
+        console.error(e);
+        toast('Balance error: ' + (e.message || 'unknown'));
+        try{ el.dbgjson.textContent = 'Balance error\n' + JSON.stringify({message:e.message,status:e.status,payload:e.payload}, null, 2); }catch(_){ }
+      }
+    }
+
+    async function loadPrices(){
+      try{
+        var ids = TOKENS.map(function(t){ return t.cg; }).join(',');
+        var url = 'https://api.coingecko.com/api/v3/simple/price?ids=' + encodeURIComponent(ids) + '&vs_currencies=usd';
+        var res = await fetch(url, { method:'GET' });
+        if(!res.ok) throw new Error('price fetch failed');
+        var j = await res.json();
+        var map = {};
+        TOKENS.forEach(function(t){
+          var v = j && j[t.cg] && j[t.cg].usd;
+          if(isFinite(Number(v)) && Number(v) > 0) map[t.sym] = Number(v);
+        });
+        map.USDT = map.USDT || 1;
+        map.USDC = map.USDC || 1;
+        if(Object.keys(map).length >= 3) state.pricesUSD = Object.assign({}, state.pricesUSD, map);
+      }catch(e){
+        // keep fallback
+      }
+    }
+
+    async function refreshAll(){
+      el.swapBtn.disabled = true;
+      await Promise.all([loadBalances(), loadPrices()]);
+      updateUI();
+    }
+
+    function updateUI(){ updateBalancesUI(); updateExpected(); }
+
+    async function performSwap(){
+      var uid = (window.DemoWallet && typeof window.DemoWallet.getUserId === 'function') ? window.DemoWallet.getUserId() : '';
+      if(!uid){ toast('Not logged in'); return; }
+
+      var amount = num(el.fromAmount.value);
+      var bal = Number(state.balances[state.from] || 0);
+      var r = rate(state.from, state.to);
+
+      if(!(amount > 0)){ toast('Enter amount'); return; }
+      if(amount < MIN_SWAP){ toast('Min is ' + MIN_SWAP); return; }
+      if(amount > bal){ toast('Insufficient balance'); return; }
+      if(!(r > 0)){ toast('Rate not available'); return; }
+      if(state.from === state.to){ toast('Choose different tokens'); return; }
+
+      el.swapBtn.disabled = true;
+
+      try{
+        var resp = await window.DemoWallet.rpc('do_swap', {
+          p_user: uid,
+          p_from_currency: state.from,
+          p_to_currency: state.to,
+          p_amount: amount,
+          p_rate: r,
+          p_ref: 'WEB_SWAP'
+        });
+        if(Array.isArray(resp)) resp = resp[0] || null;
+        if(resp) setBalancesFromRow(resp);
+
+        toast('Swap completed');
+        el.fromAmount.value = '';
+        el.toAmount.value = '';
+        await refreshAll();
+      }catch(e){
+        console.error(e);
+        toast('Swap error: ' + (e.message || 'unknown'));
+        await refreshAll();
+      }
+    }
+
+    renderMenus();
+
+    el.backBtn.addEventListener('click', function(){ if(history.length > 1) history.back(); });
+    el.refreshBtn.addEventListener('click', function(){ refreshAll(); });
+    el.switchBtn.addEventListener('click', function(){ switchTokens(); });
+    el.fromAmount.addEventListener('input', function(){ updateExpected(); });
+
+    el.fromSelect.addEventListener('click', function(){ openMenu('from'); });
+    el.toSelect.addEventListener('click', function(){ openMenu('to'); });
+    el.swapBtn.addEventListener('click', function(){ performSwap(); });
+
+    document.addEventListener('click', function(e){
+      if(!el.fromWrap.contains(e.target) && !el.toWrap.contains(e.target)) closeMenus();
+    });
+
+    document.getElementById('saveBtn').addEventListener('click', function(){
+      toast('Saved');
+    });
+
+    refreshAll();
+  })();
+  </script>
+</body>
+</html>
