@@ -16,7 +16,7 @@ display:flex;justify-content:center;padding:16px}
 .phone{width:min(420px,96vw);border-radius:28px;border:1px solid var(--stroke);overflow:hidden}
 .top{display:flex;align-items:center;justify-content:space-between;padding:14px}
 .icon{width:40px;height:40px;border-radius:14px;border:1px solid var(--stroke);
-display:grid;place-items:center;cursor:pointer}
+display:grid;place-items:center;cursor:pointer;user-select:none}
 .panel{background:var(--panel);border-top:1px solid var(--stroke);padding:14px}
 .row{display:grid;grid-template-columns:1fr 22px 1fr;gap:10px}
 .input{width:100%;padding:12px;border-radius:14px;background:#05080d;border:1px solid var(--stroke);
@@ -25,19 +25,24 @@ color:var(--text)}
 .btn{height:44px;border-radius:16px;border:0;font-weight:700;cursor:pointer}
 .reset{background:var(--btn2);color:var(--text)}
 .confirm{background:var(--btn);color:#021815}
-.list{padding:10px}
+.listwrap{padding:10px}
 .item{border-bottom:1px solid var(--stroke);padding:12px}
-.main{display:flex;justify-content:space-between}
-.sub{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-top:4px}
-.empty{padding:20px;text-align:center;color:var(--muted)}
+.main{display:flex;justify-content:space-between;gap:10px}
+.sub{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-top:4px;gap:10px}
+.empty{padding:18px;text-align:center;color:var(--muted)}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:18px;
+background:rgba(0,0,0,.6);border:1px solid var(--stroke);padding:10px 12px;border-radius:14px;
+color:var(--text);font-size:12px;display:none;max-width:min(420px,92vw)}
+.toast.show{display:block}
+.small{font-size:11px;color:var(--muted)}
 </style>
 </head>
 <body>
 <div class="phone">
   <div class="top">
-    <div class="icon" onclick="history.back()">‹</div>
+    <div class="icon" id="backBtn" title="Back">‹</div>
     <b>Records</b>
-    <div class="icon" id="reload">⟳</div>
+    <div class="icon" id="reloadBtn" title="Reload">⟳</div>
   </div>
 
   <div class="panel">
@@ -48,77 +53,129 @@ color:var(--text)}
     </div>
 
     <div class="btnrow">
-      <button class="btn reset" id="reset">Reset</button>
-      <button class="btn confirm" id="confirm">Confirm</button>
+      <button class="btn reset" id="resetBtn" type="button">Reset</button>
+      <button class="btn confirm" id="confirmBtn" type="button">Confirm</button>
+    </div>
+    <div class="small" style="margin-top:10px">
+      Tip: incognito has no localStorage user id. Use URL like:
+      <code>?uid=YOUR-UUID</code>
     </div>
   </div>
 
-  <div id="list" class="list">
-    <div class="empty" id="empty">Loading...</div>
+  <div class="listwrap">
+    <div class="empty" id="statusBox">Loading...</div>
+    <div id="list"></div>
   </div>
 </div>
 
+<div class="toast" id="toast"></div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-const supabase = window.supabase.createClient(
-  "https://daaxfvepnujsuftzcfcv.supabase.co",
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRhYXhmdmVwbnVqc3VmdHpjZmN2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY0NTUxMzMsImV4cCI6MjA4MjAzMTEzM30.WjpjKmK2j7omDIH2n_Q7gzC7Ei-KinARMF2FlUj4qyA"
-);
+const SUPABASE_URL = "https://daaxfvepnujsuftzcfcv.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRhYXhmdmVwbnVqc3VmdHpjZmN2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY0NTUxMzMsImV4cCI6MjA4MjAzMTEzM30.WjpjKmK2j7omDIH2n_Q7gzC7Ei-KinARMF2FlUj4qyA";
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-const list=document.getElementById('list');
-const empty=document.getElementById('empty');
-const start=document.getElementById('start');
-const end=document.getElementById('end');
+const listEl = document.getElementById('list');
+const statusBox = document.getElementById('statusBox');
+const toastEl = document.getElementById('toast');
+const startEl = document.getElementById('start');
+const endEl = document.getElementById('end');
 
-function uid(){
- return localStorage.getItem('sb_user_id_v1')
-     || localStorage.getItem('user_id')
-     || localStorage.getItem('uid')
-     || '';
+function toast(msg){
+  toastEl.textContent = msg;
+  toastEl.classList.add('show');
+  clearTimeout(window.__t);
+  window.__t = setTimeout(()=>toastEl.classList.remove('show'), 2600);
+}
+
+function getUidFromUrl(){
+  const p = new URLSearchParams(location.search);
+  return (p.get('uid') || p.get('user_id') || '').toString().trim();
+}
+
+function getUid(){
+  return (
+    getUidFromUrl() ||
+    localStorage.getItem('sb_user_id_v1') ||
+    localStorage.getItem('user_id') ||
+    localStorage.getItem('uid') ||
+    ''
+  ).toString().trim();
+}
+
+function setStatus(text){
+  statusBox.textContent = text;
+  statusBox.style.display = 'block';
+}
+
+function clearList(){
+  listEl.innerHTML = '';
+}
+
+function renderRows(rows){
+  clearList();
+  if(!rows.length){
+    setStatus('No records');
+    return;
+  }
+  statusBox.style.display = 'none';
+  rows.forEach(r=>{
+    const d = (r.created_at || '').toString().replace('T',' ').slice(0,19);
+    const el = document.createElement('div');
+    el.className = 'item';
+    el.innerHTML = `
+      <div class="main">
+        <b>${(r.kind||'').toString()}</b>
+        <b>${Number(r.amount||0).toFixed(8)} USDT</b>
+      </div>
+      <div class="sub">
+        <span>${(r.status||'').toString()}</span>
+        <span>${d}</span>
+      </div>
+    `;
+    listEl.appendChild(el);
+  });
 }
 
 async function load(){
- const user=uid();
- if(!user){empty.textContent='No user';return}
- empty.style.display='block';
- empty.textContent='Loading...';
- list.innerHTML='<div class="empty" id="empty">Loading...</div>';
+  const uid = getUid();
+  if(!uid){
+    clearList();
+    setStatus('Missing user id.');
+    toast('Incognito? Open with ?uid=YOUR-UUID');
+    return;
+  }
 
- let q=supabase.from('bills')
-  .select('kind,amount,status,created_at')
-  .eq('user_id',user)
-  .order('created_at',{ascending:false});
+  setStatus('Loading...');
+  clearList();
 
- if(start.value) q=q.gte('created_at', start.value+'T00:00:00');
- if(end.value) q=q.lte('created_at', end.value+'T23:59:59');
+  let q = supabase
+    .from('bills')
+    .select('kind,amount,status,created_at')
+    .eq('user_id', uid)
+    .order('created_at', { ascending:false })
+    .limit(300);
 
- const res=await q;
- if(res.error){empty.textContent=res.error.message;return}
+  if(startEl.value) q = q.gte('created_at', startEl.value + 'T00:00:00');
+  if(endEl.value) q = q.lte('created_at', endEl.value + 'T23:59:59');
 
- const rows=res.data||[];
- if(!rows.length){empty.textContent='No records';return}
+  const res = await q;
 
- list.innerHTML='';
- rows.forEach(r=>{
-  const d=r.created_at.replace('T',' ').slice(0,19);
-  const el=document.createElement('div');
-  el.className='item';
-  el.innerHTML=`
-   <div class="main">
-    <b>${r.kind}</b>
-    <b>${Number(r.amount).toFixed(8)} USDT</b>
-   </div>
-   <div class="sub">
-    <span>${r.status}</span>
-    <span>${d}</span>
-   </div>`;
-  list.appendChild(el);
- });
+  if(res.error){
+    console.error(res.error);
+    clearList();
+    setStatus('Supabase error: ' + (res.error.message || 'unknown'));
+    return;
+  }
+
+  renderRows(Array.isArray(res.data) ? res.data : []);
 }
 
-document.getElementById('confirm').onclick=load;
-document.getElementById('reload').onclick=load;
-document.getElementById('reset').onclick=()=>{start.value='2025-12-26';end.value='2025-12-26';load()};
+document.getElementById('confirmBtn').addEventListener('click', load);
+document.getElementById('reloadBtn').addEventListener('click', load);
+document.getElementById('resetBtn').addEventListener('click', ()=>{ startEl.value = "2025-12-26"; endEl.value = "2025-12-26"; load(); });
+document.getElementById('backBtn').addEventListener('click', ()=>{ if(history.length>1) history.back(); });
 
 load();
 </script>
