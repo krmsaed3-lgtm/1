@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Bills Test (Supabase)</title>
+  <style>
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:#0b0f14;color:#e6edf3;margin:0;padding:20px}
+    .card{max-width:860px;margin:0 auto;background:#111827;border:1px solid #223042;border-radius:14px;padding:16px}
+    label{display:block;margin:10px 0 6px;color:#b6c2cf;font-size:13px}
+    input{width:100%;padding:10px 12px;border-radius:10px;border:1px solid #2b3b52;background:#0b1220;color:#e6edf3}
+    button{padding:10px 14px;border-radius:10px;border:0;background:#22c55e;color:#06210f;font-weight:700;cursor:pointer}
+    button:disabled{opacity:.5;cursor:not-allowed}
+    .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .hint{font-size:12px;color:#9fb0c0;margin-top:6px}
+    .log{white-space:pre-wrap;background:#0b1220;border:1px solid #2b3b52;border-radius:12px;padding:12px;margin-top:12px;font-size:12px;color:#c6d4e1}
+    table{width:100%;border-collapse:collapse;margin-top:14px}
+    th,td{border-bottom:1px solid #223042;padding:10px;text-align:right;font-size:13px}
+    th{color:#b6c2cf;font-weight:700}
+    .pill{display:inline-block;padding:2px 10px;border-radius:999px;border:1px solid #2b3b52;font-size:12px}
+    .ok{border-color:#22c55e;color:#86efac}
+    .bad{border-color:#ef4444;color:#fca5a5}
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2 style="margin:0 0 6px">صفحة تجريبية — Bills من Supabase</h2>
+    <div class="hint">هاي الصفحة بس للتجربة: بتقرأ من جدول <b>bills</b> وبتعرض النتائج بجدول.</div>
+
+    <div class="row" style="margin-top:14px">
+      <div>
+        <label>SUPABASE_URL</label>
+        <input id="sbUrl" placeholder="https://xxxx.supabase.co" />
+      </div>
+      <div>
+        <label>SUPABASE_ANON_KEY</label>
+        <input id="sbKey" placeholder="eyJ..." />
+      </div>
+    </div>
+
+    <div class="row" style="margin-top:12px">
+      <div>
+        <label>User ID (UUID)</label>
+        <input id="userId" placeholder="خليه فاضي إذا مخزّن بالـ localStorage" />
+        <div class="hint">إذا كان عندك user_id مخزّن، الصفحة رح تحاول تقرأ من: <code>sb_user_id_v1</code> ثم <code>user_id</code> ثم <code>uid</code>.</div>
+      </div>
+      <div>
+        <label>Limit</label>
+        <input id="limit" type="number" min="1" max="500" value="50" />
+      </div>
+    </div>
+
+    <div style="display:flex;gap:10px;align-items:center;margin-top:14px">
+      <button id="btn">Load Bills</button>
+      <span id="status" class="pill">جاهز</span>
+    </div>
+
+    <div id="log" class="log" aria-live="polite"></div>
+
+    <table id="tbl" style="display:none">
+      <thead>
+        <tr>
+          <th>الوقت</th>
+          <th>النوع</th>
+          <th>المبلغ</th>
+          <th>الحالة</th>
+          <th>العملة</th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    const $ = (id)=>document.getElementById(id);
+    const logEl = $("log");
+    const statusEl = $("status");
+    const btn = $("btn");
+    const tbl = $("tbl");
+    const tbody = $("tbody");
+
+    function setStatus(text, ok=null){
+      statusEl.textContent = text;
+      statusEl.className = "pill" + (ok===true ? " ok" : ok===false ? " bad" : "");
+    }
+    function log(msg){
+      logEl.textContent = msg;
+    }
+    function getUserIdFallback(){
+      return (localStorage.getItem("sb_user_id_v1") || localStorage.getItem("user_id") || localStorage.getItem("uid") || "").toString().trim();
+    }
+
+    async function loadBills(){
+      btn.disabled = true;
+      tbl.style.display = "none";
+      tbody.innerHTML = "";
+      setStatus("عم حمّل...", null);
+
+      const url = $("sbUrl").value.trim();
+      const key = $("sbKey").value.trim();
+      const limit = Math.max(1, Math.min(500, parseInt($("limit").value || "50", 10)));
+      const userId = ($("userId").value.trim() || getUserIdFallback());
+
+      if(!url || !key){
+        setStatus("ناقص URL/KEY", false);
+        log("حط SUPABASE_URL و SUPABASE_ANON_KEY وبعدين جرّب.");
+        btn.disabled = false;
+        return;
+      }
+      if(!userId){
+        setStatus("ناقص user_id", false);
+        log("ما لقيت user_id. يا تحطه بالحقل، يا لازم يكون مخزّن بالـ localStorage (sb_user_id_v1 / user_id / uid).");
+        btn.disabled = false;
+        return;
+      }
+
+      try{
+        const supabase = window.supabase.createClient(url, key);
+        log("user_id: " + userId + "\nquery: bills where user_id = user_id order by created_at desc limit " + limit);
+
+        const res = await supabase
+          .from("bills")
+          .select("kind, amount, status, created_at, meta")
+          .eq("user_id", userId)
+          .order("created_at", { ascending: false })
+          .limit(limit);
+
+        if(res.error){
+          setStatus("خطأ من Supabase", false);
+          log("Supabase error:\n" + JSON.stringify(res.error, null, 2));
+          btn.disabled = false;
+          return;
+        }
+
+        const rows = Array.isArray(res.data) ? res.data : [];
+        if(!rows.length){
+          setStatus("ما في سجلات", true);
+          log("الاستعلام نجح بس ما رجّع نتائج.\nتأكد إن user_id صحيح وموجود بسجلات bills.");
+          btn.disabled = false;
+          return;
+        }
+
+        rows.forEach(r=>{
+          const meta = r.meta || {};
+          const tr = document.createElement("tr");
+          const createdAt = (r.created_at || "").toString().replace("T"," ").slice(0,19);
+          const currency = (meta.currency || "USDT").toString().toUpperCase();
+
+          tr.innerHTML = `
+            <td>${createdAt}</td>
+            <td>${(r.kind||"").toString()}</td>
+            <td>${Number(r.amount||0).toFixed(8)}</td>
+            <td>${(r.status||"").toString()}</td>
+            <td>${currency}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+
+        tbl.style.display = "";
+        setStatus("تم ✅ (" + rows.length + ")", true);
+        log("تم التحميل بنجاح. عدد السجلات: " + rows.length);
+      }catch(e){
+        setStatus("Exception", false);
+        log("Exception:\n" + (e && e.stack ? e.stack : String(e)));
+      }finally{
+        btn.disabled = false;
+      }
+    }
+
+    btn.addEventListener("click", loadBills);
+
+    // Prefill user id from storage
+    const uid = getUserIdFallback();
+    if(uid) $("userId").value = uid;
+  </script>
+</body>
+</html>
