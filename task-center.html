@@ -1,10 +1,10 @@
-<!doctype html>
+<!DOCTYPE html>
+
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1,viewport-fit=cover" name="viewport"/>
 <title>Task Center</title>
-
 <style>
 :root{
   --bg0:#05080d;
@@ -174,57 +174,133 @@ body{
   text-overflow:ellipsis;
 }
 .toast.show{display:block}
+
+
+/* Hide top-right refresh button (keep element for JS safety) */
+#reloadBtn{display:none !important;}
 </style>
 </head>
-
 <body>
 <div class="phone">
-
-  <div class="top">
-    <div class="icon" id="backBtn" aria-label="Back">‹</div>
-    <div class="title">Task Center</div>
-    <div class="icon" id="reloadBtn" aria-label="Reload">⟳</div>
-  </div>
-
-  <div class="banner" aria-hidden="true"></div>
-
-  <div class="card">
-    <div class="row">
-      <div>
-        <div class="muted">Waiting to claim</div>
-        <div class="big" id="availableAmount">0.00 USDT</div>
-        <div class="muted" id="availableCount">0 available rewards</div>
-      </div>
-      <div class="muted" id="loginState">Logged out</div>
-    </div>
-    <button class="claim" id="claimBtn" disabled>One-click claim</button>
-    <div class="muted" style="margin-top:10px">
+<div class="top">
+<div aria-label="Back" class="icon" id="backBtn">‹</div>
+<div class="title">Task Center</div>
+<div aria-label="Reload" class="icon" id="reloadBtn">⟳</div>
+</div>
+<div aria-hidden="true" class="banner"></div>
+<div class="card">
+<div class="row">
+<div>
+<div class="muted">Waiting to claim</div>
+<div class="big" id="availableAmount">0.00 USDT</div>
+<div class="muted" id="availableCount">0 available rewards</div>
+</div>
+<div class="muted" id="loginState">Logged out</div>
+</div>
+<button class="claim" disabled="" id="claimBtn">One-click claim</button>
+<div class="muted" style="margin-top:10px">
       Rewards are not credited automatically. You must press "Claim".
     </div>
-  </div>
-
-  <div class="tabs" aria-label="Task type tabs">
-    <div class="tab active">Limited time</div>
-    <div class="tab">Daily</div>
-    <div class="tab">Long-term</div>
-  </div>
-
-  <div class="subtabs" aria-label="Status tabs">
-    <div class="subtab active">In progress</div>
-    <div class="subtab">Completed</div>
-    <div class="subtab">Not completed</div>
-  </div>
-
-  <div class="listwrap">
-    <div class="empty" id="statusBox">Loading...</div>
-    <div id="list"></div>
-  </div>
 </div>
-
+<div aria-label="Task type tabs" class="tabs">
+<div class="tab active">Limited time</div>
+<div class="tab">Daily</div>
+<div class="tab">Long-term</div>
+</div>
+<div aria-label="Status tabs" class="subtabs">
+<div class="subtab active">In progress</div>
+<div class="subtab">Completed</div>
+<div class="subtab">Not completed</div>
+</div>
+<div class="listwrap">
+<div class="empty" id="statusBox">Loading...</div>
+<div id="list"></div>
+</div>
+</div>
 <div class="toast" id="toast"></div>
-
 <!-- Keep your real site binding -->
-<script src="sb-config.js"></script>
+<script>
+(function(){
+  function setActive(nodes, idx){
+    nodes.forEach(function(n,i){ n.classList.toggle('active', i===idx); });
+  }
+  function toast(msg){
+    var t=document.getElementById('toast');
+    if(!t) return;
+    t.textContent = msg;
+    t.classList.add('show');
+    window.clearTimeout(toast._tm);
+    toast._tm=setTimeout(function(){ t.classList.remove('show'); }, 1800);
+  }
+
+  document.addEventListener('DOMContentLoaded', function(){
+    var back=document.getElementById('backBtn');
+    if(back){
+      back.addEventListener('click', function(){
+        if (window.history.length > 1) window.history.back();
+      });
+    }
+
+    var tabs=[].slice.call(document.querySelectorAll('.tabs .tab'));
+    var subtabs=[].slice.call(document.querySelectorAll('.subtabs .subtab'));
+    var list=document.getElementById('list');
+
+    function applyFilter(){
+      var typeEl=document.querySelector('.tabs .tab.active');
+      var statusEl=document.querySelector('.subtabs .subtab.active');
+      var type = typeEl ? typeEl.textContent.trim() : '';
+      var status = statusEl ? statusEl.textContent.trim() : '';
+
+      // Notify any existing logic (if task-center.js wants to listen)
+      window.dispatchEvent(new CustomEvent('taskcenter:filterchange', {detail:{type:type, status:status}}));
+
+      // Best-effort DOM filtering (works if items have dataset.status/type or contain keywords)
+      if(!list) return;
+      var items=[].slice.call(list.children);
+      if(!items.length) return;
+
+      var wantStatus=status.toLowerCase();
+      items.forEach(function(item){
+        var itStatus = (item.dataset && (item.dataset.status || item.dataset.state) || '').toLowerCase();
+        var itType = (item.dataset && item.dataset.type || '').toLowerCase();
+        var text = (item.textContent || '').toLowerCase();
+
+        var okStatus = true;
+        if (wantStatus.includes('progress')) okStatus = itStatus.includes('progress') || text.includes('in progress') || text.includes('pending') || itStatus==='';
+        if (wantStatus.includes('completed')) okStatus = itStatus.includes('completed') || text.includes('completed');
+        if (wantStatus.includes('not completed')) okStatus = itStatus.includes('not') || text.includes('not completed') || text.includes('failed');
+
+        var okType = true;
+        var wantType = type.toLowerCase();
+        if (wantType.includes('limited')) okType = itType.includes('limited') || itType==='' || text.includes('limited');
+        if (wantType.includes('daily')) okType = itType.includes('daily') || text.includes('daily');
+        if (wantType.includes('long')) okType = itType.includes('long') || text.includes('long');
+
+        item.style.display = (okStatus && okType) ? '' : 'none';
+      });
+    }
+
+    tabs.forEach(function(tab, i){
+      tab.style.cursor='pointer';
+      tab.addEventListener('click', function(){
+        setActive(tabs, i);
+        applyFilter();
+      });
+    });
+
+    subtabs.forEach(function(tab, i){
+      tab.style.cursor='pointer';
+      tab.addEventListener('click', function(){
+        setActive(subtabs, i);
+        applyFilter();
+      });
+    });
+
+    // Initialize filtering once
+    applyFilter();
+  });
+})();
+</script><script src="sb-config.js"></script>
 <script src="auth.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="task-center.js"></script>
