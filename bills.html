@@ -5,21 +5,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
 <title>Records</title>
 <style>
-:root{
-  --bg:#05080d;--panel:#0e1524;--stroke:rgba(255,255,255,.08);
-  --text:#e9eef6;--muted:#9aa7bd;--btn:#20d0b6;--btn2:#2a3447;--r:18px
-}
+:root{--bg:#05080d;--panel:#0e1524;--stroke:rgba(255,255,255,.08);--text:#e9eef6;--muted:#9aa7bd;--btn:#20d0b6;--btn2:#2a3447;--r:18px}
 *{box-sizing:border-box}
-body{margin:0;background:linear-gradient(180deg,#04060a,#05080d);font-family:system-ui;color:var(--text);
-display:flex;justify-content:center;padding:16px}
+body{margin:0;background:linear-gradient(180deg,#04060a,#05080d);font-family:system-ui;color:var(--text);display:flex;justify-content:center;padding:16px}
 .phone{width:min(420px,96vw);border-radius:28px;border:1px solid var(--stroke);overflow:hidden}
 .top{display:flex;align-items:center;justify-content:space-between;padding:14px}
-.icon{width:40px;height:40px;border-radius:14px;border:1px solid var(--stroke);
-display:grid;place-items:center;cursor:pointer;user-select:none}
+.icon{width:40px;height:40px;border-radius:14px;border:1px solid var(--stroke);display:grid;place-items:center;cursor:pointer;user-select:none}
 .panel{background:var(--panel);border-top:1px solid var(--stroke);padding:14px}
 .row{display:grid;grid-template-columns:1fr 22px 1fr;gap:10px}
-.input{width:100%;padding:12px;border-radius:14px;background:#05080d;border:1px solid var(--stroke);
-color:var(--text)}
+.input{width:100%;padding:12px;border-radius:14px;background:#05080d;border:1px solid var(--stroke);color:var(--text)}
 .btnrow{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
 .btn{height:44px;border-radius:16px;border:0;font-weight:700;cursor:pointer}
 .reset{background:var(--btn2);color:var(--text)}
@@ -29,11 +23,9 @@ color:var(--text)}
 .main{display:flex;justify-content:space-between;gap:10px}
 .sub{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-top:4px;gap:10px}
 .empty{padding:18px;text-align:center;color:var(--muted)}
-.small{font-size:11px;color:var(--muted)}
-.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:18px;
-background:rgba(0,0,0,.6);border:1px solid var(--stroke);padding:10px 12px;border-radius:14px;
-color:var(--text);font-size:12px;display:none;max-width:min(420px,92vw)}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:18px;background:rgba(0,0,0,.6);border:1px solid var(--stroke);padding:10px 12px;border-radius:14px;color:var(--text);font-size:12px;display:none;max-width:min(420px,92vw)}
 .toast.show{display:block}
+.small{font-size:11px;color:var(--muted);margin-top:8px}
 </style>
 </head>
 <body>
@@ -56,10 +48,7 @@ color:var(--text);font-size:12px;display:none;max-width:min(420px,92vw)}
       <button class="btn confirm" id="confirmBtn" type="button">Confirm</button>
     </div>
 
-    <div class="small" style="margin-top:10px">
-      هذه الصفحة تعتمد على <code>auth.js</code> لتحديد الحساب (localStorage: <code>currentUserId</code> / <code>sb_user_id_v1</code>).
-      بالمتخفي لازم تسجّل دخول من صفحة تسجيلك أولاً.
-    </div>
+    <div class="small">ملاحظة: عند فتح الصفحة أول مرة، رح يعرض كل السجلات بدون فلترة تاريخ. الفلترة بتصير بعد ضغط Confirm.</div>
   </div>
 
   <div class="listwrap">
@@ -70,11 +59,8 @@ color:var(--text);font-size:12px;display:none;max-width:min(420px,92vw)}
 
 <div class="toast" id="toast"></div>
 
-<!-- مهم: حمّل إعدادات Supabase قبل أي شيء -->
 <script src="sb-config.js"></script>
-<!-- مهم: هذا الملف هو اللي يحط currentUserId و sb_user_id_v1 -->
 <script src="auth.js"></script>
-
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 (function(){
@@ -91,11 +77,7 @@ color:var(--text);font-size:12px;display:none;max-width:min(420px,92vw)}
     window.__t = setTimeout(()=>toastEl.classList.remove('show'), 2600);
   }
 
-  function setStatus(text){
-    statusBox.textContent = text;
-    statusBox.style.display = 'block';
-  }
-
+  function setStatus(text){ statusBox.textContent = text; statusBox.style.display = 'block'; }
   function clearList(){ listEl.innerHTML = ''; }
 
   function getUserId(){
@@ -107,25 +89,12 @@ color:var(--text);font-size:12px;display:none;max-width:min(420px,92vw)}
         localStorage.getItem('uid') ||
         ''
       ).toString().trim();
-    } catch(e) {
-      return '';
-    }
+    } catch(e) { return ''; }
   }
-
-  // Use SB_CONFIG so you rotate keys in ONE place
-  if(!window.SB_CONFIG) {
-    setStatus('Missing SB_CONFIG. Put sb-config.js next to this file.');
-    return;
-  }
-
-  const supabase = window.supabase.createClient(window.SB_CONFIG.url, window.SB_CONFIG.anonKey);
 
   function renderRows(rows){
     clearList();
-    if(!rows.length){
-      setStatus('No records');
-      return;
-    }
+    if(!rows.length){ setStatus('No records'); return; }
     statusBox.style.display = 'none';
     rows.forEach(r=>{
       const d = (r.created_at || '').toString().replace('T',' ').slice(0,19);
@@ -145,12 +114,27 @@ color:var(--text);font-size:12px;display:none;max-width:min(420px,92vw)}
     });
   }
 
-  async function load(){
+  if(!window.SB_CONFIG || !window.SB_CONFIG.url || !window.SB_CONFIG.anonKey) {
+    setStatus('SB_CONFIG missing.');
+    toast('تأكد sb-config.js موجود بنفس المجلد.');
+    return;
+  }
+
+  // If anonKey is truncated with "...", show clear error
+  if (String(window.SB_CONFIG.anonKey).includes('...')) {
+    setStatus('Invalid anonKey in sb-config.js');
+    toast('anonKey مقطوع بـ ... داخل sb-config.js — لازم تحط المفتاح كامل.');
+    return;
+  }
+
+  const supabase = window.supabase.createClient(window.SB_CONFIG.url, window.SB_CONFIG.anonKey);
+
+  async function fetchBills(applyDateFilter){
     const uid = getUserId();
     if(!uid){
       clearList();
       setStatus('Not logged in');
-      toast('افتح صفحة تسجيل الدخول (login) أولاً حتى ينحفظ currentUserId.');
+      toast('سجّل دخول أولاً ثم ارجع لهون.');
       return;
     }
 
@@ -164,8 +148,10 @@ color:var(--text);font-size:12px;display:none;max-width:min(420px,92vw)}
       .order('created_at', { ascending:false })
       .limit(300);
 
-    if(startEl.value) q = q.gte('created_at', startEl.value + 'T00:00:00');
-    if(endEl.value) q = q.lte('created_at', endEl.value + 'T23:59:59');
+    if(applyDateFilter) {
+      if(startEl.value) q = q.gte('created_at', startEl.value + 'T00:00:00');
+      if(endEl.value) q = q.lte('created_at', endEl.value + 'T23:59:59');
+    }
 
     const res = await q;
     if(res.error){
@@ -178,12 +164,17 @@ color:var(--text);font-size:12px;display:none;max-width:min(420px,92vw)}
     renderRows(Array.isArray(res.data) ? res.data : []);
   }
 
-  document.getElementById('confirmBtn').addEventListener('click', load);
-  document.getElementById('reloadBtn').addEventListener('click', load);
-  document.getElementById('resetBtn').addEventListener('click', ()=>{ startEl.value = "2025-12-26"; endEl.value = "2025-12-26"; load(); });
+  document.getElementById('confirmBtn').addEventListener('click', ()=>fetchBills(true));
+  document.getElementById('reloadBtn').addEventListener('click', ()=>fetchBills(false));
+  document.getElementById('resetBtn').addEventListener('click', ()=>{ 
+    startEl.value = "2025-12-26"; 
+    endEl.value = "2025-12-26";
+    fetchBills(false);   // reset shows all again
+  });
   document.getElementById('backBtn').addEventListener('click', ()=>{ if(history.length>1) history.back(); });
 
-  load();
+  // initial load: NO date filter
+  fetchBills(false);
 })();
 </script>
 </body>
