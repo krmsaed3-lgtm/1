@@ -1,0 +1,528 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Records</title>
+  <style>
+    :root {
+      --bg: #05080d;
+      --panel: rgba(15, 21, 32, 0.85);
+      --panel2: rgba(11, 16, 26, 0.85);
+      --stroke: rgba(255,255,255,0.10);
+      --stroke2: rgba(255,255,255,0.08);
+      --text: #e9eef6;
+      --muted: rgba(233,238,246,0.70);
+      --muted2: rgba(233,238,246,0.55);
+      --btn: #20d0b6;
+      --btn2: #2a3447;
+      --shadow: 0 18px 55px rgba(0,0,0,.55);
+      --r: 20px;
+    }
+
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
+      background:
+        radial-gradient(900px 520px at 85% 12%, rgba(43,126,255,.16), transparent 65%),
+        radial-gradient(800px 520px at 20% 86%, rgba(32,208,182,.12), transparent 60%),
+        linear-gradient(180deg, #04060a, #05080d 55%, #04060a);
+      color: var(--text);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding: 24px 14px;
+    }
+
+    /* phone frame */
+    .phone{
+      width: min(420px, 96vw);
+      border-radius: 34px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+      border: 1px solid rgba(255,255,255,0.10);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+      position:relative;
+    }
+    .screen{
+      background: rgba(0,0,0,0.22);
+      padding: 16px;
+      padding-bottom: 18px;
+      backdrop-filter: blur(10px);
+      min-height: 640px;
+    }
+
+    /* header */
+    .topbar{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding: 4px 2px 14px;
+    }
+    .iconbtn{
+      width: 42px;
+      height: 42px;
+      border-radius: 16px;
+      border: 1px solid var(--stroke);
+      background: rgba(0,0,0,0.18);
+      display:grid;
+      place-items:center;
+      color: var(--text);
+      cursor:pointer;
+      user-select:none;
+    }
+    .title{
+      font-weight: 700;
+      letter-spacing: .2px;
+      font-size: 18px;
+      opacity: .95;
+    }
+
+    /* filters panel */
+    .panel{
+      background: var(--panel);
+      border: 1px solid var(--stroke);
+      border-radius: var(--r);
+      padding: 14px;
+    }
+
+    .row{
+      display:grid;
+      grid-template-columns: 1fr 22px 1fr;
+      gap: 10px;
+      align-items:center;
+    }
+    .to{
+      text-align:center;
+      font-size: 12px;
+      color: var(--muted2);
+      padding-top: 2px;
+    }
+
+    .input{
+      width: 100%;
+      padding: 12px 12px;
+      border-radius: 16px;
+      background: rgba(0,0,0,0.25);
+      border: 1px solid var(--stroke2);
+      color: var(--text);
+      outline:none;
+      font-size: 14px;
+    }
+    .input:focus{
+      border-color: rgba(32,208,182,.45);
+      box-shadow: 0 0 0 3px rgba(32,208,182,.10);
+    }
+
+    .line{
+      height:1px;
+      background: rgba(255,255,255,0.07);
+      margin: 12px 0;
+    }
+
+    .selectRow{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      padding: 10px 4px;
+      cursor:pointer;
+      user-select:none;
+    }
+    .selectRow .label{
+      font-size: 14px;
+      color: var(--text);
+    }
+    .selectRow .chev{
+      opacity:.7;
+      transform: rotate(0deg);
+    }
+
+    .btnRow{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .btn{
+      height: 46px;
+      border-radius: 18px;
+      border: 1px solid var(--stroke);
+      font-weight: 700;
+      font-size: 14px;
+      cursor:pointer;
+    }
+    .btn.reset{
+      background: rgba(42,52,71,.75);
+      color: rgba(233,238,246,.90);
+    }
+    .btn.confirm{
+      background: linear-gradient(90deg, rgba(32,208,182,1), rgba(54,234,199,1));
+      color: #021815;
+      border: 0;
+    }
+
+    /* records */
+    .records{
+      margin-top: 14px;
+      background: var(--panel2);
+      border: 1px solid var(--stroke);
+      border-radius: var(--r);
+      overflow:hidden;
+    }
+    .empty{
+      padding: 18px 14px;
+      text-align:center;
+      color: var(--muted2);
+      font-size: 13px;
+    }
+    .item{
+      padding: 14px 14px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .item:last-child{border-bottom:0}
+    .main{
+      display:flex;
+      align-items:baseline;
+      justify-content:space-between;
+      gap: 10px;
+    }
+    .kind{
+      font-weight: 800;
+      font-size: 14px;
+      letter-spacing: .2px;
+    }
+    .amount{
+      font-weight: 900;
+      font-size: 14px;
+    }
+    .sub{
+      display:flex;
+      justify-content:space-between;
+      margin-top: 6px;
+      color: var(--muted2);
+      font-size: 12px;
+      gap: 10px;
+    }
+    .pill{
+      padding: 3px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.12);
+      color: rgba(233,238,246,.85);
+      background: rgba(0,0,0,.18);
+      font-size: 12px;
+      max-width: 55%;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+    }
+
+    .toast{
+      position: sticky;
+      bottom: 0;
+      margin-top: 12px;
+      padding: 10px 12px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(0,0,0,0.28);
+      color: rgba(233,238,246,.78);
+      font-size: 12px;
+      display:none;
+    }
+    .toast.show{display:block}
+
+    /* small tweaks */
+    @media (max-width: 380px){
+      .screen{min-height: 610px}
+      .phone{border-radius: 28px}
+    }
+  </style>
+</head>
+<body>
+  <div class="phone">
+    <div class="screen">
+      <div class="topbar">
+        <div class="iconbtn" id="backBtn" title="Back" aria-label="Back">
+          <!-- left arrow -->
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M14.5 5.5L8 12l6.5 6.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div class="title">Records</div>
+        <div class="iconbtn" id="reloadBtn" title="Reload" aria-label="Reload">
+          <!-- refresh -->
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M20 12a8 8 0 1 1-2.34-5.66" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+            <path d="M20 4v6h-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="row">
+          <input class="input" id="startDate" type="date" />
+          <div class="to">To</div>
+          <input class="input" id="endDate" type="date" />
+        </div>
+
+        <div class="line"></div>
+
+        <div class="selectRow" id="typeRow">
+          <div class="label" id="typeLabel">All</div>
+          <div class="chev" aria-hidden="true">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+              <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+        </div>
+
+        <div class="selectRow" id="currencyRow">
+          <div class="label" id="currencyLabel">USDT</div>
+          <div class="chev" aria-hidden="true">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+              <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+        </div>
+
+        <div class="btnRow">
+          <button class="btn reset" id="resetBtn" type="button">Reset</button>
+          <button class="btn confirm" id="confirmBtn" type="button">Confirm</button>
+        </div>
+      </div>
+
+      <div class="records" id="records">
+        <div class="empty" id="empty">Loading...</div>
+        <div id="list"></div>
+      </div>
+
+      <div class="toast" id="toast"></div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    // 🔒 keys are embedded for now (you said you'll rotate them)
+    const SUPABASE_URL = 'https://daaxfvepnujsuftzcfcv.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRhYXhmdmVwbnVqc3VmdHpjZmN2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY0NTUxMzMsImV4cCI6MjA4MjAzMTEzM30.WjpjKmK2j7omDIH2n_Q7gzC7Ei-KinARMF2FlUj4qyA';
+
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    const els = {
+      backBtn: document.getElementById('backBtn'),
+      reloadBtn: document.getElementById('reloadBtn'),
+      startDate: document.getElementById('startDate'),
+      endDate: document.getElementById('endDate'),
+      typeRow: document.getElementById('typeRow'),
+      typeLabel: document.getElementById('typeLabel'),
+      currencyRow: document.getElementById('currencyRow'),
+      currencyLabel: document.getElementById('currencyLabel'),
+      resetBtn: document.getElementById('resetBtn'),
+      confirmBtn: document.getElementById('confirmBtn'),
+      empty: document.getElementById('empty'),
+      list: document.getElementById('list'),
+      toast: document.getElementById('toast'),
+    };
+
+    function toast(msg) {
+      els.toast.textContent = msg;
+      els.toast.classList.add('show');
+      clearTimeout(window.__toastTimer);
+      window.__toastTimer = setTimeout(()=>els.toast.classList.remove('show'), 2600);
+    }
+
+    function getUserId() {
+      return (
+        localStorage.getItem('sb_user_id_v1') ||
+        localStorage.getItem('user_id') ||
+        localStorage.getItem('uid') ||
+        ''
+      ).toString().trim();
+    }
+
+    const filters = {
+      startDate: '',
+      endDate: '',
+      type: 'all',
+      currency: 'USDT'
+    };
+
+    let allRows = [];
+
+    function normalizeRow(r) {
+      const meta = r.meta || {};
+      return {
+        type: (r.kind || '').toString().toLowerCase(),
+        amount: Number(r.amount || 0),
+        status: (r.status || 'pending').toString(),
+        createdAt: (r.created_at || '').toString(),
+        currency: (meta.currency || 'USDT').toString().toUpperCase(),
+        fee: meta.fee !== undefined ? Number(meta.fee || 0) : undefined,
+        net: meta.net !== undefined ? Number(meta.net || 0) : undefined
+      };
+    }
+
+    function labelType(t) {
+      if (t === 'deposit') return 'Deposit';
+      if (t === 'withdraw') return 'Withdraw';
+      if (t === 'profit') return 'Income';
+      return t || 'Record';
+    }
+
+    function render(list) {
+      els.list.innerHTML = '';
+      if (!list || !list.length) {
+        els.empty.textContent = 'No records yet.';
+        els.empty.style.display = 'block';
+        return;
+      }
+      els.empty.style.display = 'none';
+
+      list.forEach(tx => {
+        const item = document.createElement('div');
+        item.className = 'item';
+
+        const date = tx.createdAt ? tx.createdAt.replace('T',' ').slice(0,19) : '';
+        const cur = (tx.currency || filters.currency || 'USDT').toUpperCase();
+        const amt = (Number.isFinite(tx.amount) ? tx.amount : 0).toFixed(8) + ' ' + cur;
+
+        const statusText = tx.status.toUpperCase();
+
+        item.innerHTML = `
+          <div class="main">
+            <div class="kind">${labelType(tx.type)}</div>
+            <div class="amount">${amt}</div>
+          </div>
+          <div class="sub">
+            <span class="pill">${statusText}</span>
+            <span>${date}</span>
+          </div>
+        `;
+        els.list.appendChild(item);
+      });
+    }
+
+    function applyFilters() {
+      const filtered = allRows.filter(tx => {
+        const createdAt = tx.createdAt ? new Date(tx.createdAt) : null;
+
+        if (filters.startDate && createdAt) {
+          const start = new Date(filters.startDate + 'T00:00:00');
+          if (createdAt < start) return false;
+        }
+        if (filters.endDate && createdAt) {
+          const end = new Date(filters.endDate + 'T23:59:59');
+          if (createdAt > end) return false;
+        }
+
+        if (filters.type !== 'all') {
+          if (!tx.type || tx.type !== filters.type) return false;
+        }
+
+        if (filters.currency) {
+          const txCur = (tx.currency || 'USDT').toUpperCase();
+          if (txCur !== filters.currency.toUpperCase()) return false;
+        }
+
+        return true;
+      });
+
+      render(filtered);
+    }
+
+    async function loadBills() {
+      const userId = getUserId();
+      if (!userId) {
+        allRows = [];
+        render([]);
+        toast('No user_id found (localStorage: sb_user_id_v1 / user_id / uid).');
+        return;
+      }
+
+      els.empty.textContent = 'Loading...';
+      els.empty.style.display = 'block';
+
+      const res = await supabase
+        .from('bills')
+        .select('kind, amount, status, created_at, meta, user_id')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false })
+        .limit(300);
+
+      if (res.error) {
+        console.error(res.error);
+        allRows = [];
+        render([]);
+        toast('Supabase error: ' + (res.error.message || 'unknown'));
+        return;
+      }
+
+      const rows = Array.isArray(res.data) ? res.data : [];
+      allRows = rows.map(normalizeRow);
+
+      // default currency label from first row if available
+      if (allRows[0] && allRows[0].currency && !filters.currency) {
+        filters.currency = allRows[0].currency;
+        els.currencyLabel.textContent = filters.currency;
+      }
+
+      applyFilters();
+    }
+
+    // UX: cycle options like your old page (no dropdown UI)
+    const typeOptions = ['all', 'deposit', 'withdraw', 'profit'];
+    const typeLabels = { all:'All', deposit:'Deposit', withdraw:'Withdraw', profit:'Income' };
+    let typeIndex = 0;
+
+    const currencyOptions = ['USDT', 'BTC', 'ETH', 'USDC', 'TRX'];
+    let currencyIndex = 0;
+
+    els.typeRow.addEventListener('click', () => {
+      typeIndex = (typeIndex + 1) % typeOptions.length;
+      filters.type = typeOptions[typeIndex];
+      els.typeLabel.textContent = typeLabels[filters.type] || filters.type;
+      applyFilters();
+    });
+
+    els.currencyRow.addEventListener('click', () => {
+      currencyIndex = (currencyIndex + 1) % currencyOptions.length;
+      filters.currency = currencyOptions[currencyIndex];
+      els.currencyLabel.textContent = filters.currency;
+      applyFilters();
+    });
+
+    els.resetBtn.addEventListener('click', () => {
+      els.startDate.value = '';
+      els.endDate.value = '';
+      filters.startDate = '';
+      filters.endDate = '';
+      filters.type = 'all';
+      filters.currency = 'USDT';
+      typeIndex = 0;
+      currencyIndex = 0;
+      els.typeLabel.textContent = 'All';
+      els.currencyLabel.textContent = 'USDT';
+      applyFilters();
+    });
+
+    els.confirmBtn.addEventListener('click', () => {
+      filters.startDate = els.startDate.value || '';
+      filters.endDate = els.endDate.value || '';
+      applyFilters();
+    });
+
+    els.backBtn.addEventListener('click', () => {
+      if (history.length > 1) history.back();
+    });
+
+    els.reloadBtn.addEventListener('click', () => {
+      loadBills();
+    });
+
+    // initial load
+    loadBills();
+  </script>
+</body>
+</html>
