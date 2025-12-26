@@ -172,36 +172,47 @@
     updateExpected();
   }
 
+  function setBalancesFromRow(row){
+    if(!row || typeof row !== 'object') return;
+    state.balances.USDT = Number(row.usdt_balance ?? row.usdt ?? row.balance ?? 0) || 0;
+    state.balances.USDC = Number(row.usdc_balance ?? row.usdc ?? 0) || 0;
+    state.balances.BTC  = Number(row.btc_balance  ?? row.btc  ?? 0) || 0;
+    state.balances.ETH  = Number(row.eth_balance  ?? row.eth  ?? 0) || 0;
+    state.balances.TRX  = Number(row.trx_balance  ?? row.trx  ?? 0) || 0;
+  }
+
   async function loadBalances(){
+    var uid = (window.DemoWallet && typeof window.DemoWallet.getUserId === 'function') ? window.DemoWallet.getUserId() : '';
+    if(!uid){
+      // still allow viewing rates, but show 0 balances
+      return;
+    }
+
+    // Preferred: new RPC get_swap_balances
+    try{
+      if(window.DemoWallet && typeof window.DemoWallet.rpc === 'function'){
+        var r1 = await window.DemoWallet.rpc('get_swap_balances', { p_user: uid });
+        if(Array.isArray(r1)) r1 = r1[0] || null;
+        if(r1){
+          setBalancesFromRow(r1);
+          return;
+        }
+      }
+    }catch(e){
+      // ignore, fallback below
+    }
+
+    // Fallback: get_assets_summary (may return array or object)
     try{
       if(window.DemoWallet && typeof window.DemoWallet.getAssetsSummary === 'function'){
-        var s = await window.DemoWallet.getAssetsSummary();
-        var usdt =
-          (s && (s.usdt_balance ?? s.balance ?? s.total_usdt ?? s.total_assets ?? s.usdt)) ?? 0;
-
-        state.balances.USDT = Number(usdt) || 0;
-
-        if(s && typeof s === 'object'){
-          if(s.btc_balance != null) state.balances.BTC = Number(s.btc_balance) || 0;
-          if(s.eth_balance != null) state.balances.ETH = Number(s.eth_balance) || 0;
-          if(s.usdc_balance != null) state.balances.USDC = Number(s.usdc_balance) || 0;
-          if(s.trx_balance != null) state.balances.TRX = Number(s.trx_balance) || 0;
-        }
+        var s = await window.DemoWallet.getAssetsSummary(uid);
+        if(Array.isArray(s)) s = s[0] || null;
+        if(s) setBalancesFromRow(s);
         return;
       }
     }catch(e){
-      console.warn('getAssetsSummary failed', e);
+      // ignore
     }
-
-    try{
-      var raw = localStorage.getItem('balances_json');
-      if(raw){
-        var obj = JSON.parse(raw);
-        ['USDT','USDC','BTC','ETH','TRX'].forEach(function(k){
-          if(obj && obj[k] != null && isFinite(parseFloat(obj[k]))) state.balances[k] = parseFloat(obj[k]);
-        });
-      }
-    }catch(e){}
   }
 
   async function loadPrices(){
@@ -242,10 +253,7 @@
 
   async function performSwap(){
     var uid = (window.DemoWallet && typeof window.DemoWallet.getUserId === 'function') ? window.DemoWallet.getUserId() : '';
-    if(!uid){
-      toast('Not logged in');
-      return;
-    }
+    if(!uid){ toast('Not logged in'); return; }
 
     var amount = num(el.fromAmount.value);
     var bal = Number(state.balances[state.from] || 0);
@@ -264,16 +272,21 @@
         throw new Error('wallet.js not loaded');
       }
 
-      await window.DemoWallet.rpc('create_swap_demo', {
-        p_user_id: uid,
+      // Real swap (updates balances + inserts swap_ledger)
+      var resp = await window.DemoWallet.rpc('do_swap', {
+        p_user: uid,
         p_from_currency: state.from,
         p_to_currency: state.to,
-        p_from_amount: amount,
+        p_amount: amount,
         p_rate: r,
-        p_ref: 'WEB_SWAP_DEMO'
+        p_ref: 'WEB_SWAP'
       });
 
-      toast('Swap recorded');
+      // resp may be row/object or array
+      if(Array.isArray(resp)) resp = resp[0] || null;
+      if(resp) setBalancesFromRow(resp);
+
+      toast('Swap completed');
       el.fromAmount.value = '';
       el.toAmount.value = '';
       await refreshAll();

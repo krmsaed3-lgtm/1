@@ -1,151 +1,348 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>Swap</title>
-<style>
-  :root {
-    --bg-color:#05060e;--card-bg:#121622;--text-main:#f5f5f5;--text-sub:#9ba0b8;
-    --border-color:#252a3b;--btn-radius:12px;
-  }
-  *{box-sizing:border-box;margin:0;padding:0}
-  body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,sans-serif;background:var(--bg-color);color:var(--text-main);min-height:100vh}
-  .app{max-width:480px;margin:0 auto;min-height:100vh;padding-bottom:40px;background:var(--bg-color)}
-  .header{position:sticky;top:0;z-index:20;background:var(--bg-color);padding:12px 16px 8px;display:flex;align-items:center;justify-content:space-between}
-  .header-left,.header-right{display:flex;align-items:center;gap:16px}
-  .header-title{font-size:16px;font-weight:600}
-  .icon-btn{width:28px;height:28px;border-radius:999px;border:1px solid #2d3242;display:inline-flex;align-items:center;justify-content:center;background:transparent;padding:0;outline:none}
-  .icon-btn img{width:24px;height:24px;display:block}
-  main{padding:8px 16px 0}
-  .swap-card{background:var(--card-bg);border-radius:16px;padding:12px 14px 14px;border:1px solid var(--border-color)}
-  .swap-card + .swap-card{margin-top:12px}
-  .swap-card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;font-size:13px}
-  .swap-card-header span:first-child{color:var(--text-sub)}
-  .balance{color:var(--text-sub)}
-  .balance-value{color:#3ac8ff}
-  .swap-row{display:flex;align-items:center;justify-content:space-between;gap:12px}
-  .amount-input{flex:1;background:#070917;border-radius:10px;padding:10px 12px;border:1px solid #272c40;display:flex;align-items:center;justify-content:space-between;min-height:42px}
-  .amount-input input{background:transparent;border:none;outline:none;color:var(--text-main);font-size:14px;width:100%}
-  .amount-input input::placeholder{color:var(--text-sub)}
-  .max-btn{font-size:13px;font-weight:600;color:#21b1ff;margin-right:8px;cursor:pointer;user-select:none}
-  .token-select-wrapper{position:relative}
-  .token-select{display:inline-flex;align-items:center;gap:6px;background:#101421;border-radius:999px;padding:6px 10px;border:1px solid #31374a;min-width:92px;justify-content:center;cursor:pointer}
-  .token-icon{width:20px;height:20px;border-radius:999px;overflow:hidden;flex-shrink:0}
-  .token-icon img{width:100%;height:100%;display:block}
-  .token-symbol{font-size:13px;font-weight:600}
-  .caret{width:8px;height:8px;border-right:2px solid #7b8195;border-bottom:2px solid #7b8195;transform:rotate(45deg);margin-top:-2px}
-  .token-menu{position:absolute;right:0;top:38px;background:#101421;border-radius:10px;border:1px solid #31374a;padding:4px 0;min-width:140px;box-shadow:0 10px 25px rgba(0,0,0,.45);display:none;z-index:40}
-  .token-menu.open{display:block}
-  .token-option{display:flex;align-items:center;gap:8px;padding:6px 10px;font-size:13px;cursor:pointer}
-  .token-option:hover{background:#181d2b}
-  .token-option span{font-weight:500}
-  .swap-middle{display:flex;justify-content:center;margin:10px 0}
-  .swap-middle-circle{width:30px;height:30px;border-radius:999px;background:#14192a;border:1px solid #252a3b;display:flex;align-items:center;justify-content:center;cursor:pointer}
-  .swap-middle-circle img{width:14px;height:14px}
-  .swap-button{margin-top:16px;margin-bottom:14px}
-  .swap-button button{width:100%;border:none;outline:none;border-radius:22px;padding:12px 16px;font-size:15px;font-weight:600;color:#000;background-image:linear-gradient(90deg,#3dd4ff,#54ffae);box-shadow:0 6px 14px rgba(33,232,184,.25);cursor:pointer}
-  .swap-button button:disabled{opacity:.5;cursor:not-allowed}
-  .swap-info{font-size:12px;color:var(--text-sub);display:flex;flex-direction:column;gap:4px}
-  .swap-info-row{display:flex;justify-content:space-between}
-  .note{margin-top:10px;color:var(--text-sub);font-size:12px}
-  .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:18px;background:rgba(0,0,0,.65);
-    border:1px solid rgba(255,255,255,.08);padding:10px 12px;border-radius:14px;color:var(--text-main);font-size:12px;display:none;max-width:min(420px,92vw)}
-  .toast.show{display:block}
-</style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1" />
+  <title>Swap</title>
+  <style>
+    :root{
+      --bg:#05070a;
+      --card:#0c1420;
+      --card2:#0b111b;
+      --stroke:rgba(255,255,255,.08);
+      --muted:rgba(255,255,255,.60);
+      --text:#eaf0ff;
+      --accent:#22e0bd;
+      --accent2:#2fb7ff;
+      --shadow:0 16px 40px rgba(0,0,0,.55);
+      --r:22px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background: radial-gradient(80% 60% at 50% 40%, rgba(47,183,255,.08), transparent 55%),
+                  radial-gradient(60% 50% at 30% 80%, rgba(34,224,189,.10), transparent 55%),
+                  var(--bg);
+      color:var(--text);
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:18px;
+    }
+    .phone{
+      width:min(420px, 100%);
+      border-radius:28px;
+      padding:14px;
+      background: rgba(255,255,255,.02);
+      border:1px solid rgba(255,255,255,.06);
+      box-shadow: var(--shadow);
+    }
+    .topbar{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding:6px 6px 14px;
+    }
+    .iconbtn{
+      width:40px;height:40px;
+      border-radius:14px;
+      background:rgba(255,255,255,.04);
+      border:1px solid var(--stroke);
+      display:flex;
+      align-items:center;justify-content:center;
+      cursor:pointer;
+      user-select:none;
+    }
+    .iconbtn:active{transform:scale(.98)}
+    .title{
+      font-weight:700;
+      letter-spacing:.2px;
+      opacity:.95;
+    }
+
+    .card{
+      background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.015));
+      border:1px solid var(--stroke);
+      border-radius: var(--r);
+      padding:14px;
+    }
+    .row{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+    }
+    .label{
+      font-size:12px;
+      color:var(--muted);
+      letter-spacing:.2px;
+    }
+    .balance{
+      font-size:12px;
+      color:var(--muted);
+    }
+    .inputRow{
+      margin-top:10px;
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+    .amt{
+      flex:1;
+      border-radius:16px;
+      background:rgba(0,0,0,.25);
+      border:1px solid var(--stroke);
+      padding:12px 12px;
+      color:var(--text);
+      outline:none;
+      font-size:16px;
+    }
+    .amt::placeholder{color:rgba(255,255,255,.28)}
+    .tokenWrap{
+      position:relative;
+      width:128px;
+      flex:0 0 128px;
+    }
+    .tokenSelect{
+      width:100%;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:8px;
+      padding:10px 10px;
+      border-radius:16px;
+      background:rgba(255,255,255,.04);
+      border:1px solid var(--stroke);
+      cursor:pointer;
+      user-select:none;
+    }
+    .tokenLeft{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      min-width:0;
+    }
+    .tokenIcon{
+      width:22px;height:22px;border-radius:8px;
+      background:rgba(255,255,255,.06);
+      display:flex;align-items:center;justify-content:center;
+      overflow:hidden;
+    }
+    .tokenIcon img{width:100%;height:100%;object-fit:cover}
+    .tokenSym{
+      font-weight:700;
+      font-size:13px;
+      white-space:nowrap;
+    }
+    .chev{opacity:.7}
+
+    .menu{
+      position:absolute;
+      top:52px;
+      left:0; right:0;
+      background: rgba(12,20,32,.98);
+      border:1px solid rgba(255,255,255,.10);
+      border-radius:16px;
+      overflow:hidden;
+      box-shadow: 0 18px 50px rgba(0,0,0,.55);
+      display:none;
+      z-index:50;
+    }
+    .menu.open{display:block}
+    .token-option{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      padding:11px 12px;
+      cursor:pointer;
+      border-top:1px solid rgba(255,255,255,.06);
+      font-weight:650;
+      font-size:13px;
+    }
+    .token-option:first-child{border-top:none}
+    .token-option:hover{background:rgba(255,255,255,.05)}
+    .token-option .token-icon{
+      width:22px;height:22px;border-radius:8px;
+      overflow:hidden;
+      background:rgba(255,255,255,.06);
+    }
+    .token-option img{width:100%;height:100%;object-fit:cover}
+
+    .switcher{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      margin:12px 0;
+    }
+    .switchBtn{
+      width:42px;height:42px;border-radius:16px;
+      background:rgba(255,255,255,.04);
+      border:1px solid var(--stroke);
+      display:flex;align-items:center;justify-content:center;
+      cursor:pointer;
+    }
+
+    .swapBtn{
+      margin-top:14px;
+      width:100%;
+      height:48px;
+      border:none;
+      border-radius:18px;
+      font-weight:800;
+      letter-spacing:.2px;
+      color:#031310;
+      background: linear-gradient(90deg, rgba(47,183,255,.55), rgba(34,224,189,.95));
+      cursor:pointer;
+    }
+    .swapBtn:disabled{
+      opacity:.45;
+      cursor:not-allowed;
+      filter:saturate(.6);
+    }
+
+    .info{
+      margin-top:12px;
+      padding:12px 14px;
+      border-radius:18px;
+      background:rgba(0,0,0,.22);
+      border:1px solid rgba(255,255,255,.06);
+      font-size:13px;
+    }
+    .infoRow{
+      display:flex;
+      justify-content:space-between;
+      gap:14px;
+      padding:6px 0;
+      border-top:1px solid rgba(255,255,255,.06);
+    }
+    .infoRow:first-child{border-top:none}
+    .muted{color:var(--muted)}
+    .toast{
+      position:fixed;
+      left:50%;
+      bottom:26px;
+      transform:translateX(-50%);
+      background:rgba(10,16,24,.94);
+      border:1px solid rgba(255,255,255,.10);
+      border-radius:16px;
+      padding:10px 12px;
+      font-size:13px;
+      color:var(--text);
+      box-shadow:0 16px 50px rgba(0,0,0,.6);
+      opacity:0;
+      pointer-events:none;
+      transition:opacity .18s ease;
+      max-width:min(520px, 90vw);
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .toast.show{opacity:1}
+    .hint{
+      margin-top:10px;
+      font-size:12px;
+      color:rgba(255,255,255,.55);
+      line-height:1.35;
+    }
+  </style>
 </head>
 <body>
-<div class="app">
-  <header class="header">
-    <div class="header-left">
-      <button aria-label="Back" class="icon-btn" id="backBtn">
-        <img alt="Back" src="images/arrow-right.png"/>
-      </button>
-      <div class="header-title">Swap</div>
+  <div class="phone">
+    <div class="topbar">
+      <div class="iconbtn" id="backBtn" title="Back">‹</div>
+      <div class="title">Swap</div>
+      <div style="display:flex;gap:10px;">
+        <div class="iconbtn" id="refreshBtn" title="Refresh">⟳</div>
+        <div class="iconbtn" id="saveBtn" title="Save">⎙</div>
+      </div>
     </div>
-    <div class="header-right">
-      <button aria-label="Refresh" class="icon-btn" id="refreshBtn">
-        <img alt="Refresh" src="images/price-refresh.png"/>
-      </button>
-      <button aria-label="Record" class="icon-btn" onclick="window.location.href='bills.html'">
-        <img alt="Record" src="images/record.png"/>
-      </button>
-    </div>
-  </header>
 
-  <main>
-    <section class="swap-card">
-      <div class="swap-card-header">
-        <span>From</span>
-        <span class="balance">Balance: <span class="balance-value" id="from-balance">0</span></span>
+    <div class="card">
+      <div class="row">
+        <div class="label">From</div>
+        <div class="balance">Balance: <span id="from-balance">0</span></div>
       </div>
 
-      <div class="swap-row">
-        <div class="amount-input">
-          <input id="from-amount" type="number" min="0" step="0.0001" placeholder="0 (min 100)"/>
-          <div style="display:flex;align-items:center;gap:4px;">
-            <span class="max-btn" id="maxBtn">MAX</span>
-
-            <div class="token-select-wrapper" id="from-token-wrapper">
-              <div class="token-select" id="from-token-select">
-                <div class="token-icon"><img id="from-token-icon" alt="USDT" src="images/usdt.png"/></div>
-                <span class="token-symbol" id="from-token-symbol">USDT</span>
-                <span class="caret"></span>
-              </div>
-              <div class="token-menu" id="from-token-menu"></div>
+      <div class="inputRow">
+        <input id="from-amount" class="amt" inputmode="decimal" placeholder="0 (min 100)" />
+        <div class="tokenWrap" id="from-token-wrapper">
+          <div class="tokenSelect" id="from-token-select">
+            <div class="tokenLeft">
+              <div class="tokenIcon"><img id="from-token-icon" src="images/usdt.png" alt="USDT"></div>
+              <div class="tokenSym" id="from-token-symbol">USDT</div>
             </div>
+            <div class="chev">▾</div>
           </div>
+          <div class="menu" id="from-token-menu"></div>
         </div>
       </div>
-    </section>
 
-    <div class="swap-middle">
-      <div class="swap-middle-circle" id="switchBtn">
-        <img alt="Switch" src="images/arrow-right.png"/>
+      <div class="hint">
+        Fee: 1% (1 per 100). Real mode: balances are updated instantly.
       </div>
     </div>
 
-    <section class="swap-card">
-      <div class="swap-card-header">
-        <span>To</span>
-        <span class="balance">Balance: <span class="balance-value" id="to-balance">0</span></span>
+    <div class="switcher">
+      <div class="switchBtn" id="switchBtn" title="Switch">⇅</div>
+    </div>
+
+    <div class="card">
+      <div class="row">
+        <div class="label">To</div>
+        <div class="balance">Balance: <span id="to-balance">0</span></div>
       </div>
 
-      <div class="swap-row">
-        <div class="amount-input">
-          <input id="to-amount" type="number" min="0" step="0.0001" placeholder="0" readonly/>
-          <div style="display:flex;align-items:center;gap:4px;">
-            <div class="token-select-wrapper" id="to-token-wrapper">
-              <div class="token-select" id="to-token-select">
-                <div class="token-icon"><img id="to-token-icon" alt="USDC" src="images/usdc.png"/></div>
-                <span class="token-symbol" id="to-token-symbol">USDC</span>
-                <span class="caret"></span>
-              </div>
-              <div class="token-menu" id="to-token-menu"></div>
+      <div class="inputRow">
+        <input id="to-amount" class="amt" inputmode="decimal" placeholder="0" disabled />
+        <div class="tokenWrap" id="to-token-wrapper">
+          <div class="tokenSelect" id="to-token-select">
+            <div class="tokenLeft">
+              <div class="tokenIcon"><img id="to-token-icon" src="images/usdc.png" alt="USDC"></div>
+              <div class="tokenSym" id="to-token-symbol">USDC</div>
             </div>
+            <div class="chev">▾</div>
           </div>
+          <div class="menu" id="to-token-menu"></div>
         </div>
       </div>
-    </section>
-
-    <div class="swap-button">
-      <button type="button" id="swap-btn" disabled>Swap</button>
-      <div class="note">Fee: 1% (1 per 100). Demo mode: records to swap_ledger only.</div>
     </div>
 
-    <div class="swap-info">
-      <div class="swap-info-row"><span>Rate</span><span id="rate-text">-</span></div>
-      <div class="swap-info-row"><span>Fee</span><span id="fee-text">-</span></div>
-      <div class="swap-info-row"><span>Expected to get</span><span id="expected-text">-</span></div>
+    <button class="swapBtn" id="swap-btn" disabled>Swap</button>
+
+    <div class="info">
+      <div class="infoRow">
+        <div class="muted">Rate</div>
+        <div id="rate-text">-</div>
+      </div>
+      <div class="infoRow">
+        <div class="muted">Fee</div>
+        <div id="fee-text">-</div>
+      </div>
+      <div class="infoRow">
+        <div class="muted">Expected to get</div>
+        <div id="expected-text">-</div>
+      </div>
     </div>
-  </main>
-</div>
+  </div>
 
-<div class="toast" id="toast"></div>
+  <div id="toast" class="toast"></div>
 
-<script src="sb-config.js"></script>
-<script src="auth.js"></script>
-<script src="wallet.js"></script>
-<script src="swap.js"></script>
+  <!-- Keep the same integration style as your other pages -->
+  <script src="sb-config.js"></script>
+  <script src="auth.js"></script>
+  <script src="wallet.js"></script>
+  <script src="swap.js"></script>
+  <script>
+    // optional: "Save" button can snapshot the page (no-op by default)
+    document.getElementById('saveBtn').addEventListener('click', function(){
+      // keep as placeholder, do not break UI
+      var t = document.getElementById('toast');
+      t.textContent = 'Saved';
+      t.classList.add('show');
+      setTimeout(function(){ t.classList.remove('show'); }, 1200);
+    });
+  </script>
 </body>
 </html>
