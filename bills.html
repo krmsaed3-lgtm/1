@@ -338,8 +338,14 @@
     var supabase = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
 
     // ✅ جلب user_id (عدّلها حسب نظامك لو بتخزّنه بمكان مختلف)
+    // ملاحظة: wallet.js عندك يستخدم المفتاح sb_user_id_v1
     function getUserId() {
-      return localStorage.getItem('user_id') || localStorage.getItem('uid') || "";
+      return (
+        localStorage.getItem('sb_user_id_v1') ||
+        localStorage.getItem('user_id') ||
+        localStorage.getItem('uid') ||
+        ""
+      ).toString().trim();
     }
 
     if (backBtn) {
@@ -467,6 +473,7 @@
           .order('created_at', { ascending: false });
 
         if (res.error) {
+          console.error(res.error);
           showEmpty();
           return;
         }
@@ -480,7 +487,7 @@
         allTxs = rows.map(function(r) {
           var meta = r.meta || {};
           return {
-            type: (r.kind || '').toString().toLowerCase(),          // deposit / withdraw / profit
+            type: (r.kind || '').toString().toLowerCase(), // deposit / withdraw / profit
             amount: Number(r.amount || 0),
             status: (r.status || 'pending'),
             createdAt: r.created_at || '',
@@ -492,22 +499,9 @@
 
         applyFilters();
       } catch (e) {
+        console.error(e);
         showEmpty();
       }
-    }
-
-      var txs = DemoWallet.getTransactions();
-      if (!txs || !txs.length) {
-        showEmpty();
-        return;
-      }
-
-      allTxs = txs.slice().sort(function(a, b) {
-        if (!a.createdAt || !b.createdAt) return 0;
-        return a.createdAt < b.createdAt ? 1 : -1;
-      });
-
-      applyFilters();
     }
 
     if (resetBtn) {
@@ -595,16 +589,41 @@
     }
 
     async function __getRecords(){
-      // 1) Preferred: wallet.js exposes DemoWallet.getTransactions()
+      // ✅ Source of truth: Supabase bills table
       try {
-        if (window.DemoWallet && typeof window.DemoWallet.getTransactions === 'function'){
-          var txs = await window.DemoWallet.getTransactions();
-          if (Array.isArray(txs) && txs.length) return txs;
-        }
-      } catch(e){}
+        if (!supabase) return __readLocalTxs();
 
-      // 2) Fallback local
-      return __readLocalTxs();
+        var userId = getUserId();
+        if (!userId) return [];
+
+        var res = await supabase
+          .from('bills')
+          .select('user_id, kind, amount, status, created_at, meta')
+          .eq('user_id', userId)
+          .order('created_at', { ascending: false });
+
+        if (res.error) {
+          console.error(res.error);
+          return [];
+        }
+
+        var rows = Array.isArray(res.data) ? res.data : [];
+        return rows.map(function(r){
+          var meta = r.meta || {};
+          return {
+            kind: r.kind,
+            amount: r.amount,
+            status: r.status,
+            created_at: r.created_at,
+            currency: (meta.currency || 'USDT').toString().toUpperCase(),
+            fee: meta.fee !== undefined ? Number(meta.fee || 0) : 0,
+            net: meta.net !== undefined ? Number(meta.net || r.amount || 0) : Number(r.amount || 0)
+          };
+        });
+      } catch(e) {
+        console.error(e);
+        return [];
+      }
     }
 
 })();
