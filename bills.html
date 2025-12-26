@@ -314,6 +314,8 @@
       </div>
 </main>
 </div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <script src="wallet.js"></script>
 <script>
   (function() {
@@ -435,7 +437,216 @@
       renderBills(filtered);
     }
 
-    function loadTransactions() {
+    function <script>
+  (function() {
+    var container = document.getElementById('billsContainer');
+    var startInput = document.getElementById('startDate');
+    var endInput = document.getElementById('endDate');
+    var resetBtn = document.querySelector('.btn-reset');
+    var confirmBtn = document.querySelector('.btn-confirm');
+    var typeRow = document.getElementById('typeRow');
+    var typeLabel = document.getElementById('typeLabel');
+    var currencyRow = document.getElementById('currencyRow');
+    var currencyLabel = document.getElementById('currencyLabel');
+    var backBtn = document.querySelector('.back-btn');
+
+    if (!container) return;
+
+    // ✅ 1) ضع بيانات supabase هنا
+    var SUPABASE_URL = "YOUR_SUPABASE_URL";
+    var SUPABASE_ANON_KEY = "YOUR_SUPABASE_ANON_KEY";
+    var supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // ✅ 2) جيب user_id من المكان اللي عندك
+    // غيّرها حسب نظامك (مثلاً: localStorage user_id أو من session)
+    function getUserId() {
+      return localStorage.getItem('user_id') || localStorage.getItem('uid') || "";
+    }
+
+    if (backBtn) {
+      backBtn.addEventListener('click', function () {
+        if (window.history.length > 1) window.history.back();
+      });
+    }
+
+    var allTxs = [];
+    var filters = { startDate: '', endDate: '', type: 'all', currency: 'USDT' };
+
+    function showEmpty() {
+      container.className = 'empty-state';
+      container.textContent = 'No records yet.';
+    }
+
+    function renderBills(list) {
+      if (!list || !list.length) { showEmpty(); return; }
+
+      container.className = 'bill-list';
+      container.innerHTML = '';
+
+      list.forEach(function(tx) {
+        var item = document.createElement('div');
+        item.className = 'bill-item';
+
+        var typeLabelText = tx.type === 'withdraw' ? 'Withdraw' :
+                            tx.type === 'deposit' ? 'Deposit' :
+                            tx.type === 'income' ? 'Income' :
+                            tx.type === 'profit' ? 'Income' :
+                            tx.type === 'swap' ? 'Swap' :
+                            (tx.type || 'Record');
+
+        var status = (tx.status || 'PENDING').toString().toUpperCase();
+        var createdAt = tx.createdAt ? tx.createdAt.replace('T', ' ').slice(0, 19) : '';
+
+        var amount = (typeof tx.amount === 'number'
+          ? tx.amount.toFixed(8)
+          : String(tx.amount || '0'));
+        var currency = (tx.currency || filters.currency || 'USDT').toUpperCase();
+        var amountStr = amount + ' ' + currency;
+
+        var feeStr = typeof tx.fee === 'number' ? tx.fee.toFixed(8) + ' ' + currency : '';
+        var netStr = typeof tx.net === 'number' ? tx.net.toFixed(8) + ' ' + currency : '';
+
+        item.innerHTML =
+          '<div class="bill-main-row">' +
+            '<span class="bill-type">' + typeLabelText + '</span>' +
+            '<span class="bill-amount">' + amountStr + '</span>' +
+          '</div>' +
+          '<div class="bill-sub-row">' +
+            '<span class="bill-status">' + status + '</span>' +
+            (createdAt ? '<span class="bill-time">' + createdAt + '</span>' : '') +
+          '</div>' +
+          (feeStr || netStr
+            ? '<div class="bill-sub-row">' +
+                (feeStr ? '<span class="bill-fee">Fee: ' + feeStr + '</span>' : '') +
+                (netStr ? '<span class="bill-net">Net: ' + netStr + '</span>' : '') +
+              '</div>'
+            : '');
+
+        container.appendChild(item);
+      });
+    }
+
+    function applyFilters() {
+      if (!allTxs.length) { showEmpty(); return; }
+
+      var filtered = allTxs.filter(function(tx) {
+        var createdAt = tx.createdAt ? new Date(tx.createdAt) : null;
+
+        if (filters.startDate && createdAt) {
+          var start = new Date(filters.startDate + 'T00:00:00');
+          if (createdAt < start) return false;
+        }
+        if (filters.endDate && createdAt) {
+          var end = new Date(filters.endDate + 'T23:59:59');
+          if (createdAt > end) return false;
+        }
+
+        if (filters.type && filters.type !== 'all') {
+          if (!tx.type || tx.type.toLowerCase() !== filters.type) return false;
+        }
+
+        if (filters.currency) {
+          var txCurrency = (tx.currency || 'USDT').toUpperCase();
+          if (txCurrency !== filters.currency.toUpperCase()) return false;
+        }
+
+        return true;
+      });
+
+      renderBills(filtered);
+    }
+
+    // ✅ بدل DemoWallet: هلق من Supabase bills
+    async function loadTransactions() {
+      var userId = getUserId();
+      if (!userId) { showEmpty(); return; }
+
+      try {
+        // ملاحظة: إذا عمود العملة غير موجود بجدول bills عندك،
+        // خلي currency ثابتة USDT أو استخرجها من meta لو موجودة.
+        var res = await supabase
+          .from('bills')
+          .select('id, user_id, kind, amount, status, created_at, meta')
+          .eq('user_id', userId)
+          .order('created_at', { ascending: false });
+
+        if (res.error) { showEmpty(); return; }
+        var rows = Array.isArray(res.data) ? res.data : [];
+        if (!rows.length) { showEmpty(); return; }
+
+        allTxs = rows.map(function(r) {
+          var meta = r.meta || {};
+          return {
+            type: (r.kind || '').toString().toLowerCase(),                 // deposit/withdraw/profit
+            amount: Number(r.amount || 0),
+            status: (r.status || 'pending'),
+            createdAt: r.created_at || '',
+            currency: (meta.currency || 'USDT').toString().toUpperCase(),  // إذا ما عندك عملة خليها USDT
+            fee: Number(meta.fee || 0),
+            net: Number(meta.net || 0)
+          };
+        });
+
+        applyFilters();
+      } catch (e) {
+        showEmpty();
+      }
+    }
+
+    // الأزرار والفلترات كما هي
+    if (resetBtn) {
+      resetBtn.addEventListener('click', function() {
+        if (startInput) startInput.value = '';
+        if (endInput) endInput.value = '';
+        filters.startDate = '';
+        filters.endDate = '';
+        filters.type = 'all';
+        filters.currency = 'USDT';
+        if (typeLabel) typeLabel.textContent = 'All';
+        if (currencyLabel) currencyLabel.textContent = 'USDT';
+        applyFilters();
+      });
+    }
+
+    if (confirmBtn) {
+      confirmBtn.addEventListener('click', function() {
+        if (startInput) filters.startDate = startInput.value || '';
+        if (endInput) filters.endDate = endInput.value || '';
+        applyFilters();
+      });
+    }
+
+    if (typeRow) {
+      var typeOptions = ['all', 'deposit', 'withdraw', 'profit', 'swap'];
+      var typeLabels = { all:'All', deposit:'Deposit', withdraw:'Withdraw', profit:'Income', swap:'Swap' };
+      var index = 0;
+
+      typeRow.addEventListener('click', function() {
+        index = (index + 1) % typeOptions.length;
+        var key = typeOptions[index];
+        filters.type = key;
+        if (typeLabel) typeLabel.textContent = typeLabels[key] || key;
+        applyFilters();
+      });
+    }
+
+    if (currencyRow) {
+      var currencyOptions = ['USDT', 'BTC', 'ETH', 'USDC', 'TRX'];
+      var currencyIndex = 0;
+
+      currencyRow.addEventListener('click', function () {
+        currencyIndex = (currencyIndex + 1) % currencyOptions.length;
+        var cur = currencyOptions[currencyIndex];
+        filters.currency = cur;
+        if (currencyLabel) currencyLabel.textContent = cur;
+        applyFilters();
+      });
+    }
+
+    loadTransactions();
+  })();
+</script>
+ {
       if (!window.DemoWallet || typeof window.DemoWallet.getTransactions !== 'function') {
         showEmpty();
         return;
