@@ -156,3 +156,4 @@
     bind();
   }
 })();
+<script src="ai-power-popup.js"></script>
