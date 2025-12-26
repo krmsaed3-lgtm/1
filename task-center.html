@@ -16,10 +16,10 @@
       --accentB:#2de5c5;
       --shadow:0 18px 55px rgba(0,0,0,.55);
       --r:20px;
-      --r16:16px;
     }
     *{box-sizing:border-box}
     html,body{height:100%}
+
     body{
       margin:0;
       background:
@@ -62,12 +62,9 @@
       -webkit-tap-highlight-color:transparent;
     }
     .icon:active{transform:scale(.98)}
-    .top b{
-      font-weight:800;
-      letter-spacing:.2px;
-    }
+    .top b{font-weight:800;letter-spacing:.2px}
 
-    /* Banner image (replaces the old hero text/button) */
+    /* Banner image */
     .banner{
       height:150px;
       margin:12px 12px 14px;
@@ -75,10 +72,10 @@
       border:1px solid var(--stroke);
       background:
         linear-gradient(180deg, rgba(0,0,0,.18), rgba(0,0,0,.58)),
-        url("images/task_centeer.png") center / cover no-repeat;
+        url("images/taskcenteer.png") center / cover no-repeat;
     }
 
-    /* Panel + card (keep structure so JS continues) */
+    /* Keep original structure so JS keeps working */
     .panel{
       background:transparent;
       border-top:none;
@@ -91,7 +88,6 @@
       background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
       box-shadow:0 18px 45px rgba(0,0,0,.45);
     }
-
     .row{display:flex;justify-content:space-between;gap:10px;align-items:center}
     .big{font-size:18px;font-weight:900;letter-spacing:.2px}
     .muted{color:var(--muted);font-size:12px}
@@ -106,7 +102,6 @@
       white-space:nowrap;
     }
 
-    /* Claim button (keep id claimBtn) */
     .btn{
       height:44px;
       border-radius:999px;
@@ -123,14 +118,12 @@
     }
     .claim:disabled{opacity:.55;cursor:not-allowed;filter:saturate(.7)}
 
-    /* List area (keep ids statusBox + list) */
     .listwrap{padding:10px 14px 16px}
     .item{border-bottom:1px solid var(--stroke);padding:12px 0}
     .main{display:flex;justify-content:space-between;gap:10px}
     .sub{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-top:4px;gap:10px}
     .empty{padding:18px;text-align:center;color:var(--muted)}
 
-    /* Toast (keep id toast) */
     .toast{
       position:fixed;
       left:50%;
@@ -161,10 +154,8 @@
       <div class="icon" id="reloadBtn" title="Reload">⟳</div>
     </div>
 
-    <!-- Image banner -->
     <div class="banner" aria-hidden="true"></div>
 
-    <!-- Keep original functional block -->
     <div class="panel">
       <div class="card">
         <div class="row">
@@ -194,7 +185,7 @@
 
   <div class="toast" id="toast"></div>
 
-  <!-- Keep original scripts exactly (so binding stays working) -->
+  <!-- Keep original scripts (binding stays working) -->
   <script src="sb-config.js"></script>
   <script src="auth.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
