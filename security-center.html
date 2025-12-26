@@ -1,604 +1,92 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
   <title>Security Center</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <style>
-    :root {
-      --page-bg: #0C0B10;
-      --card-bg: #17202D;
-      --card-inner-bg: #050812;
-      --text-primary: #ffffff;
-      --text-secondary: rgba(255, 255, 255, 0.45);
-      --border-subtle: #233246;
-      --input-bg: #050812;
-      --input-border: #233246;
-      --btn-bg: linear-gradient(90deg, #0B2F3B 0%, #101B20 100%);
-      --btn-disabled-bg: rgba(255, 255, 255, 0.06);
-      --accent: #00d1ff;
-      --danger: #ff5c5c;
-    }
-
-    *,
-    *::before,
-    *::after {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    body {
-      background-color: var(--page-bg);
-      color: var(--text-primary);
-      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
-    }
-
-    .app {
-      min-height: 100vh;
-      max-width: 480px;
-      margin: 0 auto;
-      background-color: var(--page-bg);
-    }
-
-    .app-header {
-      position: sticky;
-      top: 0;
-      z-index: 10;
-      height: 48px;
-      display: flex;
-      align-items: center;
-      padding: 0 12px;
-      background: #000000;
-    }
-
-    .back-btn {
-      width: 32px;
-      height: 32px;
-      border-radius: 999px;
-      border: 1px solid rgba(255,255,255,0.12);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      text-decoration: none;
-      margin-right: 8px;
-      background: rgba(11, 12, 16, 0.95);
-    }
-
-    .back-arrow {
-      width: 10px;
-      height: 10px;
-      border-left: 2px solid #ffffff;
-      border-bottom: 2px solid #ffffff;
-      transform: rotate(45deg);
-    }
-
-    .app-header-title {
-      flex: 1;
-      text-align: center;
-      margin-right: 40px;
-      font-size: 15px;
-      font-weight: 500;
-    }
-
-    .app-main {
-      padding: 16px 12px 24px;
-    }
-
-    .security-list {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      margin-top: 4px;
-    }
-
-    .security-item {
-      background-color: var(--card-bg);
-      border-radius: 14px;
-      padding: 12px 14px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      border: 1px solid var(--border-subtle);
-    }
-
-    .security-item.is-disabled {
-      opacity: 0.5;
-    }
-
-    .security-item.is-clickable {
-      cursor: pointer;
-    }
-
-    .item-left {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .icon-box {
-      width: 32px;
-      height: 32px;
-      border-radius: 10px;
-      background-color: var(--card-inner-bg);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .icon-box img {
-      width: 18px;
-      height: 18px;
-      display: block;
-      object-fit: contain;
-    }
-
-    .label-text {
-      font-size: 14px;
-    }
-
-    .item-right {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 13px;
-      color: var(--text-secondary);
-    }
-
-    .chevron {
-      width: 7px;
-      height: 7px;
-      border-right: 1px solid var(--text-secondary);
-      border-bottom: 1px solid var(--text-secondary);
-      transform: rotate(-45deg);
-      margin-top: 1px;
-    }
-
-    /* Modal base */
-    .modal-backdrop {
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.72);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 100;
-      padding: 0 18px;
-    }
-
-    .modal-backdrop.is-visible {
-      display: flex;
-    }
-
-    .modal {
-      width: 100%;
-      max-width: 420px;
-      background-color: #070a12;
-      border-radius: 16px;
-      border: 1px solid var(--border-subtle);
-      box-shadow: 0 18px 60px rgba(0,0,0,0.85);
-      padding: 14px 16px 16px;
-    }
-
-    .modal-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 10px;
-    }
-
-    .modal-title {
-      font-size: 15px;
-      font-weight: 500;
-    }
-
-    .modal-close {
-      width: 22px;
-      height: 22px;
-      border-radius: 999px;
-      border: 1px solid rgba(255,255,255,0.18);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 14px;
-      cursor: pointer;
-      color: var(--text-secondary);
-      background-color: transparent;
-    }
-
-    .modal-body {
-      margin-top: 4px;
-    }
-
-    .field-group {
-      margin-bottom: 10px;
-    }
-
-    .field-label-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 4px;
-      font-size: 12px;
-      color: var(--text-secondary);
-    }
-
-    .field-label {
-      font-size: 12px;
-      color: var(--text-secondary);
-    }
-
-    .field-extra {
-      font-size: 11px;
-      color: var(--text-secondary);
-    }
-
-    .field-input-row {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .field-input {
-      flex: 1;
-      height: 36px;
-      border-radius: 8px;
-      border: 1px solid var(--input-border);
-      background-color: var(--input-bg);
-      padding: 0 10px;
-      font-size: 13px;
-      color: var(--text-primary);
-      outline: none;
-    }
-
-    .field-input[disabled] {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-
-    .field-input::placeholder {
-      color: rgba(255,255,255,0.28);
-    }
-
-    .send-btn {
-      flex-shrink: 0;
-      padding: 0 10px;
-      height: 32px;
-      border-radius: 999px;
-      border: 1px solid var(--input-border);
-      background-color: rgba(255,255,255,0.04);
-      color: var(--text-primary);
-      font-size: 12px;
-      cursor: pointer;
-      white-space: nowrap;
-    }
-
-    .send-btn[disabled] {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-
-    .error-text {
-      margin-top: 4px;
-      font-size: 11px;
-      color: var(--danger);
-      min-height: 14px;
-    }
-
-    .modal-footer {
-      margin-top: 8px;
-    }
-
-    .primary-btn {
-      width: 100%;
-      height: 38px;
-      border-radius: 999px;
-      border: none;
-      font-size: 14px;
-      color: #ffffff;
-      background-image: var(--btn-bg);
-      cursor: pointer;
-    }
-
-    .primary-btn[disabled] {
-      background-image: none;
-      background-color: var(--btn-disabled-bg);
-      color: rgba(255,255,255,0.4);
-      cursor: not-allowed;
-    }
-
-    .hint-text {
-      font-size: 11px;
-      color: var(--text-secondary);
-      margin-bottom: 4px;
-    }
-
-    .toast-message {
-      position: fixed;
-      left: 50%;
-      top: 110px;
-      transform: translate(-50%, -10px);
-      padding: 8px 14px;
-      border-radius: 999px;
-      background: rgba(0, 0, 0, 0.82);
-      color: #ffffff;
-      font-size: 12px;
-      line-height: 1.4;
-      max-width: 80%;
-      text-align: center;
-      z-index: 200;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.18s ease-out, transform 0.18s ease-out;
-      white-space: nowrap;
-      text-overflow: ellipsis;
-      overflow: hidden;
-    }
-
-    .toast-message.toast-visible {
-      opacity: 1;
-      transform: translate(-50%, 0);
-    }
-
-    @media (min-width: 481px) {
-      body {
-        display: flex;
-        justify-content: center;
-        background-color: #000;
-      }
-      .app {
-        margin-top: 12px;
-        border-radius: 20px;
-        border: 1px solid #171924;
-        overflow: hidden;
-      }
-    }
+    :root{--bg:#05070b;--stroke:rgba(255,255,255,.06);--card:rgba(255,255,255,.03);--muted:rgba(255,255,255,.55);--text:#eaf0ff;--shadow:0 16px 40px rgba(0,0,0,.55)}
+    *{box-sizing:border-box}
+    body{margin:0;background:radial-gradient(70% 50% at 50% 20%,rgba(47,183,255,.08),transparent 60%),radial-gradient(60% 50% at 20% 80%,rgba(34,224,189,.10),transparent 60%),var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:16px}
+    .phone{width:min(420px,100%);border-radius:26px;padding:14px;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.06);box-shadow:var(--shadow)}
+    .topbar{display:flex;align-items:center;justify-content:space-between;padding:6px 6px 12px}
+    .iconbtn{width:40px;height:40px;border-radius:14px;background:rgba(255,255,255,.04);border:1px solid var(--stroke);display:flex;align-items:center;justify-content:center;cursor:pointer;user-select:none}
+    .iconbtn:active{transform:scale(.98)}
+    .title{font-weight:700;opacity:.95}
+    .section{background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,.015));border:1px solid var(--stroke);border-radius:18px;padding:14px;margin-bottom:12px}
+    .row{display:flex;align-items:center;justify-content:space-between;gap:12px}
+    .label{font-size:12px;color:var(--muted)}
+    .value{font-size:13px}
+    .badge{font-size:11px;padding:4px 8px;border-radius:999px;border:1px solid rgba(255,255,255,.12)}
+    .badge.ok{background:rgba(34,224,189,.10);border-color:rgba(34,224,189,.30)}
+    .badge.warn{background:rgba(255,190,90,.10);border-color:rgba(255,190,90,.30)}
+    .inp{width:100%;margin-top:10px;border-radius:14px;background:rgba(0,0,0,.25);border:1px solid var(--stroke);padding:12px;color:var(--text);outline:none}
+    .btnRow{display:flex;gap:10px;margin-top:10px}
+    .btn{flex:1;height:44px;border:none;border-radius:16px;font-weight:800;color:#031310;background:linear-gradient(90deg,rgba(47,183,255,.55),rgba(34,224,189,.95));cursor:pointer}
+    .btn.secondary{background:rgba(255,255,255,.06);color:var(--text);border:1px solid rgba(255,255,255,.10);font-weight:700}
+    .btn:disabled{opacity:.45;cursor:not-allowed}
+    .hint{margin-top:8px;font-size:12px;color:rgba(255,255,255,.45);line-height:1.35}
+    .demo{display:none;margin-top:8px;font-size:12px;color:rgba(255,255,255,.55)}
+    .toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);background:rgba(10,16,24,.94);border:1px solid rgba(255,255,255,.10);border-radius:16px;padding:10px 12px;font-size:13px;color:var(--text);box-shadow:0 16px 50px rgba(0,0,0,.6);opacity:0;pointer-events:none;transition:opacity .18s ease;max-width:min(520px,90vw);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .toast.show{opacity:1}
   </style>
 </head>
 <body>
-  <div class="app">
-    <header class="app-header">
-      <a href="javascript:history.back()" class="back-btn">
-        <div class="back-arrow"></div>
-      </a>
-      <div class="app-header-title">Security Center</div>
-    </header>
+  <div class="phone">
+    <div class="topbar">
+      <div class="iconbtn" onclick="history.back()" title="Back">‹</div>
+      <div class="title">Security Center</div>
+      <div class="iconbtn" id="refreshBtn" title="Refresh">⟳</div>
+    </div>
 
-    <main class="app-main">
-      <section class="security-list">
-        <div class="security-item is-disabled">
-          <div class="item-left">
-            <div class="icon-box">
-              <img src="images/Phone.png" alt="Phone" />
-            </div>
-            <div class="label-text">Phone</div>
-          </div>
-          <div class="item-right">
-            <span>Set</span>
-            <div class="chevron"></div>
-          </div>
-        </div>
-
-        <div class="security-item is-clickable" data-security="fund-password">
-          <div class="item-left">
-            <div class="icon-box">
-              <img src="images/Fund Password.png" alt="Fund Password" />
-            </div>
-            <div class="label-text">Fund Password</div>
-          </div>
-          <div class="item-right">
-            <span>Set</span>
-            <div class="chevron"></div>
-          </div>
-        </div>
-
-        <div class="security-item is-clickable" data-security="login-password">
-          <div class="item-left">
-            <div class="icon-box">
-              <img src="images/Login Password.png" alt="Login Password" />
-            </div>
-            <div class="label-text">Login Password</div>
-          </div>
-          <div class="item-right">
-            <span>Set</span>
-            <div class="chevron"></div>
-          </div>
-        </div>
-
-        <div class="security-item is-clickable" data-security="email">
-          <div class="item-left">
-            <div class="icon-box">
-              <img src="images/Email.png" alt="Email" />
-            </div>
-            <div class="label-text">Email</div>
-          </div>
-          <div class="item-right">
-            <span>Set</span>
-            <div class="chevron"></div>
-          </div>
-        </div>
-      </section>
-    </main>
-  </div>
-
-  <div id="toast" class="toast-message"></div>
-
-  <!-- Login password modal -->
-  <div class="modal-backdrop" id="modal-login-password">
-    <div class="modal">
-      <div class="modal-header">
-        <div class="modal-title">Set Login Password</div>
-        <button class="modal-close" type="button" data-close="login-password">×</button>
-      </div>
-      <div class="modal-body">
-        <div class="hint-text">New password must be at least 8 characters.</div>
-
-        <div class="field-group">
-          <div class="field-label-row">
-            <span class="field-label">New password</span>
-          </div>
-          <input id="lp-new" class="field-input" type="password" maxlength="32" placeholder="Enter new password" autocomplete="new-password" />
-          <div id="lp-new-error" class="error-text"></div>
-        </div>
-
-        <div class="field-group">
-          <div class="field-label-row">
-            <span class="field-label">Confirm new password</span>
-          </div>
-          <input id="lp-confirm" class="field-input" type="password" maxlength="32" placeholder="Confirm new password" autocomplete="new-password" disabled />
-          <div id="lp-confirm-error" class="error-text"></div>
-        </div>
-
-        <div class="field-group">
-          <div class="field-label-row">
-            <span class="field-label">Current login password</span>
-          </div>
-          <input id="lp-current" class="field-input" type="password" maxlength="32" placeholder="Enter current login password" autocomplete="current-password" />
-          <div id="lp-current-error" class="error-text"></div>
+    <div class="section">
+      <div class="row"><div class="label">Phone</div><div class="value" id="phoneVal">-</div></div>
+      <div class="row" style="margin-top:10px;">
+        <div class="label">Email</div>
+        <div class="row" style="gap:10px;">
+          <span class="value" id="emailVal">-</span>
+          <span class="badge warn" id="emailBadge">Not verified</span>
         </div>
       </div>
-      <div class="modal-footer">
-        <button id="lp-submit" class="primary-btn" type="button" disabled>Confirm</button>
+
+      <input id="emailInput" class="inp" placeholder="Enter email" />
+      <div class="btnRow">
+        <button id="sendBtn" class="btn">Send code</button>
+        <button id="verifyBtn" class="btn secondary">Verify</button>
+      </div>
+      <input id="codeInput" class="inp" placeholder="Enter verification code" />
+      <div class="demo" id="demoCode"></div>
+      <div class="hint">Email verification uses a code stored in email_verifications. Connect your mail provider later if needed.</div>
+    </div>
+
+    <div class="section">
+      <div class="label">Login password</div>
+      <input id="oldLogin" class="inp" type="password" placeholder="Old password" />
+      <input id="newLogin" class="inp" type="password" placeholder="New password" />
+      <input id="newLogin2" class="inp" type="password" placeholder="Confirm new password" />
+      <div class="btnRow">
+        <button id="changeLoginBtn" class="btn">Update</button>
+      </div>
+      <div class="hint">If the old password was never set, leave it empty and set a new one.</div>
+    </div>
+
+    <div class="section">
+      <div class="label">Fund password</div>
+      <input id="oldFund" class="inp" type="password" placeholder="Old fund password" />
+      <input id="newFund" class="inp" type="password" placeholder="New fund password" />
+      <input id="newFund2" class="inp" type="password" placeholder="Confirm new fund password" />
+      <div class="btnRow">
+        <button id="changeFundBtn" class="btn">Update</button>
       </div>
     </div>
   </div>
 
-  <!-- Fund password modal -->
-  <div class="modal-backdrop" id="modal-fund-password">
-    <div class="modal">
-      <div class="modal-header">
-        <div class="modal-title">Set Fund Password</div>
-        <button class="modal-close" type="button" data-close="fund-password">×</button>
-      </div>
-      <div class="modal-body">
-        <div class="hint-text">Fund password must be exactly 6 digits.</div>
-
-        <div class="field-group">
-          <div class="field-label-row">
-            <span class="field-label">Fund password</span>
-          </div>
-          <input id="fp-new" class="field-input" type="password" inputmode="numeric" pattern="\d*" maxlength="6" placeholder="Enter 6-digit password" />
-          <div id="fp-new-error" class="error-text"></div>
-        </div>
-
-        <div class="field-group">
-          <div class="field-label-row">
-            <span class="field-label">Confirm fund password</span>
-          </div>
-          <input id="fp-confirm" class="field-input" type="password" inputmode="numeric" pattern="\d*" maxlength="6" placeholder="Confirm 6-digit password" disabled />
-          <div id="fp-confirm-error" class="error-text"></div>
-        </div>
-
-        <div class="field-group">
-          <div class="field-label-row">
-            <span class="field-label">Login password</span>
-          </div>
-          <input id="fp-login" class="field-input" type="password" maxlength="32" placeholder="Enter login password" />
-          <div id="fp-login-error" class="error-text"></div>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button id="fp-submit" class="primary-btn" type="button" disabled>Confirm</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Email modal -->
-  <div class="modal-backdrop" id="modal-email">
-    <div class="modal">
-      <div class="modal-header">
-        <div class="modal-title" id="email-modal-title">Set Email</div>
-        <button class="modal-close" type="button" data-close="email">×</button>
-      </div>
-      <div class="modal-body">
-        <!-- New email state -->
-        <div id="email-state-new">
-          <div class="field-group">
-            <div class="field-label-row">
-              <span class="field-label">Email</span>
-            </div>
-            <div class="field-input-row">
-              <input id="em-email" class="field-input" type="email" placeholder="Enter email" />
-              <button id="em-send" class="send-btn" type="button">Send</button>
-            </div>
-            <div id="em-email-error" class="error-text"></div>
-          </div>
-
-          <div class="field-group">
-            <div class="field-label-row">
-              <span class="field-label">Verification code</span>
-            </div>
-            <input id="em-code" class="field-input" type="text" maxlength="6" placeholder="Enter code" />
-            <div id="em-code-error" class="error-text"></div>
-          </div>
-
-          <div class="field-group">
-            <div class="field-label-row">
-              <span class="field-label">Login password</span>
-            </div>
-            <input id="em-password" class="field-input" type="password" maxlength="32" placeholder="Enter login password" />
-            <div id="em-password-error" class="error-text"></div>
-          </div>
-        </div>
-
-        <!-- Change email state -->
-        <div id="email-state-change" style="display:none;">
-          <div class="field-group">
-            <div class="field-label-row">
-              <span class="field-label">Current email</span>
-            </div>
-            <div class="field-input-row">
-              <input id="em-old-email" class="field-input" type="email" readonly />
-              <button id="em-old-send" class="send-btn" type="button">Send</button>
-            </div>
-            <div id="em-old-email-error" class="error-text"></div>
-          </div>
-
-          <div class="field-group">
-            <div class="field-label-row">
-              <span class="field-label">Code to current email</span>
-            </div>
-            <input id="em-old-code" class="field-input" type="text" maxlength="6" placeholder="Enter code" />
-            <div id="em-old-code-error" class="error-text"></div>
-          </div>
-
-          <div class="field-group">
-            <div class="field-label-row">
-              <span class="field-label">New email</span>
-            </div>
-            <div class="field-input-row">
-              <input id="em-new-email" class="field-input" type="email" placeholder="Enter new email" />
-              <button id="em-new-send" class="send-btn" type="button">Send</button>
-            </div>
-            <div id="em-new-email-error" class="error-text"></div>
-          </div>
-
-          <div class="field-group">
-            <div class="field-label-row">
-              <span class="field-label">Code to new email</span>
-            </div>
-            <input id="em-new-code" class="field-input" type="text" maxlength="6" placeholder="Enter code" />
-            <div id="em-new-code-error" class="error-text"></div>
-          </div>
-
-          <div class="field-group">
-            <div class="field-label-row">
-              <span class="field-label">Login password</span>
-            </div>
-            <input id="em-change-password" class="field-input" type="password" maxlength="32" placeholder="Enter login password" />
-            <div id="em-change-password-error" class="error-text"></div>
-          </div>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button id="em-submit" class="primary-btn" type="button" disabled>Confirm</button>
-      </div>
-    </div>
-  </div>
+  <div id="toast" class="toast"></div>
 
   <script src="sb-config.js"></script>
   <script src="auth.js"></script>
   <script src="sb-user.js"></script>
+  <script src="common-nav.js"></script>
   <script src="security-center.js"></script>
 </body>
 </html>

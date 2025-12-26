@@ -16,7 +16,7 @@
     }
   }
 
-  const SB = window.SB_CONFIG;
+  var SB = window.SB_CONFIG;
 
   function ensureConfig() {
     if (!SB || !SB.url || !SB.headers) throw new Error('Supabase config not loaded');
@@ -24,30 +24,41 @@
 
   async function sbFetch(path, opts) {
     ensureConfig();
-    const res = await fetch(SB.url + path, Object.assign({ headers: SB.headers() }, opts || {}));
-    let data = null;
-    try { data = await res.json(); } catch (_e) { data = null; }
+    var res = await fetch(SB.url + path, Object.assign({ headers: SB.headers() }, opts || {}));
+    var text = '';
+    var data = null;
+
+    try { data = await res.json(); }
+    catch (_e) { try { text = await res.text(); } catch (__e) {} }
+
     if (!res.ok) {
-      const msg = (data && (data.error || data.message)) ? (data.error || data.message) : ('Request failed: ' + res.status);
-      const err = new Error(msg);
+      var msg = '';
+      if (data && (data.message || data.error)) msg = String(data.message || data.error);
+      else if (text) msg = text;
+      else msg = 'Request failed: ' + res.status;
+
+      var err = new Error(msg);
       err.status = res.status;
-      err.payload = data;
+      err.payload = data || text;
       throw err;
     }
     return data;
   }
 
   async function rpc(name, body) {
-    return sbFetch('/rest/v1/rpc/' + encodeURIComponent(name), { method: 'POST', body: JSON.stringify(body || {}) });
+    return sbFetch('/rest/v1/rpc/' + encodeURIComponent(name), {
+      method: 'POST',
+      body: JSON.stringify(body || {})
+    });
   }
 
   async function fetchUserRow(userId) {
-    const rows = await sbFetch('/rest/v1/users?select=id,email,email_verified&' +
+    var rows = await sbFetch('/rest/v1/users?select=id,email,email_verified&' +
       'id=eq.' + encodeURIComponent(userId) + '&limit=1', { method: 'GET' });
     return (Array.isArray(rows) && rows[0]) ? rows[0] : null;
   }
 
-  const toastEl = document.getElementById('toast');
+  var toastEl = document.getElementById('toast');
   function showToast(message) {
     if (!toastEl) return;
     toastEl.textContent = message;
@@ -55,16 +66,16 @@
     window.clearTimeout(showToast._timer);
     showToast._timer = window.setTimeout(function () {
       toastEl.classList.remove('toast-visible');
-    }, 2200);
+    }, 2400);
   }
 
   function openModal(key) {
-    const el = document.getElementById('modal-' + key);
+    var el = document.getElementById('modal-' + key);
     if (el) el.classList.add('is-visible');
     if (key === 'email') setupEmailState();
   }
   function closeModal(key) {
-    const el = document.getElementById('modal-' + key);
+    var el = document.getElementById('modal-' + key);
     if (el) el.classList.remove('is-visible');
   }
 
@@ -76,43 +87,43 @@
 
   document.querySelectorAll('.modal-close').forEach(function (btn) {
     btn.addEventListener('click', function () {
-      const key = btn.getAttribute('data-close');
+      var key = btn.getAttribute('data-close');
       if (key) closeModal(key);
     });
   });
 
   document.querySelectorAll('.security-item.is-clickable').forEach(function (item) {
     item.addEventListener('click', function () {
-      const key = item.getAttribute('data-security');
+      var key = item.getAttribute('data-security');
       if (key) openModal(key);
     });
   });
 
   // LOGIN PASSWORD
   // RPC: set_or_change_login_password(p_current text, p_new text, p_user uuid) returns boolean
-  const lpNew = document.getElementById('lp-new');
-  const lpConfirm = document.getElementById('lp-confirm');
-  const lpCurrent = document.getElementById('lp-current');
-  const lpSubmit = document.getElementById('lp-submit');
+  var lpNew = document.getElementById('lp-new');
+  var lpConfirm = document.getElementById('lp-confirm');
+  var lpCurrent = document.getElementById('lp-current');
+  var lpSubmit = document.getElementById('lp-submit');
 
   function validateLoginPassword() {
-    const newVal = lpNew.value || '';
-    const confirmVal = lpConfirm.value || '';
+    var newVal = (lpNew && lpNew.value) ? lpNew.value : '';
+    var confirmVal = (lpConfirm && lpConfirm.value) ? lpConfirm.value : '';
 
-    let newError = '';
-    let confirmError = '';
+    var newError = '';
+    var confirmError = '';
 
     if (newVal.length && newVal.length < 8) newError = 'Password must be at least 8 characters.';
-    lpConfirm.disabled = newVal.length < 8;
+    if (lpConfirm) lpConfirm.disabled = newVal.length < 8;
 
-    if (!lpConfirm.disabled && confirmVal && confirmVal !== newVal) confirmError = 'Passwords do not match.';
+    if (lpConfirm && !lpConfirm.disabled && confirmVal && confirmVal !== newVal) confirmError = 'Passwords do not match.';
 
-    const newErrEl = document.getElementById('lp-new-error');
-    const confErrEl = document.getElementById('lp-confirm-error');
+    var newErrEl = document.getElementById('lp-new-error');
+    var confErrEl = document.getElementById('lp-confirm-error');
     if (newErrEl) newErrEl.textContent = newError;
     if (confErrEl) confErrEl.textContent = confirmError;
 
-    lpSubmit.disabled = !(newVal.length >= 8 && confirmVal === newVal);
+    if (lpSubmit) lpSubmit.disabled = !(newVal.length >= 8 && confirmVal === newVal);
   }
 
   if (lpNew && lpConfirm) {
@@ -125,12 +136,12 @@
     lpSubmit.addEventListener('click', async function () {
       if (lpSubmit.disabled) return;
 
-      const userId = await getCurrentUserIdAsync();
+      var userId = await getCurrentUserIdAsync();
       if (!userId) return showToast('Please login first');
 
       lpSubmit.disabled = true;
       try {
-        const ok = await rpc('set_or_change_login_password', {
+        var ok = await rpc('set_or_change_login_password', {
           p_current: (lpCurrent ? lpCurrent.value : ''),
           p_new: lpNew.value,
           p_user: userId
@@ -146,7 +157,7 @@
           showToast('Wrong current password');
         }
       } catch (e) {
-        showToast(e.message || 'Update failed');
+        showToast((e && e.message) ? e.message : 'Update failed');
       } finally {
         lpSubmit.disabled = false;
       }
@@ -154,37 +165,38 @@
   }
 
   // FUND PASSWORD
-  // RPC: set_fund_password(p_user uuid, p_login text, p_new_fund text) returns boolean
-  const fpNew = document.getElementById('fp-new');
-  const fpConfirm = document.getElementById('fp-confirm');
-  const fpLogin = document.getElementById('fp-login');
-  const fpSubmit = document.getElementById('fp-submit');
+  // RPC (preferred): set_fund_password(p_user uuid, p_login text, p_new_fund text) returns boolean
+  // Fallback (if your SQL uses different param name): p_new
+  var fpNew = document.getElementById('fp-new');
+  var fpConfirm = document.getElementById('fp-confirm');
+  var fpLogin = document.getElementById('fp-login');
+  var fpSubmit = document.getElementById('fp-submit');
 
   function isSixDigits(v) { return /^\d{6}$/.test(v || ''); }
 
   function validateFundPassword() {
-    const newVal = fpNew.value || '';
-    const confirmVal = fpConfirm.value || '';
-    const loginVal = fpLogin.value || '';
+    var newVal = (fpNew && fpNew.value) ? fpNew.value : '';
+    var confirmVal = (fpConfirm && fpConfirm.value) ? fpConfirm.value : '';
+    var loginVal = (fpLogin && fpLogin.value) ? fpLogin.value : '';
 
-    let newError = '';
-    let confirmError = '';
-    let loginError = '';
+    var newError = '';
+    var confirmError = '';
+    var loginError = '';
 
     if (newVal.length && !isSixDigits(newVal)) newError = 'Fund password must be 6 digits.';
-    fpConfirm.disabled = !isSixDigits(newVal);
+    if (fpConfirm) fpConfirm.disabled = !isSixDigits(newVal);
 
-    if (!fpConfirm.disabled && confirmVal && confirmVal !== newVal) confirmError = 'Passwords do not match.';
+    if (fpConfirm && !fpConfirm.disabled && confirmVal && confirmVal !== newVal) confirmError = 'Passwords do not match.';
     if (loginVal && loginVal.length < 8) loginError = 'Login password must be at least 8 characters.';
 
-    const ne = document.getElementById('fp-new-error');
-    const ce = document.getElementById('fp-confirm-error');
-    const le = document.getElementById('fp-login-error');
+    var ne = document.getElementById('fp-new-error');
+    var ce = document.getElementById('fp-confirm-error');
+    var le = document.getElementById('fp-login-error');
     if (ne) ne.textContent = newError;
     if (ce) ce.textContent = confirmError;
     if (le) le.textContent = loginError;
 
-    fpSubmit.disabled = !(isSixDigits(newVal) && confirmVal === newVal && loginVal.length >= 8);
+    if (fpSubmit) fpSubmit.disabled = !(isSixDigits(newVal) && confirmVal === newVal && loginVal.length >= 8);
   }
 
   if (fpNew && fpConfirm && fpLogin) {
@@ -193,26 +205,40 @@
     fpLogin.addEventListener('input', validateFundPassword);
   }
 
+  async function callSetFundPassword(userId, loginPassword, fundPassword) {
+    try {
+      return await rpc('set_fund_password', { p_user: userId, p_login: loginPassword, p_new_fund: fundPassword });
+    } catch (e1) {
+      // fallback param name for older SQL versions
+      try {
+        return await rpc('set_fund_password', { p_user: userId, p_login: loginPassword, p_new: fundPassword });
+      } catch (e2) {
+        throw e1;
+      }
+    }
+  }
+
   if (fpSubmit) {
     fpSubmit.addEventListener('click', async function () {
       if (fpSubmit.disabled) return;
 
-      const userId = await getCurrentUserIdAsync();
+      var userId = await getCurrentUserIdAsync();
       if (!userId) return showToast('Please login first');
 
       fpSubmit.disabled = true;
       try {
-        const ok = await rpc('set_fund_password', { p_user: userId, p_login: fpLogin.value, p_new_fund: fpNew.value });
+        var ok = await callSetFundPassword(userId, fpLogin.value, fpNew.value);
+
         if (ok === true || ok === 't') {
           showToast('Fund password set');
           fpNew.value = ''; fpConfirm.value = ''; fpLogin.value = '';
           validateFundPassword();
           closeModal('fund-password');
         } else {
-          showToast('Update failed');
+          showToast('Wrong login password or fund already set');
         }
       } catch (e) {
-        showToast(e.message || 'Update failed');
+        showToast((e && e.message) ? e.message : 'Update failed');
       } finally {
         fpSubmit.disabled = false;
       }
@@ -220,14 +246,14 @@
   }
 
   // EMAIL
-  const emailModalTitle = document.getElementById('email-modal-title');
-  const emailStateNew = document.getElementById('email-state-new');
-  const emailStateChange = document.getElementById('email-state-change');
-  const emEmail = document.getElementById('em-email');
-  const emSend = document.getElementById('em-send');
-  const emCode = document.getElementById('em-code');
-  const emPassword = document.getElementById('em-password');
-  const emSubmit = document.getElementById('em-submit');
+  var emailModalTitle = document.getElementById('email-modal-title');
+  var emailStateNew = document.getElementById('email-state-new');
+  var emailStateChange = document.getElementById('email-state-change');
+  var emEmail = document.getElementById('em-email');
+  var emSend = document.getElementById('em-send');
+  var emCode = document.getElementById('em-code');
+  var emPassword = document.getElementById('em-password');
+  var emSubmit = document.getElementById('em-submit');
 
   function validateEmailFormat(v) {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v || '');
@@ -235,13 +261,13 @@
 
   function resetEmailErrors() {
     ['em-email-error','em-code-error','em-password-error'].forEach(function (id) {
-      const el = document.getElementById(id);
+      var el = document.getElementById(id);
       if (el) el.textContent = '';
     });
   }
 
   async function setupEmailState() {
-    const userId = await getCurrentUserIdAsync();
+    var userId = await getCurrentUserIdAsync();
     if (emailModalTitle) emailModalTitle.textContent = 'Set Email';
     if (emailStateNew) emailStateNew.style.display = 'block';
     if (emailStateChange) emailStateChange.style.display = 'none';
@@ -249,7 +275,7 @@
     if (!userId) { resetEmailErrors(); updateEmailSubmitState(); return; }
 
     try {
-      const u = await fetchUserRow(userId);
+      var u = await fetchUserRow(userId);
       if (u && u.email && emEmail) emEmail.value = u.email;
     } catch (_e) {}
     resetEmailErrors();
@@ -257,10 +283,10 @@
   }
 
   function updateEmailSubmitState() {
-    const emailVal = emEmail ? emEmail.value : '';
-    const codeVal = emCode ? emCode.value : '';
-    const passVal = emPassword ? emPassword.value : '';
-    const enabled = validateEmailFormat(emailVal) && String(codeVal || '').length === 6 && passVal.length >= 8;
+    var emailVal = emEmail ? emEmail.value : '';
+    var codeVal = emCode ? emCode.value : '';
+    var passVal = emPassword ? emPassword.value : '';
+    var enabled = validateEmailFormat(emailVal) && String(codeVal || '').length === 6 && passVal.length >= 8;
     if (emSubmit) emSubmit.disabled = !enabled;
   }
 
@@ -272,13 +298,13 @@
 
   if (emSend) {
     emSend.addEventListener('click', async function () {
-      const userId = await getCurrentUserIdAsync();
+      var userId = await getCurrentUserIdAsync();
       if (!userId) return showToast('Please login first');
 
-      const emailVal = (emEmail.value || '').trim();
+      var emailVal = (emEmail.value || '').trim();
       resetEmailErrors();
       if (!validateEmailFormat(emailVal)) {
-        const ee = document.getElementById('em-email-error');
+        var ee = document.getElementById('em-email-error');
         if (ee) ee.textContent = 'Enter a valid email.';
         return;
       }
@@ -288,8 +314,8 @@
         await rpc('request_email_verification', { p_user: userId, p_email: emailVal });
         showToast('Code created');
       } catch (e) {
-        const ee = document.getElementById('em-email-error');
-        if (ee) ee.textContent = String(e && e.message ? e.message : e);
+        var ee2 = document.getElementById('em-email-error');
+        if (ee2) ee2.textContent = String(e && e.message ? e.message : e);
       } finally {
         emSend.disabled = false;
       }
@@ -300,26 +326,26 @@
     emSubmit.addEventListener('click', async function () {
       if (emSubmit.disabled) return;
 
-      const userId = await getCurrentUserIdAsync();
+      var userId = await getCurrentUserIdAsync();
       if (!userId) return showToast('Please login first');
 
-      const codeVal = (emCode.value || '').trim();
+      var codeVal = (emCode.value || '').trim();
       resetEmailErrors();
 
       emSubmit.disabled = true;
       try {
-        const ok = await rpc('verify_email_code', { p_user: userId, p_code: codeVal });
+        var ok = await rpc('verify_email_code', { p_user: userId, p_code: codeVal });
         if (ok === true || ok === 't') {
           showToast('Email verified');
           emCode.value = '';
           closeModal('email');
         } else {
-          const ce = document.getElementById('em-code-error');
+          var ce = document.getElementById('em-code-error');
           if (ce) ce.textContent = 'Incorrect code.';
         }
       } catch (e) {
-        const ce = document.getElementById('em-code-error');
-        if (ce) ce.textContent = String(e && e.message ? e.message : e);
+        var ce2 = document.getElementById('em-code-error');
+        if (ce2) ce2.textContent = String(e && e.message ? e.message : e);
       } finally {
         emSubmit.disabled = false;
         updateEmailSubmitState();
