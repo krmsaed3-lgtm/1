@@ -1,388 +1,238 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>Task Center</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Task Center</title>
 
-  <style>
-    :root{
-      --bg0:#05080d;
-      --bg1:#0b0f14;
-      --stroke:rgba(255,255,255,.08);
-      --text:rgba(255,255,255,.92);
-      --muted:rgba(255,255,255,.65);
-      --muted2:rgba(255,255,255,.45);
-      --accentA:#29b6ff;
-      --accentB:#2de5c5;
-      --shadow:0 18px 45px rgba(0,0,0,.55);
-      --r:20px;
-      --r16:16px;
-    }
+<style>
+:root{
+  --bg0:#05080d;
+  --bg1:#0b0f14;
+  --stroke:rgba(255,255,255,.08);
+  --text:rgba(255,255,255,.92);
+  --muted:rgba(255,255,255,.65);
+  --accentA:#29b6ff;
+  --accentB:#2de5c5;
+  --shadow:0 18px 45px rgba(0,0,0,.55);
+  --r:20px;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+  background:
+    radial-gradient(900px 520px at 85% 10%, rgba(41,182,255,.18), transparent 65%),
+    radial-gradient(800px 520px at 20% 90%, rgba(45,229,197,.16), transparent 60%),
+    linear-gradient(180deg,var(--bg1),var(--bg0));
+  color:var(--text);
+  display:flex;
+  justify-content:center;
+  padding:14px;
+}
+.phone{
+  width:min(420px,100%);
+  border-radius:28px;
+  border:1px solid var(--stroke);
+  overflow:hidden;
+  box-shadow:var(--shadow);
+  background:rgba(0,0,0,.12);
+}
 
-    *{box-sizing:border-box}
-    html,body{height:100%}
-    body{
-      margin:0;
-      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
-      background:
-        radial-gradient(900px 520px at 85% 10%, rgba(41,182,255,.18), transparent 65%),
-        radial-gradient(800px 520px at 20% 90%, rgba(45,229,197,.16), transparent 60%),
-        linear-gradient(180deg,var(--bg1),var(--bg0));
-      color:var(--text);
-      display:flex;
-      justify-content:center;
-      padding:14px;
-      -webkit-font-smoothing:antialiased;
-      -moz-osx-font-smoothing:grayscale;
-    }
+/* Top bar */
+.top{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:14px;
+}
+.icon{
+  width:40px;height:40px;
+  border-radius:14px;
+  border:1px solid var(--stroke);
+  display:grid;place-items:center;
+  background:rgba(255,255,255,.05);
+  cursor:pointer;
+}
+.title{font-weight:800}
 
-    .phone{
-      width:min(420px,96vw);
-      border-radius:28px;
-      border:1px solid var(--stroke);
-      overflow:hidden;
-      box-shadow:0 18px 55px rgba(0,0,0,.55);
-      background:rgba(0,0,0,.10);
-    }
+/* Banner (image instead of text) */
+.banner{
+  height:150px;
+  margin:0 12px 14px;
+  border-radius:18px;
+  background:
+    linear-gradient(180deg, rgba(0,0,0,.25), rgba(0,0,0,.55)),
+    url("task_center.png") center / cover no-repeat;
+  border:1px solid var(--stroke);
+}
 
-    /* Top bar (keep IDs) */
-    .top{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      padding:14px;
-      background:rgba(0,0,0,.18);
-    }
-    .icon{
-      width:40px;height:40px;
-      border-radius:14px;
-      border:1px solid var(--stroke);
-      display:grid;
-      place-items:center;
-      cursor:pointer;
-      user-select:none;
-      background:rgba(255,255,255,.04);
-      -webkit-tap-highlight-color:transparent;
-    }
-    .icon:active{transform:scale(.98)}
-    .top b{
-      font-weight:800;
-      letter-spacing:.2px;
-    }
+/* Card */
+.card{
+  margin:0 16px;
+  border:1px solid var(--stroke);
+  border-radius:var(--r);
+  padding:14px;
+  background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+}
+.row{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.big{font-size:18px;font-weight:900}
+.muted{font-size:12px;color:var(--muted)}
 
-    /* Hero */
-    .hero{
-      padding:18px 16px 10px;
-    }
-    .hero h1{
-      margin:0;
-      font-size:22px;
-      font-weight:900;
-      letter-spacing:.1px;
-    }
-    .hero p{
-      margin:8px 0 14px;
-      font-size:13px;
-      color:var(--muted);
-    }
-    .hero .ghostBtn{
-      height:38px;
-      padding:0 16px;
-      border-radius:999px;
-      border:1px solid rgba(255,255,255,.35);
-      background:transparent;
-      color:var(--text);
-      font-weight:750;
-    }
+.claim{
+  margin-top:12px;
+  width:100%;
+  height:44px;
+  border:none;
+  border-radius:999px;
+  font-weight:900;
+  color:#041510;
+  background:linear-gradient(90deg,var(--accentA),var(--accentB));
+}
 
-    /* Panel wrapper */
-    .panel{
-      padding:0 16px 14px;
-      background:transparent;
-      border-top:none;
-    }
+/* Tabs */
+.tabs{
+  display:flex;
+  gap:6px;
+  margin:14px 16px 6px;
+  padding:4px;
+  background:rgba(255,255,255,.06);
+  border-radius:999px;
+}
+.tab{
+  flex:1;
+  text-align:center;
+  padding:8px 0;
+  font-size:13px;
+  color:var(--muted);
+  border-radius:999px;
+  cursor:pointer;
+}
+.tab.active{
+  background:rgba(255,255,255,.14);
+  color:var(--text);
+  font-weight:800;
+}
 
-    /* Main summary card (use existing .card) */
-    .card{
-      border:1px solid var(--stroke);
-      border-radius:var(--r);
-      padding:14px;
-      background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
-      box-shadow:var(--shadow);
-    }
+/* Sub tabs */
+.subtabs{
+  display:flex;
+  gap:18px;
+  padding:10px 16px 0;
+}
+.subtab{
+  color:var(--muted);
+  cursor:pointer;
+  position:relative;
+}
+.subtab.active{
+  color:var(--text);
+  font-weight:800;
+}
+.subtab.active::after{
+  content:'';
+  position:absolute;
+  left:0;right:0;bottom:-6px;
+  height:2px;
+  background:linear-gradient(90deg,var(--accentA),var(--accentB));
+}
 
-    .row{
-      display:flex;
-      justify-content:space-between;
-      gap:10px;
-      align-items:center;
-    }
+/* List */
+.list{
+  padding:14px 16px 24px;
+}
+.item{
+  border-bottom:1px solid rgba(255,255,255,.08);
+  padding:12px 0;
+}
+.item:last-child{border-bottom:none}
+.item .main{display:flex;justify-content:space-between}
+.item .sub{font-size:12px;color:var(--muted);margin-top:4px}
 
-    .big{
-      font-size:18px;
-      font-weight:900;
-      letter-spacing:.2px;
-    }
-    .muted{
-      color:var(--muted);
-      font-size:12px;
-    }
-
-    /* Status pill (existing #loginState) */
-    .status{
-      padding:6px 12px;
-      border-radius:999px;
-      border:1px solid rgba(255,255,255,.12);
-      font-size:12px;
-      color:var(--text);
-      background:rgba(0,0,0,.18);
-      white-space:nowrap;
-    }
-
-    /* Claim button (existing #claimBtn) */
-    .btn{
-      height:44px;
-      border-radius:999px;
-      border:0;
-      font-weight:900;
-      cursor:pointer;
-      width:auto;
-      padding:0 16px;
-      -webkit-tap-highlight-color:transparent;
-    }
-    .claim{
-      background:linear-gradient(90deg, rgba(41,182,255,.92), rgba(45,229,197,.92));
-      color:#041510;
-      box-shadow:0 18px 45px rgba(0,0,0,.35);
-    }
-    .claim:disabled{opacity:.50;cursor:not-allowed;filter:saturate(.7)}
-    .claim:active{transform:scale(.99)}
-
-    /* Make the top summary look like screenshot */
-    .summaryTop{
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      gap:12px;
-      margin-bottom:10px;
-    }
-    .summaryLeft .muted{
-      font-size:13px;
-      color:var(--muted);
-    }
-    .summaryLeft .big{
-      margin-top:4px;
-    }
-
-    /* Secondary stats row under the main line */
-    .statsGrid{
-      display:grid;
-      grid-template-columns:1fr 1fr;
-      gap:12px;
-      margin-top:12px;
-    }
-    .statBox{
-      border:1px solid rgba(255,255,255,.08);
-      background:rgba(0,0,0,.18);
-      border-radius:var(--r16);
-      padding:12px;
-      min-height:64px;
-    }
-    .statVal{
-      margin-top:6px;
-      font-weight:900;
-      color:var(--accentA);
-    }
-
-    /* Tabs (visual only) */
-    .tabsWrap{
-      padding:12px 16px 2px;
-    }
-    .tabs{
-      display:flex;
-      gap:8px;
-      padding:4px;
-      border-radius:999px;
-      background:rgba(255,255,255,.05);
-      border:1px solid rgba(255,255,255,.06);
-    }
-    .tab{
-      flex:1;
-      text-align:center;
-      padding:8px 0;
-      border-radius:999px;
-      font-size:13px;
-      color:var(--muted);
-      user-select:none;
-    }
-    .tab.active{
-      background:rgba(255,255,255,.12);
-      color:var(--text);
-      font-weight:850;
-    }
-    .subtabs{
-      display:flex;
-      gap:18px;
-      padding:12px 16px 0;
-      font-size:14px;
-    }
-    .subtab{
-      color:var(--muted);
-      position:relative;
-      padding-bottom:8px;
-      user-select:none;
-    }
-    .subtab.active{
-      color:var(--text);
-      font-weight:850;
-    }
-    .subtab.active::after{
-      content:'';
-      position:absolute;
-      left:0;right:0;bottom:0;
-      height:2px;
-      border-radius:2px;
-      background:linear-gradient(90deg,var(--accentA),var(--accentB));
-    }
-
-    /* List area (keep #statusBox and #list) */
-    .listwrap{
-      padding:10px 0 16px;
-    }
-    .empty{
-      padding:36px 16px;
-      text-align:center;
-      color:var(--muted);
-    }
-    #list{
-      padding:0 16px;
-    }
-    .item{
-      border-bottom:1px solid rgba(255,255,255,.08);
-      padding:12px 0;
-    }
-    .main{
-      display:flex;
-      justify-content:space-between;
-      gap:10px;
-    }
-    .sub{
-      display:flex;
-      justify-content:space-between;
-      font-size:12px;
-      color:var(--muted);
-      margin-top:4px;
-      gap:10px;
-    }
-
-    /* Toast (keep #toast) */
-    .toast{
-      position:fixed;
-      left:50%;
-      transform:translateX(-50%);
-      bottom:18px;
-      background:rgba(10,16,24,.94);
-      border:1px solid rgba(255,255,255,.10);
-      padding:10px 12px;
-      border-radius:16px;
-      color:var(--text);
-      font-size:13px;
-      display:none;
-      max-width:min(420px,92vw);
-      box-shadow:0 16px 50px rgba(0,0,0,.6);
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
-    }
-    .toast.show{display:block}
-  </style>
+/* Toast */
+.toast{
+  position:fixed;
+  left:50%;
+  bottom:18px;
+  transform:translateX(-50%);
+  background:rgba(10,16,24,.95);
+  border:1px solid rgba(255,255,255,.12);
+  padding:10px 14px;
+  border-radius:16px;
+  display:none;
+}
+.toast.show{display:block}
+</style>
 </head>
 
 <body>
-  <div class="phone">
+<div class="phone">
 
-    <!-- Keep IDs exactly -->
-    <div class="top">
-      <div class="icon" id="backBtn" title="Back">‹</div>
-      <b>Task Center</b>
-      <div class="icon" id="reloadBtn" title="Reload">≡</div>
-    </div>
-
-    <!-- New hero (design-only, no IDs) -->
-    <div class="hero">
-      <h1>Complete tasks and receive benefits</h1>
-      <p>Easily increase wealth</p>
-      <button class="ghostBtn" type="button">Reward details</button>
-    </div>
-
-    <!-- Panel: keep original functional elements inside -->
-    <div class="panel">
-      <div class="card">
-
-        <div class="summaryTop">
-          <div class="summaryLeft">
-            <div class="muted">Waiting to claim</div>
-            <!-- Keep original ID -->
-            <div class="big" id="availableAmount">0.00 USDT</div>
-            <!-- Keep original ID -->
-            <div class="muted" id="availableCount">0 available rewards</div>
-          </div>
-
-          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:10px;">
-            <!-- Keep original ID -->
-            <div class="status" id="loginState">Logged out</div>
-            <!-- Keep original ID -->
-            <button class="btn claim" id="claimBtn" disabled>One-click claim</button>
-          </div>
-        </div>
-
-        <div class="statsGrid">
-          <div class="statBox">
-            <div class="muted">Total income</div>
-            <div class="statVal" id="totalIncomeText">0 USDT</div>
-          </div>
-          <div class="statBox">
-            <div class="muted">Number of tasks completed</div>
-            <div class="statVal" id="completedCountText">0 Times</div>
-          </div>
-        </div>
-
-        <div class="muted" style="margin-top:10px">
-          Rewards are not credited automatically. You must press "Claim".
-        </div>
-      </div>
-    </div>
-
-    <!-- Visual tabs (do not affect logic) -->
-    <div class="tabsWrap">
-      <div class="tabs">
-        <div class="tab active">Limited time task</div>
-        <div class="tab">Daily tasks</div>
-        <div class="tab">Long-term task</div>
-      </div>
-    </div>
-
-    <div class="subtabs">
-      <div class="subtab active">In progress</div>
-      <div class="subtab">Completed</div>
-      <div class="subtab">Not completed</div>
-    </div>
-
-    <!-- List: keep original IDs -->
-    <div class="listwrap">
-      <div class="empty" id="statusBox">Loading...</div>
-      <div id="list"></div>
-    </div>
+  <div class="top">
+    <div class="icon" onclick="history.back()">‹</div>
+    <div class="title">Task Center</div>
+    <!-- menu button removed -->
   </div>
 
-  <!-- Keep original ID -->
-  <div class="toast" id="toast"></div>
+  <!-- Image banner -->
+  <div class="banner"></div>
 
-  <!-- Keep the same scripts as your original file -->
-  <script src="sb-config.js"></script>
-  <script src="auth.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="task-center.js"></script>
+  <div class="card">
+    <div class="row">
+      <div>
+        <div class="muted">Waiting to claim</div>
+        <div class="big" id="amount">12.50 USDT</div>
+      </div>
+      <div class="muted">Logged in</div>
+    </div>
+    <button class="claim" onclick="claim()">One-click claim</button>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" onclick="setTab(this)">Limited time</div>
+    <div class="tab" onclick="setTab(this)">Daily</div>
+    <div class="tab" onclick="setTab(this)">Long-term</div>
+  </div>
+
+  <div class="subtabs">
+    <div class="subtab active" onclick="setSub(this)">In progress</div>
+    <div class="subtab" onclick="setSub(this)">Completed</div>
+    <div class="subtab" onclick="setSub(this)">Not completed</div>
+  </div>
+
+  <div class="list" id="list">
+    <div class="item">
+      <div class="main"><b>Watch video</b><b>+1 USDT</b></div>
+      <div class="sub">Complete the task</div>
+    </div>
+    <div class="item">
+      <div class="main"><b>Invite friend</b><b>+5 USDT</b></div>
+      <div class="sub">Invite one user</div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+function toast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2000);
+}
+function setTab(el){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+}
+function setSub(el){
+  document.querySelectorAll('.subtab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+}
+function claim(){
+  document.getElementById('amount').textContent='0.00 USDT';
+  toast('Reward claimed');
+}
+</script>
 </body>
 </html>
