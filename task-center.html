@@ -4,83 +4,275 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Task Center</title>
+
   <style>
     :root{
-      --bg:#05080d;--panel:#0e1524;--stroke:rgba(255,255,255,.08);
-      --text:#e9eef6;--muted:#9aa7bd;--btn:#20d0b6;--btn2:#2a3447;
-      --r:18px
+      --bg0:#05080d;
+      --bg1:#0b0f14;
+      --panel:#0f1b28;
+      --panel2:#0d1722;
+      --stroke:rgba(255,255,255,.08);
+      --text:rgba(255,255,255,.92);
+      --muted:rgba(255,255,255,.65);
+      --accentA:#29b6ff;
+      --accentB:#2de5c5;
+      --shadow:0 18px 45px rgba(0,0,0,.55);
+      --r:20px;
+      --r16:16px;
     }
+
     *{box-sizing:border-box}
+    html,body{height:100%}
+
     body{
       margin:0;
-      background: radial-gradient(900px 520px at 85% 12%, rgba(43,126,255,.16), transparent 65%),
-                  radial-gradient(800px 520px at 20% 86%, rgba(32,208,182,.12), transparent 60%),
-                  linear-gradient(180deg,#04060a,#05080d 55%,#04060a);
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans";
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      background:
+        radial-gradient(900px 520px at 85% 10%, rgba(41,182,255,.18), transparent 65%),
+        radial-gradient(800px 520px at 20% 90%, rgba(45,229,197,.16), transparent 60%),
+        linear-gradient(180deg,var(--bg1),var(--bg0));
       color:var(--text);
       display:flex;
       justify-content:center;
-      padding:16px;
+      padding:14px;
     }
-    .phone{width:min(420px,96vw);border-radius:28px;border:1px solid var(--stroke);overflow:hidden;box-shadow:0 18px 55px rgba(0,0,0,.55)}
-    .top{display:flex;align-items:center;justify-content:space-between;padding:14px;background:rgba(0,0,0,.18)}
-    .icon{width:40px;height:40px;border-radius:14px;border:1px solid var(--stroke);display:grid;place-items:center;cursor:pointer;user-select:none;background:rgba(0,0,0,.18)}
-    .panel{background:var(--panel);border-top:1px solid var(--stroke);padding:14px}
-    .card{border:1px solid var(--stroke);border-radius:var(--r);padding:12px;background:rgba(0,0,0,.18)}
-    .row{display:flex;justify-content:space-between;gap:10px;align-items:center}
-    .big{font-size:18px;font-weight:800}
-    .muted{color:var(--muted);font-size:12px}
-    .btn{height:44px;border-radius:16px;border:0;font-weight:800;cursor:pointer;width:100%}
-    .claim{background:var(--btn);color:#021815}
-    .claim:disabled{opacity:.55;cursor:not-allowed}
-    .listwrap{padding:10px}
-    .item{border-bottom:1px solid var(--stroke);padding:12px}
-    .main{display:flex;justify-content:space-between;gap:10px}
-    .sub{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-top:4px;gap:10px}
-    .status{padding:2px 10px;border-radius:999px;border:1px solid var(--stroke);font-size:12px;color:var(--text);background:rgba(0,0,0,.18)}
-    .empty{padding:18px;text-align:center;color:var(--muted)}
-    .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:18px;background:rgba(0,0,0,.6);
-      border:1px solid var(--stroke);padding:10px 12px;border-radius:14px;color:var(--text);font-size:12px;display:none;max-width:min(420px,92vw)}
+
+    .phone{
+      width:min(420px,100%);
+    }
+
+    /* Top bar */
+    .top{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding:12px 4px 16px;
+    }
+    .icon{
+      width:40px;
+      height:40px;
+      border-radius:14px;
+      border:1px solid var(--stroke);
+      display:grid;
+      place-items:center;
+      background:rgba(255,255,255,.04);
+      cursor:pointer;
+      user-select:none;
+    }
+    .title{
+      font-weight:800;
+      letter-spacing:.3px;
+    }
+
+    /* Hero */
+    .hero{
+      padding:6px 6px 16px;
+    }
+    .hero h1{
+      margin:0;
+      font-size:20px;
+      font-weight:900;
+    }
+    .hero p{
+      margin:6px 0 14px;
+      font-size:13px;
+      color:var(--muted);
+    }
+    .outlineBtn{
+      height:38px;
+      padding:0 14px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.35);
+      background:transparent;
+      color:var(--text);
+      font-weight:700;
+    }
+
+    /* Summary card */
+    .summary{
+      background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+      border:1px solid var(--stroke);
+      border-radius:var(--r);
+      padding:14px;
+      box-shadow:var(--shadow);
+      margin-bottom:14px;
+    }
+    .summaryTop{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      margin-bottom:12px;
+    }
+    .summaryTop .muted{font-size:13px}
+    .oneClick{
+      border:none;
+      height:34px;
+      padding:0 14px;
+      border-radius:999px;
+      font-weight:800;
+      color:#041510;
+      background:linear-gradient(90deg,var(--accentA),var(--accentB));
+    }
+
+    .summaryGrid{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:12px;
+      margin-top:8px;
+    }
+    .stat{
+      background:rgba(0,0,0,.22);
+      border:1px solid var(--stroke);
+      border-radius:16px;
+      padding:12px;
+    }
+    .stat .val{
+      font-weight:900;
+      margin-top:4px;
+    }
+    .stat .accent{color:var(--accentA)}
+
+    /* Tabs */
+    .tabs{
+      display:flex;
+      background:rgba(255,255,255,.05);
+      border-radius:999px;
+      padding:4px;
+      margin:14px 0;
+    }
+    .tab{
+      flex:1;
+      text-align:center;
+      padding:8px 0;
+      font-size:13px;
+      color:var(--muted);
+      border-radius:999px;
+    }
+    .tab.active{
+      background:rgba(255,255,255,.12);
+      color:var(--text);
+      font-weight:800;
+    }
+
+    .subtabs{
+      display:flex;
+      gap:18px;
+      font-size:14px;
+      margin-bottom:10px;
+    }
+    .subtab{
+      color:var(--muted);
+      position:relative;
+      padding-bottom:6px;
+    }
+    .subtab.active{
+      color:var(--text);
+      font-weight:800;
+    }
+    .subtab.active::after{
+      content:'';
+      position:absolute;
+      left:0;right:0;bottom:0;
+      height:2px;
+      background:linear-gradient(90deg,var(--accentA),var(--accentB));
+      border-radius:2px;
+    }
+
+    /* List */
+    .listwrap{
+      margin-top:12px;
+    }
+    .empty{
+      text-align:center;
+      padding:40px 10px;
+      color:var(--muted);
+      font-size:13px;
+    }
+
+    /* Toast */
+    .toast{
+      position:fixed;
+      left:50%;
+      transform:translateX(-50%);
+      bottom:18px;
+      background:rgba(10,16,24,.94);
+      border:1px solid rgba(255,255,255,.10);
+      border-radius:16px;
+      padding:10px 12px;
+      font-size:13px;
+      color:var(--text);
+      display:none;
+      box-shadow:0 16px 50px rgba(0,0,0,.6);
+    }
     .toast.show{display:block}
   </style>
 </head>
+
 <body>
-  <div class="phone">
-    <div class="top">
-      <div class="icon" id="backBtn" title="Back">‹</div>
-      <b>Task Center</b>
-      <div class="icon" id="reloadBtn" title="Reload">⟳</div>
-    </div>
+<div class="phone">
 
-    <div class="panel">
-      <div class="card">
-        <div class="row">
-          <div>
-            <div class="big" id="availableAmount">0.00 USDT</div>
-            <div class="muted" id="availableCount">0 available rewards</div>
-          </div>
-          <div class="status" id="loginState">Logged out</div>
-        </div>
-        <div style="margin-top:12px">
-          <button class="btn claim" id="claimBtn" disabled>Claim</button>
-        </div>
-        <div class="muted" style="margin-top:10px">
-          Rewards are not credited automatically. You must press "Claim".
-        </div>
+  <!-- Top bar -->
+  <div class="top">
+    <div class="icon" id="backBtn">‹</div>
+    <div class="title">Task Center</div>
+    <div class="icon" id="reloadBtn">≡</div>
+  </div>
+
+  <!-- Hero -->
+  <div class="hero">
+    <h1>Complete tasks and receive benefits</h1>
+    <p>Easily increase wealth</p>
+    <button class="outlineBtn">Reward details</button>
+  </div>
+
+  <!-- Summary -->
+  <div class="summary">
+    <div class="summaryTop">
+      <div class="muted">
+        Waiting to claim<br>
+        <b id="availableAmount">0 USDT</b>
       </div>
+      <button class="oneClick" id="claimBtn" disabled>One-click claim</button>
     </div>
 
-    <div class="listwrap">
-      <div class="empty" id="statusBox">Loading...</div>
-      <div id="list"></div>
+    <div class="summaryGrid">
+      <div class="stat">
+        <div class="muted">Total income</div>
+        <div class="val accent" id="totalIncome">0 USDT</div>
+      </div>
+      <div class="stat">
+        <div class="muted">Number of tasks completed</div>
+        <div class="val accent" id="completedCount">0 Times</div>
+      </div>
     </div>
   </div>
 
-  <div class="toast" id="toast"></div>
+  <!-- Tabs -->
+  <div class="tabs">
+    <div class="tab active">Limited time task</div>
+    <div class="tab">Daily tasks</div>
+    <div class="tab">Long-term task</div>
+  </div>
 
-  <script src="sb-config.js"></script>
-  <script src="auth.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="task-center.js"></script>
+  <div class="subtabs">
+    <div class="subtab active">In progress</div>
+    <div class="subtab">Completed</div>
+    <div class="subtab">Not completed</div>
+  </div>
+
+  <!-- List -->
+  <div class="listwrap">
+    <div class="empty" id="statusBox">No More Data Available</div>
+    <div id="list"></div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- Existing logic (unchanged) -->
+<script src="sb-config.js"></script>
+<script src="auth.js"></script>
+<script src="task-center.js"></script>
 </body>
 </html>
