@@ -322,6 +322,49 @@
       margin-right: 8px;
     }
 
+.network-row.single {
+  justify-content: center;
+}
+
+.network-row.single .network-btn {
+  max-width: 240px;
+}
+
+.copy-icon {
+  width: 16px;
+  height: 16px;
+  fill: rgba(255, 255, 255, 0.9);
+  display: block;
+}
+
+.copy-btn {
+  background: transparent;
+  cursor: pointer;
+}
+
+.copy-btn:active {
+  transform: scale(0.98);
+}
+
+.copy-toast {
+  position: fixed;
+  left: 50%;
+  bottom: 20px;
+  transform: translateX(-50%);
+  background: rgba(16, 27, 32, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.92);
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 12px;
+  display: none;
+  z-index: 999;
+}
+
+.copy-toast.show {
+  display: block;
+}
+
 </style>
 </head>
 <body>
@@ -333,11 +376,7 @@
 </a>
 </div>
 <div class="header-title">Deposit</div>
-<div class="header-right">
-  <a href="bills.html" class="bill-link">
-    <img src="images/bills-icon.png" alt="Bills" class="bill-icon"/>
-  </a>
-</div>
+<div class="header-right"></div>
 </div>
 <div class="main">
 <div class="section-label">Deposit Currency</div>
@@ -348,10 +387,8 @@
   </div>
 </div>
 <div class="section-label">Deposit Network</div>
-<div class="network-row">
+<div class="network-row single">
 <div class="network-btn active">BEP20</div>
-<div class="network-btn">TRC20</div>
-<div class="network-btn">ERC20</div>
 </div>
 <div class="qr-wrapper">
 <div class="qr-box">
@@ -363,11 +400,15 @@
 </div>
 <div class="section-label">Deposit Address</div>
 <div class="address-box">
-<div class="address-text">Loading...</div>
-<button class="copy-btn" type="button">
-<img alt="Copy" src="images/back-icon-D2ne3Npi.png"/>
+<div class="address-text" id="depositAddress">Loading...</div>
+<button class="copy-btn" id="copyAddressBtn" type="button" aria-label="Copy deposit address">
+<svg class="copy-icon" viewBox="0 0 24 24" aria-hidden="true">
+  <path d="M16 1H6a2 2 0 0 0-2 2v12h2V3h10V1z"></path>
+  <path d="M18 5H10a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2zm0 16H10V7h8v14z"></path>
+</svg>
 </button>
 </div>
+<div class="copy-toast" id="copyToast" role="status" aria-live="polite">Copied</div>
 <div class="reminder-title">Friendly Reminder</div>
 <ol class="reminder-list">
 <li>Please do not recharge any USDT currency that is not a BEP20 network to the above address, otherwise the assets will not be retrieved.</li>
@@ -391,5 +432,61 @@
   window.DEPOSIT_EDGE_FUNCTION = 'get_new_address';
 </script>
 <script src="deposit-page.fixed.js"></script>
+<script>
+  (function () {
+    function showToast(message) {
+      var toast = document.getElementById('copyToast');
+      if (!toast) return;
+      toast.textContent = message || 'Copied';
+      toast.classList.add('show');
+      clearTimeout(window.__copyToastTimer);
+      window.__copyToastTimer = setTimeout(function () {
+        toast.classList.remove('show');
+      }, 1400);
+    }
+
+    async function copyText(text) {
+      if (!text) return false;
+      try {
+        if (navigator.clipboard && window.isSecureContext) {
+          await navigator.clipboard.writeText(text);
+          return true;
+        }
+      } catch (e) {}
+      // Fallback
+      try {
+        var ta = document.createElement('textarea');
+        ta.value = text;
+        ta.setAttribute('readonly', '');
+        ta.style.position = 'fixed';
+        ta.style.top = '-1000px';
+        document.body.appendChild(ta);
+        ta.select();
+        var ok = document.execCommand('copy');
+        document.body.removeChild(ta);
+        return ok;
+      } catch (e) {
+        return false;
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+      var btn = document.getElementById('copyAddressBtn');
+      var addrEl = document.getElementById('depositAddress');
+
+      if (!btn || !addrEl) return;
+
+      btn.addEventListener('click', async function () {
+        var address = (addrEl.textContent || '').trim();
+        if (!address || address.toLowerCase() === 'loading...') {
+          showToast('Address not ready');
+          return;
+        }
+        var ok = await copyText(address);
+        showToast(ok ? 'Copied' : 'Copy failed');
+      });
+    });
+  })();
+</script>
 </body>
 </html>
