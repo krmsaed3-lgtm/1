@@ -1,10 +1,19 @@
 (function () {
   'use strict';
 
-  function getCurrentUserId() {
+  async function getCurrentUserIdAsync() {
     try {
-      return String(localStorage.getItem('sb_user_id_v1') || localStorage.getItem('currentUserId') || '');
-    } catch (e) { return ''; }
+      if (window.ExaAuth && typeof window.ExaAuth.ensureSupabaseUserId === 'function') {
+        var id = await window.ExaAuth.ensureSupabaseUserId();
+        if (id) return String(id);
+      }
+    } catch (e) {}
+
+    try {
+      return String(localStorage.getItem('currentUserId') || localStorage.getItem('sb_user_id_v1') || '');
+    } catch (e) {
+      return '';
+    }
   }
 
   const SB = window.SB_CONFIG;
@@ -79,8 +88,8 @@
     });
   });
 
-  // LOGIN PASSWORD (first time set + later change)
-  // RPC: set_or_change_login_password(p_user, p_current, p_new) returns boolean
+  // LOGIN PASSWORD
+  // RPC: set_or_change_login_password(p_current text, p_new text, p_user uuid) returns boolean
   const lpNew = document.getElementById('lp-new');
   const lpConfirm = document.getElementById('lp-confirm');
   const lpCurrent = document.getElementById('lp-current');
@@ -98,8 +107,10 @@
 
     if (!lpConfirm.disabled && confirmVal && confirmVal !== newVal) confirmError = 'Passwords do not match.';
 
-    document.getElementById('lp-new-error').textContent = newError;
-    document.getElementById('lp-confirm-error').textContent = confirmError;
+    const newErrEl = document.getElementById('lp-new-error');
+    const confErrEl = document.getElementById('lp-confirm-error');
+    if (newErrEl) newErrEl.textContent = newError;
+    if (confErrEl) confErrEl.textContent = confirmError;
 
     lpSubmit.disabled = !(newVal.length >= 8 && confirmVal === newVal);
   }
@@ -113,12 +124,18 @@
   if (lpSubmit) {
     lpSubmit.addEventListener('click', async function () {
       if (lpSubmit.disabled) return;
-      const userId = getCurrentUserId();
+
+      const userId = await getCurrentUserIdAsync();
       if (!userId) return showToast('Please login first');
 
       lpSubmit.disabled = true;
       try {
-        const ok = await rpc('set_or_change_login_password', { p_user: userId, p_current: (lpCurrent ? lpCurrent.value : ''), p_new: lpNew.value });
+        const ok = await rpc('set_or_change_login_password', {
+          p_current: (lpCurrent ? lpCurrent.value : ''),
+          p_new: lpNew.value,
+          p_user: userId
+        });
+
         if (ok === true || ok === 't') {
           showToast('Login password updated');
           lpNew.value = ''; lpConfirm.value = '';
@@ -136,8 +153,8 @@
     });
   }
 
-  // FUND PASSWORD (set only) requires correct login password
-  // RPC: set_fund_password(p_user, p_login, p_new_fund) returns boolean
+  // FUND PASSWORD
+  // RPC: set_fund_password(p_user uuid, p_login text, p_new_fund text) returns boolean
   const fpNew = document.getElementById('fp-new');
   const fpConfirm = document.getElementById('fp-confirm');
   const fpLogin = document.getElementById('fp-login');
@@ -160,9 +177,12 @@
     if (!fpConfirm.disabled && confirmVal && confirmVal !== newVal) confirmError = 'Passwords do not match.';
     if (loginVal && loginVal.length < 8) loginError = 'Login password must be at least 8 characters.';
 
-    document.getElementById('fp-new-error').textContent = newError;
-    document.getElementById('fp-confirm-error').textContent = confirmError;
-    document.getElementById('fp-login-error').textContent = loginError;
+    const ne = document.getElementById('fp-new-error');
+    const ce = document.getElementById('fp-confirm-error');
+    const le = document.getElementById('fp-login-error');
+    if (ne) ne.textContent = newError;
+    if (ce) ce.textContent = confirmError;
+    if (le) le.textContent = loginError;
 
     fpSubmit.disabled = !(isSixDigits(newVal) && confirmVal === newVal && loginVal.length >= 8);
   }
@@ -176,7 +196,8 @@
   if (fpSubmit) {
     fpSubmit.addEventListener('click', async function () {
       if (fpSubmit.disabled) return;
-      const userId = getCurrentUserId();
+
+      const userId = await getCurrentUserIdAsync();
       if (!userId) return showToast('Please login first');
 
       fpSubmit.disabled = true;
@@ -220,7 +241,7 @@
   }
 
   async function setupEmailState() {
-    const userId = getCurrentUserId();
+    const userId = await getCurrentUserIdAsync();
     if (emailModalTitle) emailModalTitle.textContent = 'Set Email';
     if (emailStateNew) emailStateNew.style.display = 'block';
     if (emailStateChange) emailStateChange.style.display = 'none';
@@ -251,13 +272,14 @@
 
   if (emSend) {
     emSend.addEventListener('click', async function () {
-      const userId = getCurrentUserId();
+      const userId = await getCurrentUserIdAsync();
       if (!userId) return showToast('Please login first');
 
       const emailVal = (emEmail.value || '').trim();
       resetEmailErrors();
       if (!validateEmailFormat(emailVal)) {
-        document.getElementById('em-email-error').textContent = 'Enter a valid email.';
+        const ee = document.getElementById('em-email-error');
+        if (ee) ee.textContent = 'Enter a valid email.';
         return;
       }
 
@@ -266,7 +288,8 @@
         await rpc('request_email_verification', { p_user: userId, p_email: emailVal });
         showToast('Code created');
       } catch (e) {
-        document.getElementById('em-email-error').textContent = String(e && e.message ? e.message : e);
+        const ee = document.getElementById('em-email-error');
+        if (ee) ee.textContent = String(e && e.message ? e.message : e);
       } finally {
         emSend.disabled = false;
       }
@@ -276,7 +299,8 @@
   if (emSubmit) {
     emSubmit.addEventListener('click', async function () {
       if (emSubmit.disabled) return;
-      const userId = getCurrentUserId();
+
+      const userId = await getCurrentUserIdAsync();
       if (!userId) return showToast('Please login first');
 
       const codeVal = (emCode.value || '').trim();
@@ -290,10 +314,12 @@
           emCode.value = '';
           closeModal('email');
         } else {
-          document.getElementById('em-code-error').textContent = 'Incorrect code.';
+          const ce = document.getElementById('em-code-error');
+          if (ce) ce.textContent = 'Incorrect code.';
         }
       } catch (e) {
-        document.getElementById('em-code-error').textContent = String(e && e.message ? e.message : e);
+        const ce = document.getElementById('em-code-error');
+        if (ce) ce.textContent = String(e && e.message ? e.message : e);
       } finally {
         emSubmit.disabled = false;
         updateEmailSubmitState();
