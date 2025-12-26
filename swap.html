@@ -80,7 +80,7 @@
       </div>
 
       <div class="hint">Fee: 1% (1 per 100). Real mode: balances are updated instantly.</div>
-      <div class="dbg" id="dbg">Booting...</div>
+      <div class="dbg" id="dbg">Booting...</div><pre id="dbgjson" class="dbg" style="white-space:pre-wrap;word-break:break-word;margin:8px 0 0;max-height:120px;overflow:auto;"></pre>
     </div>
 
     <div class="switcher">
@@ -161,6 +161,7 @@
 
     var el = {
       dbg: $('dbg'),
+      dbgjson: $('dbgjson'),
       backBtn: $('backBtn'),
       refreshBtn: $('refreshBtn'),
       switchBtn: $('switchBtn'),
@@ -297,17 +298,18 @@
       try{
         var r1 = await window.DemoWallet.rpc('get_swap_balances', { p_user: uid });
         if(Array.isArray(r1)) r1 = r1[0] || null;
-        if(r1){ setBalancesFromRow(r1); return; }
+        if(r1){ setBalancesFromRow(r1); try{ el.dbgjson.textContent = 'get_swap_balances\n' + JSON.stringify(r1, null, 2); }catch(_){ } return; }
       }catch(e){ /* fallback */ }
 
       // Fallback: get_assets_summary (USDT only)
       try{
         var s = await window.DemoWallet.getAssetsSummary(uid);
         if(Array.isArray(s)) s = s[0] || null;
-        if(s) setBalancesFromRow(s);
+        if(s){ setBalancesFromRow(s); try{ el.dbgjson.textContent = 'get_assets_summary\n' + JSON.stringify(s, null, 2); }catch(_){ } }
       }catch(e){
         console.error(e);
         toast('Balance error: ' + (e.message || 'unknown'));
+        try{ el.dbgjson.textContent = 'Balance error\n' + JSON.stringify({message:e.message,status:e.status,payload:e.payload}, null, 2); }catch(_){ }
       }
     }
 
