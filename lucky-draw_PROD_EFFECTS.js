@@ -240,6 +240,7 @@
         var title = (res && res.prize && res.prize.title) ? res.prize.title : 'Prize';
         var amt = (res && res.prize && res.prize.amount != null) ? (' +' + res.prize.amount) : '';
         __ldShowWin('You won ' + title + amt);
+        localStorage.setItem('last_prize', title + (amt || ''));
       } catch (e) {}
 await refresh();
     } catch (e) {

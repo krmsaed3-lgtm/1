@@ -302,11 +302,41 @@
   </div>
 </div>
 
-<div id="myPrizeModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9999;align-items:center;justify-content:center;">
-  <div style="max-width:360px;background:#0b1220;border-radius:14px;padding:16px;color:#9ca1b2;text-align:center;">
-    <h3 style="color:#fff;margin-bottom:10px;">My prizes</h3>
-    <p>You have no prizes yet.</p>
-    <button onclick="this.parentNode.parentNode.style.display='none'" style="margin-top:12px;width:100%;padding:10px;border-radius:10px;">Close</button>
+
+<div id="myPrizeModal" style="
+display:none;
+position:fixed;
+inset:0;
+background:rgba(0,0,0,.65);
+z-index:9999;
+align-items:center;
+justify-content:center;
+">
+  <div style="
+  width:min(360px,90%);
+  background:linear-gradient(180deg,#0b1628,#060b14);
+  border-radius:18px;
+  padding:18px 16px;
+  box-shadow:0 20px 40px rgba(0,0,0,.6);
+  text-align:center;
+  ">
+    <div style="font-size:28px;margin-bottom:6px;">🎁</div>
+    <h3 style="color:#fff;margin-bottom:8px;">My prizes</h3>
+    <p id="myPrizeText" style="color:#9ca1b2;font-size:14px;">
+      You have no prizes yet.
+    </p>
+    <button onclick="this.closest('#myPrizeModal').style.display='none'" style="
+      margin-top:14px;
+      width:100%;
+      padding:12px;
+      border-radius:14px;
+      border:0;
+      font-weight:700;
+      background:linear-gradient(90deg,#18c1ff,#22e1a5);
+      color:#031018;
+      ">
+      OK
+    </button>
   </div>
 </div>
 
@@ -315,9 +345,13 @@ document.getElementById('btnRules')?.addEventListener('click', ()=>{
   document.getElementById('rulesModal').style.display='flex';
 });
 document.getElementById('btnMyPrize')?.addEventListener('click', ()=>{
+  const prize = localStorage.getItem('last_prize');
+  document.getElementById('myPrizeText').textContent =
+    prize ? `You won: ${prize}` : 'You have no prizes yet.';
   document.getElementById('myPrizeModal').style.display='flex';
 });
 </script>
+
 
 </body>
 </html>
