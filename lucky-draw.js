@@ -1,297 +1,179 @@
-;(function () {
-  "use strict";
+/* Lucky Draw FINAL (works with the official page)
+   - REST RPC only (no Supabase JS client)
+   - Reads user id from auth.js (ExaAuth.ensureSupabaseUserId)
+   - Shows spins by reading lucky_draw_user_spins
+   - UI-only animation; DB decides result via RPC lucky_draw_spin(p_user_id)
+*/
 
-  if (!window.SB_CONFIG) {
-    console.warn("lucky-draw: SB_CONFIG missing (sb-config.js not loaded)");
-    return;
-  }
-  const SB = window.SB_CONFIG;
+(function () {
+  'use strict';
 
-  function sbHeaders() {
-    return SB.headers ? SB.headers() : {};
-  }
+  var SB = window.SB_CONFIG;
+  function $(id) { return document.getElementById(id); }
 
-  function getUserId() {
-    const keys = ["sb_user_id_v1", "currentUserId"];
-    for (const k of keys) {
-      const v = localStorage.getItem(k);
-      if (v && /^[0-9a-fA-F-]{36}$/.test(v)) return v;
-    }
-    return null;
-  }
+  var el = {
+    back: $('btnBack'),
+    start: $('btnStart'),
+    remaining: $('remainingTimes'),
+    userShort: $('userShort') || $('uShort'),
+    spinsText: $('spinsCount') || $('spins'),
+    cards: Array.prototype.slice.call(document.querySelectorAll('.grid .prize-card'))
+  };
 
-  function setStartEnabled(btn, enabled) {
-    if (!btn) return;
-    btn.disabled = !enabled;
-
-    // Keep your original design, just make enabled state obvious (minimal inline change)
-    btn.style.opacity = enabled ? "1" : "0.45";
-    btn.style.pointerEvents = enabled ? "auto" : "none";
-    btn.style.cursor = enabled ? "pointer" : "not-allowed";
-    btn.style.color = enabled ? "#1de0a2" : "#555a68";
+  if (!el.cards.length) {
+    el.cards = Array.prototype.slice.call(document.querySelectorAll('#grid .card'));
   }
 
-  function utcDayRangeISO() {
-    const now = new Date();
-    const start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, 0, 0));
-    const end = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1, 0, 0, 0));
-    return { startISO: start.toISOString(), endISO: end.toISOString() };
+  function showStartEnabled(enabled) {
+    if (!el.start) return;
+    if (el.start.tagName === 'BUTTON') el.start.disabled = !enabled;
+    el.start.classList.toggle('enabled', !!enabled);
+    el.start.classList.toggle('disabled', !enabled);
+    el.start.setAttribute('aria-disabled', enabled ? 'false' : 'true');
+    if (el.start.style) el.start.style.opacity = enabled ? '1' : '.55';
   }
 
-  async function fetchJSON(url, options) {
-    const res = await fetch(url, options);
-    const text = await res.text().catch(() => "");
-    let json = null;
-    try { json = text ? JSON.parse(text) : null; } catch {}
-    return { res, text, json };
-  }
-
-  async function getAvailableSpinsToday(inviterId) {
-    const r = utcDayRangeISO();
-    const url =
-      SB.url +
-      "/rest/v1/lucky_draw_entries?select=id&inviter_id=eq." +
-      encodeURIComponent(inviterId) +
-      "&status=eq.available" +
-      "&created_at=gte." + encodeURIComponent(r.startISO) +
-      "&created_at=lt." + encodeURIComponent(r.endISO);
-
-    const { res, text, json } = await fetchJSON(url, { headers: sbHeaders() });
-    if (!res.ok) throw new Error("entries_fetch_failed:" + res.status + ":" + text);
-    return Array.isArray(json) ? json.length : 0;
-  }
-
-  async function spinRPC(inviterId) {
-    // Try multiple RPC names/arg keys to match DB exactly without breaking anything.
-    const attempts = [
-      { fn: "do_lucky_draw_spin_v3", body: { p_user: inviterId } },
-      { fn: "do_lucky_draw_spin_v3", body: { user_id: inviterId } },
-      { fn: "do_lucky_draw_spin_v3", body: { p_inviter: inviterId } },
-      { fn: "do_lucky_draw_spin", body: { p_user: inviterId } },
-      { fn: "do_lucky_draw_spin", body: { user_id: inviterId } },
-    ];
-
-    let lastErr = null;
-
-    for (const a of attempts) {
-      const url = SB.url + "/rest/v1/rpc/" + a.fn;
-      const { res, text, json } = await fetchJSON(url, {
-        method: "POST",
-        headers: { ...sbHeaders(), "Content-Type": "application/json" },
-        body: JSON.stringify(a.body),
-      });
-
-      if (res.ok) {
-        const data = Array.isArray(json) ? json[0] : json;
-        return data;
-      }
-
-      lastErr = { fn: a.fn, status: res.status, text: text || "" };
-
-      // If function not found, keep trying other names/args
-      if (res.status === 404 || /Could not find the function|function .* does not exist/i.test(text)) continue;
-
-      // Other errors (permissions, logic errors) should stop here
-      break;
-    }
-
-    const msg = lastErr ? (lastErr.fn + " -> " + lastErr.status + ": " + lastErr.text) : "unknown";
-    throw new Error("rpc_failed:" + msg);
-  }
-
-  function ensureStyles() {
-    if (document.getElementById("ld-v3-style")) return;
-    const st = document.createElement("style");
-    st.id = "ld-v3-style";
-    st.textContent = `
-      .prize-card.is-active{
-        outline:2px solid rgba(29,224,162,0.95);
-        box-shadow:0 0 0 3px rgba(29,224,162,0.25), 0 10px 20px rgba(0,0,0,0.45);
-        transform: translateY(-2px);
-      }
-      .ld-modal-overlay{
-        position:fixed; inset:0; background:rgba(0,0,0,0.65);
-        display:flex; align-items:center; justify-content:center;
-        z-index:99998; padding:18px;
-      }
-      .ld-modal{
-        width:92%; max-width:380px; border-radius:16px;
-        background:#0b1220; border:1px solid rgba(255,255,255,0.12);
-        padding:16px; color:#fff;
-        box-shadow:0 14px 34px rgba(0,0,0,0.55);
-        font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
-      }
-      .ld-modal h3{font-size:15px; margin:0 0 8px 0; font-weight:600;}
-      .ld-modal p{font-size:13px; margin:0; color:#cbd0dd; line-height:1.45; white-space:pre-wrap;}
-      .ld-modal .ld-actions{margin-top:14px; display:flex; justify-content:flex-end;}
-      .ld-modal button{
-        border-radius:999px; padding:8px 14px;
-        border:1px solid rgba(255,255,255,0.18);
-        background:rgba(255,255,255,0.10);
-        color:#fff; cursor:pointer; font-size:13px;
-      }
-    `;
-    document.head.appendChild(st);
-  }
-
-  function showModal(title, message) {
-    ensureStyles();
-    const overlay = document.createElement("div");
-    overlay.className = "ld-modal-overlay";
-    const modal = document.createElement("div");
-    modal.className = "ld-modal";
-    const h = document.createElement("h3");
-    h.textContent = title;
-    const p = document.createElement("p");
-    p.textContent = message;
-    const actions = document.createElement("div");
-    actions.className = "ld-actions";
-    const ok = document.createElement("button");
-    ok.type = "button";
-    ok.textContent = "OK";
-    ok.onclick = () => overlay.remove();
-    actions.appendChild(ok);
-    modal.appendChild(h);
-    modal.appendChild(p);
-    modal.appendChild(actions);
-    overlay.appendChild(modal);
-    overlay.addEventListener("click", (e) => { if (e.target === overlay) overlay.remove(); });
-    document.body.appendChild(overlay);
-  }
-
-  function getCards() {
-    return Array.from(document.querySelectorAll(".prize-card"));
-  }
-
-  function getCardLabel(card) {
-    const el = card.querySelector(".prize-label");
-    return el ? el.textContent.trim() : "";
-  }
-
-  function findCardIndexByTitle(cards, prizeTitle) {
-    const t = (prizeTitle || "").trim().toLowerCase();
-    if (!t) return -1;
-    for (let i = 0; i < cards.length; i++) {
-      const lbl = getCardLabel(cards[i]).trim().toLowerCase();
-      if (lbl === t) return i;
-    }
-    return -1;
-  }
-
-  function setActive(cards, idx) {
-    for (let i = 0; i < cards.length; i++) {
-      cards[i].classList.toggle("is-active", i === idx);
-    }
-  }
-
-  function animateAndStop(cards, stopIndex) {
-    ensureStyles();
-    const n = cards.length;
-    const steps = n * 5 + stopIndex; // 5 rounds
-    return new Promise((resolve) => {
-      let step = 0;
-      function tick() {
-        setActive(cards, step % n);
-        const remaining = steps - step;
-        const delay = remaining > 25 ? 70 : Math.min(220, 70 + (25 - remaining) * 6);
-        step++;
-        if (step <= steps) setTimeout(tick, delay);
-        else { setActive(cards, stopIndex); resolve(); }
-      }
-      tick();
+  function setActive(index) {
+    if (!el.cards.length) return;
+    el.cards.forEach(function (c, i) {
+      if (i === index) c.classList.add('active');
+      else c.classList.remove('active');
     });
   }
 
+  function sleep(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+
+  function rpc(name, body) {
+    if (!SB) return Promise.reject(new Error('SB_CONFIG missing (load sb-config.js first)'));
+    return fetch(SB.url + '/rest/v1/rpc/' + name, {
+      method: 'POST',
+      headers: SB.headers(),
+      body: JSON.stringify(body || {})
+    }).then(async function (res) {
+      var txt = await res.text();
+      if (!res.ok) {
+        try {
+          var j = JSON.parse(txt);
+          throw new Error(j.message || j.error || txt);
+        } catch (e) {
+          throw new Error(txt || ('RPC ' + name + ' failed'));
+        }
+      }
+      try { return JSON.parse(txt); } catch (e) { return txt; }
+    });
+  }
+
+  async function getUserId() {
+    if (window.ExaAuth && typeof window.ExaAuth.ensureSupabaseUserId === 'function') {
+      return await window.ExaAuth.ensureSupabaseUserId();
+    }
+    try { return localStorage.getItem('sb_user_id_v1'); } catch (e) { return null; }
+  }
+
+  async function fetchSpins(userId) {
+    var url = SB.url + '/rest/v1/lucky_draw_user_spins?select=spins_balance&user_id=eq.' +
+      encodeURIComponent(userId) + '&limit=1';
+    var res = await fetch(url, { method: 'GET', headers: SB.headers() });
+    if (!res.ok) return 0;
+    var rows = await res.json();
+    if (!Array.isArray(rows) || !rows.length) return 0;
+    return Number(rows[0].spins_balance || 0);
+  }
+
+  function slotToIndex(slot) {
+    var s = Number(slot || 1);
+    if (!isFinite(s)) s = 1;
+    if (s < 1) s = 1;
+    if (s > 9) s = 9;
+    return s - 1;
+  }
+
+  function setMeta(uid, spins) {
+    if (el.userShort) el.userShort.textContent = uid ? (uid.slice(0, 6) + '…' + uid.slice(-4)) : '-';
+    if (el.spinsText) el.spinsText.textContent = String(spins || 0);
+    if (el.remaining) {
+      // If remainingTimes is inside a sentence, set only the number (or keep "X times" if present)
+      var cur = (el.remaining.textContent || '').toLowerCase();
+      el.remaining.textContent = cur.includes('times') ? (String(spins || 0) + ' times') : String(spins || 0);
+    }
+  }
+
   async function refresh() {
-    const btn = document.getElementById("btnStart");
-    const remainingEl = document.getElementById("remainingTimes");
-    const inviterId = getUserId();
-
-    if (!inviterId) {
-      if (remainingEl) remainingEl.textContent = "0 times";
-      setStartEnabled(btn, false);
-      return 0;
-    }
-
     try {
-      const cnt = await getAvailableSpinsToday(inviterId);
-      if (remainingEl) remainingEl.textContent = cnt + " times";
-      setStartEnabled(btn, cnt > 0);
-      return cnt;
+      var uid = await getUserId();
+      if (!uid) {
+        setMeta(null, 0);
+        showStartEnabled(false);
+        return;
+      }
+      var spins = await fetchSpins(uid);
+      setMeta(uid, spins);
+      showStartEnabled(spins > 0);
     } catch (e) {
-      console.warn(e);
-      if (remainingEl) remainingEl.textContent = "0 times";
-      setStartEnabled(btn, false);
-      return 0;
+      setMeta(null, 0);
+      showStartEnabled(false);
     }
   }
 
-  async function onStart() {
-    const btn = document.getElementById("btnStart");
-    const inviterId = getUserId();
-    const cards = getCards();
-
-    if (!inviterId) {
-      showModal("Error", "Not logged in.");
-      return;
-    }
-
-    setStartEnabled(btn, false);
-
-    let row;
+  async function runSpin() {
     try {
-      row = await spinRPC(inviterId);
+      showStartEnabled(false);
+
+      var uid = await getUserId();
+      if (!uid) throw new Error('Not logged in');
+
+      var idx = 0;
+      setActive(idx);
+
+      var minSpinMs = 2300;
+      var startAt = Date.now();
+
+      var interval = setInterval(function () {
+        if (!el.cards.length) return;
+        idx = (idx + 1) % el.cards.length;
+        setActive(idx);
+      }, 80);
+
+      var res = await rpc('lucky_draw_spin', { p_user_id: uid });
+
+      var elapsed = Date.now() - startAt;
+      if (elapsed < minSpinMs) await sleep(minSpinMs - elapsed);
+
+      clearInterval(interval);
+
+      if (!res || res.ok !== true) {
+        await refresh();
+        return;
+      }
+
+      var finalIndex = slotToIndex(res.prize && res.prize.slot ? res.prize.slot : 1);
+
+      for (var i = 0; i < 14; i++) {
+        if (!el.cards.length) break;
+        idx = (idx + 1) % el.cards.length;
+        setActive(idx);
+        await sleep(70 + i * 18);
+      }
+      while (el.cards.length && idx !== finalIndex) {
+        idx = (idx + 1) % el.cards.length;
+        setActive(idx);
+        await sleep(120);
+      }
+
+      await refresh();
     } catch (e) {
-      console.warn(e);
-      // Show the real error so we can fix DB/RPC name/permissions immediately
-      showModal("Error", "Spin failed.\n\n" + String(e && e.message ? e.message : e));
       await refresh();
-      return;
     }
-
-    if (!row || row.ok !== true) {
-      showModal("Info", "No spins available.");
-      await refresh();
-      return;
-    }
-
-    const prizeTitle = row.prize_title ? String(row.prize_title) : "";
-    const prizeType = row.prize_type ? String(row.prize_type) : "usdt";
-    const prizeAmt = Number(row.prize || row.amount || 0);
-    const remaining = Number(row.remaining_spins || 0);
-
-    let stopIndex = findCardIndexByTitle(cards, prizeTitle);
-    if (stopIndex < 0 && Number.isFinite(prizeAmt) && prizeAmt > 0) {
-      stopIndex = findCardIndexByTitle(cards, Math.round(prizeAmt) + " USDT");
-    }
-    if (stopIndex < 0) stopIndex = Math.floor(Math.random() * Math.max(1, cards.length));
-
-    await animateAndStop(cards, stopIndex);
-
-    if (prizeType === "physical") {
-      showModal("Congratulations", "You won " + (prizeTitle || "a prize") + ".");
-    } else {
-      showModal("Congratulations", "You won " + prizeAmt.toFixed(2) + " USDT.");
-    }
-
-    const remainingEl = document.getElementById("remainingTimes");
-    if (remainingEl) remainingEl.textContent = remaining + " times";
-    setStartEnabled(btn, remaining > 0);
   }
 
-  function boot() {
-    const btn = document.getElementById("btnStart");
-    if (!btn) return;
+  if (el.back) el.back.addEventListener('click', function () { history.back(); });
 
-    btn.addEventListener("click", onStart);
-
-    refresh();
-    window.addEventListener("focus", refresh);
+  if (el.start) {
+    el.start.addEventListener('click', function () {
+      if (el.start.classList.contains('disabled')) return;
+      runSpin();
+    });
   }
 
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", boot);
-  } else {
-    boot();
-  }
+  refresh();
 })();

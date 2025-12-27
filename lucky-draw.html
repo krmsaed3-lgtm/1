@@ -204,6 +204,15 @@
       transform: translateY(-2px);
     }
 
+
+    /* Lucky Draw interactive helpers */
+    #btnStart.enabled { opacity: 1 !important; }
+    #btnStart.disabled { pointer-events: none !important; }
+    .prize-card.active{
+      outline: 3px solid rgba(34,225,165,.65);
+      transform: translateY(-2px);
+    }
+
 </style>
 </head>
 <body>
@@ -278,6 +287,6 @@
 <script src="sb-config.js"></script>
 <script src="auth.js"></script>
 <script src="common-nav.js"></script>
-<script src="lucky-draw_FINAL_FIXED.js"></script>
+  <script src="lucky-draw_FINAL.js"></script>
 </body>
 </html>
