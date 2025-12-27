@@ -8,6 +8,48 @@
 (function () {
   'use strict';
 
+  // --- Effects (sound + vibration + win modal). No CSS/style changes. ---
+  var __audioCtx = null;
+  function __ctx() {
+    if (__audioCtx) return __audioCtx;
+    var C = window.AudioContext || window.webkitAudioContext;
+    if (!C) return null;
+    __audioCtx = new C();
+    return __audioCtx;
+  }
+  function __tone(freq, ms, type, gain) {
+    var c = __ctx();
+    if (!c) return;
+    if (c.state === 'suspended') { try { c.resume(); } catch (e) {} }
+    var o = c.createOscillator();
+    var g = c.createGain();
+    o.type = type || 'square';
+    o.frequency.value = freq;
+    g.gain.value = (gain == null) ? 0.025 : gain;
+    o.connect(g); g.connect(c.destination);
+    o.start();
+    o.stop(c.currentTime + (ms / 1000));
+  }
+  function playTick() { __tone(880, 18, 'square', 0.02); }
+  function playWin() {
+    __tone(660, 90, 'sine', 0.04);
+    setTimeout(function(){ __tone(880, 90, 'sine', 0.04); }, 110);
+    setTimeout(function(){ __tone(1100, 110, 'sine', 0.045); }, 220);
+  }
+  function vibrateWin() { if (navigator.vibrate) { try { navigator.vibrate([120,60,160]); } catch (e) {} } }
+  function showWinModal(text) {
+    var m = document.getElementById('ldWinModal');
+    var t = document.getElementById('ldWinText');
+    var ok = document.getElementById('ldWinOk');
+    if (!m || !t || !ok) return;
+    t.textContent = text || 'You won!';
+    m.style.display = 'flex';
+    ok.onclick = function(){ m.style.display = 'none'; };
+    m.onclick = function(ev){ if (ev.target === m) m.style.display = 'none'; };
+  }
+  // -----------------------------------------------------------------------
+
+
   var SB = window.SB_CONFIG;
   function $(id) { return document.getElementById(id); }
 
@@ -34,6 +76,7 @@
   }
 
   function setActive(index) {
+    playTick();
     if (!el.cards.length) return;
     el.cards.forEach(function (c, i) {
       if (i === index) c.classList.add('active');
