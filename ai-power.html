@@ -989,55 +989,131 @@
     return n.toFixed(2) + " USDT";
   }
 
+  
+// --- V1 Run limits (Canada Time) ---
+var CANADA_TZ = "America/Toronto";
+var MAX_RUNS_BY_LEVEL = { V1: 2 }; // start with V1 only
 
-  // --- Daily cooldown (24h) ---
-  var RUN_COOLDOWN_MS = 24 * 60 * 60 * 1000;
-  function lastRunKey(userId){ return "aiPower_lastRunAt__" + String(userId || ""); }
-  function getLastRun(userId){
-    try {
-      var v = localStorage.getItem(lastRunKey(userId));
-      var n = Number(v);
-      return isFinite(n) ? n : 0;
-    } catch(e){ return 0; }
+// Returns { startIso, endIso } for today's [start, end) in Canada time.
+function getCanadaDayRangeIso() {
+  try {
+    var now = new Date();
+    var dtf = new Intl.DateTimeFormat("en-CA", {
+      timeZone: CANADA_TZ,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: false,
+      timeZoneName: "shortOffset"
+    });
+
+    var parts = dtf.formatToParts(now);
+    var y = "", mo = "", d = "", off = "";
+    parts.forEach(function (p) {
+      if (p.type === "year") y = p.value;
+      if (p.type === "month") mo = p.value;
+      if (p.type === "day") d = p.value;
+      if (p.type === "timeZoneName") off = p.value; // like "GMT-5"
+    });
+
+    // Convert "GMT-5" -> "-05:00"
+    var m = /GMT([+-])(\d{1,2})(?::?(\d{2}))?/.exec(off || "");
+    var sign = m ? m[1] : "+";
+    var hh = m ? String(m[2]).padStart(2, "0") : "00";
+    var mm = m && m[3] ? String(m[3]).padStart(2, "0") : "00";
+    var offset = sign + hh + ":" + mm;
+
+    var start = new Date(y + "-" + mo + "-" + d + "T00:00:00" + offset);
+    var end = new Date(start.getTime() + 24 * 60 * 60 * 1000);
+    return { startIso: start.toISOString(), endIso: end.toISOString() };
+  } catch (e) {
+    // Fallback: use local day
+    var s = new Date(); s.setHours(0,0,0,0);
+    var e2 = new Date(s.getTime() + 24*60*60*1000);
+    return { startIso: s.toISOString(), endIso: e2.toISOString() };
   }
-  function setLastRun(userId, ts){
-    try {
-      localStorage.setItem(lastRunKey(userId), String(ts || Date.now()));
-    } catch(e){}
+}
+
+function supabaseCountIpowerActions(userId, startIso, endIso) {
+  // Use HEAD + Prefer: count=exact for fast counts
+  var url = SB.url + "/rest/v1/ipower_actions?select=id&user_id=eq." + encodeURIComponent(userId) +
+    "&created_at=gte." + encodeURIComponent(startIso) + "&created_at=lt." + encodeURIComponent(endIso);
+
+  var headers = SB.headers();
+  headers["Prefer"] = "count=exact";
+
+  return fetch(url, { method: "HEAD", headers: headers }).then(function (res) {
+    if (!res.ok) return 0;
+    var c = res.headers.get("content-range"); // e.g. "0-1/2"
+    var m = /\/(\d+)\s*$/.exec(c || "");
+    return m ? parseInt(m[1], 10) : 0;
+  }).catch(function () { return 0; });
+}
+
+var v1RemainingRuns = null;
+
+function setButtonDisabled(btn, disabled) {
+  if (!btn) return;
+  btn.disabled = !!disabled;
+  btn.style.opacity = disabled ? "0.65" : "";
+  btn.style.cursor = disabled ? "not-allowed" : "";
+}
+
+function findCardByLevel(level) {
+  for (var i = 0; i < cards.length; i++) {
+    if (String(getCardLevel(cards[i]) || "").toUpperCase() === String(level || "").toUpperCase()) return cards[i];
   }
-  function remainingMs(userId){
-    var last = getLastRun(userId);
-    if (!last) return 0;
-    var rem = (last + RUN_COOLDOWN_MS) - Date.now();
-    return rem > 0 ? rem : 0;
+  return null;
+}
+
+function updateV1UI(runsToday, maxRuns) {
+  var remaining = Math.max(0, (maxRuns || 0) - (runsToday || 0));
+  v1RemainingRuns = remaining;
+
+  // "Number of times that can be run today"
+  if (timesCardValueEl) timesCardValueEl.textContent = remaining + " Times";
+
+  // V1 card run times & button state
+  var v1Card = findCardByLevel("V1");
+  if (v1Card) {
+    var rt = getRunTimesEl(v1Card);
+    if (rt) rt.textContent = runsToday + "/" + maxRuns;
+
+    var btn = getRunBtn(v1Card);
+    setButtonDisabled(btn, remaining <= 0);
+    if (btn && remaining <= 0) btn.textContent = "Come back tomorrow";
+    if (btn && remaining > 0) btn.textContent = "Run";
   }
-  function fmtRemaining(ms){
-    ms = Math.max(0, Number(ms || 0));
-    var totalSec = Math.ceil(ms / 1000);
-    var h = Math.floor(totalSec / 3600);
-    var m = Math.floor((totalSec % 3600) / 60);
-    var s = totalSec % 60;
-    if (h > 0) return h + "h " + m + "m";
-    if (m > 0) return m + "m " + s + "s";
-    return s + "s";
+}
+
+function updateRunAvailability(userId) {
+  // Only enforce V1 now (per your request)
+  if (locked) {
+    // lock everything visually
+    if (timesCardValueEl) timesCardValueEl.textContent = "0 Times";
+    cards.forEach(function (c) {
+      setButtonDisabled(getRunBtn(c), true);
+    });
+    v1RemainingRuns = 0;
+    return Promise.resolve();
   }
-  function lockRunButtons(lockedNow){
-    try {
-      var btns = Array.from(document.querySelectorAll(".gpu-button-wrap .btn-gradient"));
-      btns.forEach(function(b){
-        if (!b) return;
-        if (lockedNow) {
-          b.disabled = true;
-          b.style.opacity = "0.35";
-          b.style.pointerEvents = "none";
-        } else {
-          b.disabled = false;
-          b.style.opacity = "";
-          b.style.pointerEvents = "";
-        }
-      });
-    } catch(e){}
+
+  var lvl = String(currentLevel || "V0").toUpperCase();
+  if (lvl !== "V1") {
+    // Keep page as-is for other levels for now
+    v1RemainingRuns = null;
+    return Promise.resolve();
   }
+
+  var range = getCanadaDayRangeIso();
+  return supabaseCountIpowerActions(userId, range.startIso, range.endIso).then(function (runsToday) {
+    updateV1UI(runsToday || 0, MAX_RUNS_BY_LEVEL.V1 || 2);
+  });
+}
+
 
   // --- UI handles ---
   var topCard = document.querySelector(".card");
@@ -1155,8 +1231,6 @@ function openConfirmModal() {
       // Top card shows total assets
       setText(topAmountEl, formatUSDT(s.usdt_balance));
       // Cosmetic cards: show remaining times as "—" and room as current level
-      var rem = remainingMs(userId);
-      setText(timesCardValueEl, rem > 0 ? "0 Times" : "1 Times");
       setText(runRoomValueEl, (currentLevel || "V0"));
       // Update today's profit on unlocked cards (use today's personal income)
       cards.forEach(function (c) {
@@ -1187,6 +1261,7 @@ function openConfirmModal() {
 
       if (lockTextEl) lockTextEl.textContent = unlocked ? "Unlocked" : "Not unlocked";
       if (btn) btn.textContent = unlocked ? "Run" : "Run after unlocking";
+      // run times will be refreshed from DB
       if (runTimesEl) runTimesEl.textContent = "—";
 
       if (!btn) return;
@@ -1201,11 +1276,9 @@ function openConfirmModal() {
           return;
         }
 
-        var remMs = remainingMs(userId);
-        if (remMs > 0) {
-          lockRunButtons(true);
-          setText(timesCardValueEl, "0 Times");
-          alert("Too soon. Please try again after " + fmtRemaining(remMs) + " (Canada time).");
+        // V1: enforce remaining runs client-side to prevent useless clicks
+        if (String(lvl).toUpperCase() === "V1" && v1RemainingRuns !== null && v1RemainingRuns <= 0) {
+          alert("You have completed today's runs. Come back tomorrow (Canada time).");
           return;
         }
 
@@ -1231,13 +1304,8 @@ openConfirmModal().then(function (ok) {
             alert("Run completed.");
           }
 
-          // Lock runs for 24h after a successful run
-          setLastRun(userId, Date.now());
-          lockRunButtons(true);
-          setText(timesCardValueEl, "0 Times");
-
-          // Refresh totals (today/total/team) via summary
-          return refreshTopSummary(userId);
+          // Refresh totals + run availability
+          return refreshTopSummary(userId).then(function(){ return updateRunAvailability(userId); });
         }).catch(function (err) {
           var msg = (err && err.message) ? err.message : String(err || "Run failed");
           // Make backend errors readable
@@ -1268,10 +1336,7 @@ openConfirmModal().then(function (ok) {
       setText(runRoomValueEl, currentLevel);
 
       bindCards(userId);
-      var _remInit = remainingMs(userId);
-      lockRunButtons(_remInit > 0);
-      setText(timesCardValueEl, _remInit > 0 ? "0 Times" : "1 Times");
-      return refreshTopSummary(userId);
+      return refreshTopSummary(userId).then(function(){ return updateRunAvailability(userId); });
     });
   }).catch(function (e) {
     console.error(e);
