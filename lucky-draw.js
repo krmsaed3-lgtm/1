@@ -1,39 +1,38 @@
-/* Lucky Draw APP (REST RPC, no Supabase JS client)
+/* Lucky Draw (REST RPC, no Supabase JS client)
    - Uses SB_CONFIG from sb-config.js
-   - Uses ExaAuth.ensureSupabaseUserId() from auth.js
-   - UI-only animation; DB decides result via RPC lucky_draw_spin
+   - Uses ExaAuth.ensureSupabaseUserId() from auth.js to get current user id
+   - Animation is UI-only; DB decides the final slot via RPC lucky_draw_spin
 */
 
 (function () {
   'use strict';
 
   var SB = window.SB_CONFIG;
+  if (!SB) {
+    console.error('SB_CONFIG missing. Load sb-config.js before lucky-draw.js');
+    return;
+  }
+
   function $(id) { return document.getElementById(id); }
 
   var el = {
     back: $('btnBack'),
+    uShort: $('uShort'),
+    spins: $('spins'),
     start: $('btnStart'),
-    remaining: $('remainingTimes'),
-    spins: $('spinsCount'),
-    userShort: $('userShort'),
-    toast: $('toast'),
-    cards: Array.prototype.slice.call(document.querySelectorAll('#grid .prize-card')),
-    btnRules: $('btnRules'),
-    btnRecord: $('btnRecord'),
-    btnMyPrize: $('btnMyPrize')
+    status: $('status'),
+    out: $('out'),
+    cards: Array.prototype.slice.call(document.querySelectorAll('#grid .card'))
   };
 
-  function showToast(msg, ok) {
-    if (!el.toast) return;
-    el.toast.innerHTML = ok ? ('<b>OK:</b> ' + msg) : ('<b>Error:</b> ' + msg);
-    el.toast.classList.add('show');
-    setTimeout(function(){ el.toast.classList.remove('show'); }, 2600);
+  function setStatus(text, ok) {
+    el.status.textContent = text;
+    el.status.className = ok ? 'ok' : 'err';
   }
 
-  function setStartEnabled(enabled) {
-    if (!el.start) return;
-    el.start.disabled = !enabled;
-    el.start.classList.toggle('enabled', !!enabled);
+  function logJson(obj, ok) {
+    el.out.className = ok ? 'ok' : 'err';
+    el.out.textContent = (typeof obj === 'string') ? obj : JSON.stringify(obj, null, 2);
   }
 
   function setActive(index) {
@@ -46,7 +45,6 @@
   function sleep(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
 
   function rpc(name, body) {
-    if (!SB) return Promise.reject(new Error('SB_CONFIG missing (load sb-config.js first)'));
     return fetch(SB.url + '/rest/v1/rpc/' + name, {
       method: 'POST',
       headers: SB.headers(),
@@ -73,8 +71,7 @@
   }
 
   async function fetchSpins(userId) {
-    var url = SB.url + '/rest/v1/lucky_draw_user_spins?select=spins_balance&user_id=eq.' +
-      encodeURIComponent(userId) + '&limit=1';
+    var url = SB.url + '/rest/v1/lucky_draw_user_spins?select=spins_balance&user_id=eq.' + encodeURIComponent(userId) + '&limit=1';
     var res = await fetch(url, { method: 'GET', headers: SB.headers() });
     if (!res.ok) return 0;
     var rows = await res.json();
@@ -90,37 +87,56 @@
     return s - 1;
   }
 
-  function setMeta(uid, spins) {
-    if (el.userShort) el.userShort.textContent = uid ? (uid.slice(0, 6) + '…' + uid.slice(-4)) : '-';
-    if (el.spins) el.spins.textContent = String(spins || 0);
-    if (el.remaining) el.remaining.textContent = String(spins || 0);
-  }
-
-  async function refresh() {
+  async function refreshUI() {
     try {
+      setStatus('Loading…', true);
+
       var uid = await getUserId();
       if (!uid) {
-        setMeta(null, 0);
-        setStartEnabled(false);
+        el.uShort.textContent = '-';
+        el.spins.textContent = '0';
+        el.start.disabled = true;
+        el.start.classList.remove('enabled');
+        setStatus('Not logged in', false);
+        logJson('Login first (currentUserId missing in localStorage).', false);
         return;
       }
+
+      el.uShort.textContent = uid.slice(0, 6) + '…' + uid.slice(-4);
+
       var spins = await fetchSpins(uid);
-      setMeta(uid, spins);
-      setStartEnabled(spins > 0);
+      el.spins.textContent = String(spins);
+
+      if (spins > 0) {
+        el.start.disabled = false;
+        el.start.classList.add('enabled');
+        setStatus('Ready', true);
+        logJson({ user_id: uid, spins: spins }, true);
+      } else {
+        el.start.disabled = true;
+        el.start.classList.remove('enabled');
+        setStatus('No spins', false);
+        logJson({ user_id: uid, spins: spins, hint: 'No spins in lucky_draw_user_spins for this user yet.' }, false);
+      }
     } catch (e) {
-      setMeta(null, 0);
-      setStartEnabled(false);
+      el.start.disabled = true;
+      el.start.classList.remove('enabled');
+      setStatus('Error', false);
+      logJson(String(e && e.message ? e.message : e), false);
     }
   }
 
   async function runSpin() {
     try {
-      setStartEnabled(false);
+      el.start.disabled = true;
+      el.start.classList.remove('enabled');
 
       var uid = await getUserId();
       if (!uid) throw new Error('Not logged in');
 
-      // Start animation immediately
+      setStatus('Spinning…', true);
+      logJson('Calling RPC lucky_draw_spin…', true);
+
       var idx = 0;
       setActive(idx);
 
@@ -132,6 +148,7 @@
         setActive(idx);
       }, 80);
 
+      // DB decides result
       var res = await rpc('lucky_draw_spin', { p_user_id: uid });
 
       var elapsed = Date.now() - startAt;
@@ -140,8 +157,9 @@
       clearInterval(interval);
 
       if (!res || res.ok !== true) {
-        showToast((res && res.error) ? res.error : 'Spin failed', false);
-        await refresh();
+        setStatus('Failed', false);
+        logJson(res || { ok: false, error: 'EMPTY_RESPONSE' }, false);
+        await refreshUI();
         return;
       }
 
@@ -159,22 +177,19 @@
         await sleep(120);
       }
 
-      showToast((res.prize && res.prize.title ? res.prize.title : 'WIN') + ' +' + (res.prize && res.prize.amount ? res.prize.amount : ''), true);
+      setStatus('WIN', true);
+      logJson(res, true);
 
-      await refresh();
+      await refreshUI();
     } catch (e) {
-      showToast(String(e && e.message ? e.message : e), false);
-      await refresh();
+      setStatus('Error', false);
+      logJson(String(e && e.message ? e.message : e), false);
+      await refreshUI();
     }
   }
 
   if (el.back) el.back.addEventListener('click', function () { history.back(); });
   if (el.start) el.start.addEventListener('click', runSpin);
 
-  // Optional: if common-nav.js provides routing helpers, you can wire these buttons there.
-  if (el.btnRules) el.btnRules.addEventListener('click', function(){ /* hook in common-nav.js if needed */ });
-  if (el.btnRecord) el.btnRecord.addEventListener('click', function(){ /* hook in common-nav.js if needed */ });
-  if (el.btnMyPrize) el.btnMyPrize.addEventListener('click', function(){ /* hook in common-nav.js if needed */ });
-
-  refresh();
+  refreshUI();
 })();
