@@ -1,283 +1,232 @@
-<!DOCTYPE html>
-
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
-<title>Lucky draw</title>
-<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
-<style>
-    :root {
-      --bg-main: #05060b;
-      --bg-panel: #021020;
-      --bg-card: #01509b;
-      --text-primary: #ffffff;
-      --text-secondary: #9ca1b2;
-      --accent: #18c1ff;
-      --accent-2: #22e1a5;
-      --accent-soft: #11bcd2;
-      --border-subtle: #1b2232;
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>Lucky draw</title>
+  <style>
+    :root{
+      --bg:#05060b;
+      --panel:#071225;
+      --card1:#0a2a52;
+      --card2:#0b4b8f;
+      --text:#ffffff;
+      --muted:#9ca1b2;
+      --accent:#22e1a5;
+      --accent2:#18c1ff;
+      --line:rgba(255,255,255,.10);
+      --shadow:0 10px 18px rgba(0,0,0,.55);
+      --r:16px;
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{
+      background: radial-gradient(900px 600px at 20% 10%, rgba(24,193,255,.18), transparent 60%),
+                  radial-gradient(800px 600px at 90% 30%, rgba(34,225,165,.14), transparent 55%),
+                  var(--bg);
+      color:var(--text);
+      font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,Segoe UI,Roboto,Arial,sans-serif;
+    }
+    .app{min-height:100vh;max-width:480px;margin:0 auto;padding:12px 12px 26px}
+    .top-bar{display:flex;align-items:center;justify-content:center;position:relative;padding:8px 0 12px}
+    .back-btn{
+      position:absolute;left:0;top:6px;width:36px;height:36px;border-radius:999px;
+      background:rgba(255,255,255,.06);border:1px solid var(--line);
+      display:flex;align-items:center;justify-content:center;cursor:pointer;
+    }
+    .back-btn img{width:18px;height:18px;display:block}
+    .title{font-size:16px;font-weight:600;letter-spacing:.2px}
+    .panel{
+      background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+      border:1px solid var(--line);
+      border-radius:18px;
+      padding:14px;
+      box-shadow:var(--shadow);
+    }
+    .tag-row{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px;gap:10px}
+    .tag-column{display:flex;flex-direction:column;gap:8px}
+    .pill{
+      display:inline-flex;align-items:center;justify-content:center;
+      padding:8px 14px;border-radius:999px;
+      background:rgba(24,193,255,.16);
+      border:1px solid rgba(24,193,255,.22);
+      color:var(--text);
+      font-size:12px;
+      cursor:pointer;
+      user-select:none;
+      white-space:nowrap;
+    }
+    .pill.secondary{
+      background:rgba(34,225,165,.16);
+      border:1px solid rgba(34,225,165,.22);
+      align-self:flex-end;
     }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
+    .meta-row{
+      display:flex;justify-content:space-between;gap:10px;align-items:center;
+      margin:10px 0 14px;
     }
+    .meta{
+      font-size:12px;color:var(--muted);
+      padding:8px 12px;border-radius:999px;border:1px solid var(--line);
+      background:rgba(255,255,255,.03);
+    }
+    .meta b{color:var(--text);font-weight:700}
 
-    body {
-      background-color: var(--bg-main);
-      color: var(--text-primary);
-      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
+    .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:6px 0 18px}
+    .prize-card{
+      background: radial-gradient(circle at 30% 10%, rgba(24,193,255,.40) 0%, rgba(11,75,143,.65) 55%, rgba(7,18,37,.95) 100%);
+      border-radius:14px;
+      padding:10px 8px 8px;
+      display:flex;flex-direction:column;align-items:center;justify-content:space-between;
+      min-height:92px;
+      border:1px solid rgba(255,255,255,.08);
+      box-shadow:var(--shadow);
+      transition:transform .12s ease, outline-color .12s ease;
     }
-
-    .app {
-      min-height: 100vh;
-      max-width: 480px;
-      margin: 0 auto;
-      padding: 12px 12px 24px;
-    }
-
-    .top-bar {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      position: relative;
-      padding-bottom: 10px;
-    }
-
-    .back-btn {
-      position: absolute;
-      left: 0;
-      top: 0;
-      width: 32px;
-      height: 32px;
-      border-radius: 999px;
-      background-color: #151824;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .back-btn img {
-      width: 18px;
-      height: 18px;
-      display: block;
-    }
-
-    .title {
-      font-size: 16px;
-      font-weight: 500;
-    }
-
-    .content {
-      margin-top: 10px;
-    }
-
-    .tag-row {
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      margin-bottom: 18px;
-    }
-
-    .tag-column {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .tag-pill {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      padding: 6px 14px;
-      border-radius: 999px;
-      background-color: #15d4d8;
-      font-size: 12px;
-      color: #020712;
-      white-space: nowrap;
-    }
-
-    .tag-pill.secondary {
-      align-self: flex-end;
-    }
-
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 10px;
-      margin-bottom: 28px;
-      margin-top: 6px;
-    }
-
-    .prize-card {
-      background: radial-gradient(circle at 30% 10%, #23e2ff 0%, #01509b 55%, #012040 100%);
-      border-radius: 14px;
-      padding: 8px 6px 6px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: space-between;
-      box-shadow: 0 10px 18px rgba(0,0,0,0.5);
-    }
-
-    .prize-card img {
-      width: 52px;
-      height: 52px;
-      object-fit: contain;
-      margin-bottom: 6px;
-    }
-
-    .prize-label {
-      font-size: 11px;
-    }
-
-    .start-text {
-      text-align: center;
-      margin: 18px 0 22px;
-      font-size: 16px;
-      font-weight: 500;
-      color: #555a68;
-    }
-
-    .remaining {
-      text-align: center;
-      font-size: 13px;
-      margin-bottom: 18px;
-      color: var(--text-secondary);
-    }
-
-    .remaining span {
-      color: #1de0a2;
-      margin: 0 2px;
-    }
-
-    .rules-title {
-      text-align: center;
-      font-size: 14px;
-      margin-bottom: 10px;
-      font-weight: 500;
-    }
-
-    .rules-card {
-      background-color: #111827;
-      border-radius: 14px;
-      padding: 14px 12px 16px;
-      font-size: 12px;
-      line-height: 1.5;
-      color: var(--text-secondary);
-    }
-
-    .rules-card p + p {
-      margin-top: 8px;
-    }
-
-    @media (min-width: 481px) {
-      body {
-        display: flex;
-        justify-content: center;
-        background-color: #000;
-      }
-      .app {
-        margin-top: 12px;
-        border-radius: 20px;
-        border: 1px solid #171924;
-      }
-    }
-  
-    .start-text {
-      cursor: pointer;
-      user-select: none;
-      padding: 12px 14px;
-      border-radius: 14px;
-      background: linear-gradient(90deg, #118ab6, #22e1a5);
-      color: #031018;
-      margin: 18px 0 22px;
-      font-size: 16px;
-      font-weight: 700;
-      opacity: .55;
-    }
-    .start-text.enabled { opacity: 1; }
-    .start-text.disabled { pointer-events: none; }
+    .prize-card img{width:54px;height:54px;object-fit:contain;margin-bottom:6px}
+    .prize-label{font-size:11px;text-align:center}
     .prize-card.active{
-      outline: 3px solid rgba(34,225,165,.65);
-      transform: translateY(-2px);
+      outline:3px solid rgba(34,225,165,.65);
+      transform:translateY(-2px);
     }
 
-</style>
+    .start{
+      width:100%;
+      border:0;
+      border-radius:14px;
+      padding:13px 14px;
+      background:linear-gradient(90deg, var(--accent2), var(--accent));
+      color:#031018;
+      font-size:16px;
+      font-weight:800;
+      letter-spacing:.2px;
+      cursor:pointer;
+      opacity:.55;
+      user-select:none;
+    }
+    .start.enabled{opacity:1}
+    .start:disabled{cursor:not-allowed}
+
+    .remaining{
+      text-align:center;
+      font-size:13px;
+      margin:12px 0 16px;
+      color:var(--muted);
+    }
+    .remaining span{color:var(--accent);margin:0 2px;font-weight:700}
+
+    .rules-title{text-align:center;font-size:14px;margin:10px 0 10px;font-weight:600}
+    .rules-card{
+      background:rgba(255,255,255,.03);
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:14px 12px 16px;
+      font-size:12px;
+      line-height:1.55;
+      color:var(--muted);
+    }
+    .rules-card p + p{margin-top:8px}
+
+    .toast{
+      position:fixed;left:50%;bottom:24px;transform:translateX(-50%);
+      max-width:440px;width:calc(100% - 24px);
+      background:rgba(0,0,0,.72);
+      border:1px solid rgba(255,255,255,.14);
+      border-radius:14px;
+      padding:12px 12px;
+      color:#eaf2ff;
+      font-size:13px;
+      display:none;
+      box-shadow:0 12px 30px rgba(0,0,0,.55);
+    }
+    .toast.show{display:block}
+    .toast b{color:var(--accent)}
+  </style>
 </head>
 <body>
-<div class="app">
-<header class="top-bar">
-<div class="back-btn" id="btnBack">
-<img alt="Back" src="images/back-icon-D2ne3Npi.png"/>
-</div>
-<div class="title">Lucky draw</div>
-</header>
-<main class="content">
-<section class="tag-row">
-<div class="tag-column">
-<div class="tag-pill">Activity rules</div>
-<div class="tag-pill">Lottery number record</div>
-</div>
-<div class="tag-pill secondary">My prize</div>
-</section>
-<section class="grid">
-<div class="prize-card">
-<img alt="95 USDT" src="images/b47dd2e41f360c16613470c80a09e689.png"/>
-<div class="prize-label">95 USDT</div>
-</div>
-<div class="prize-card">
-<img alt="5 USDT" src="images/98ded52b9f0b901b516b86e5159bb887.png"/>
-<div class="prize-label">5 USDT</div>
-</div>
-<div class="prize-card">
-<img alt="iPhone 17" src="images/a973a083c60a443bbfe0e16facd3612f.png"/>
-<div class="prize-label">iPhone 17</div>
-</div>
-<div class="prize-card">
-<img alt="9 USDT" src="images/98ded52b9f0b901b516b86e5159bb887.png"/>
-<div class="prize-label">9 USDT</div>
-</div>
-<div class="prize-card">
-<img alt="Audi A6" src="images/90c8491c6b7b33d9291d509492a938a6.png"/>
-<div class="prize-label">Audi A6</div>
-</div>
-<div class="prize-card">
-<img alt="15 USDT" src="images/98ded52b9f0b901b516b86e5159bb887.png"/>
-<div class="prize-label">15 USDT</div>
-</div>
-<div class="prize-card">
-<img alt="iPad" src="images/a973a083c60a443bbfe0e16facd3612f.png"/>
-<div class="prize-label">iPad</div>
-</div>
-<div class="prize-card">
-<img alt="25 USDT" src="images/98ded52b9f0b901b516b86e5159bb887.png"/>
-<div class="prize-label">25 USDT</div>
-</div>
-<div class="prize-card">
-<img alt="55 USDT" src="images/b47dd2e41f360c16613470c80a09e689.png"/>
-<div class="prize-label">55 USDT</div>
-</div>
-</section>
-<div class="start-text" id="btnStart" role="button" aria-disabled="true">Start</div>
-<div class="remaining">
-        Remaining <span id="remainingTimes">0 times</span> lottery opportunities
+  <div class="app">
+    <header class="top-bar">
+      <div class="back-btn" id="btnBack" aria-label="Back">
+        <img alt="Back" src="images/back-icon-D2ne3Npi.png" />
       </div>
-<div class="rules-title">Participation rules and conditions</div>
-<div class="rules-card">
-<p>1. During the event, when subordinates meet the recharge criteria, superiors will automatically receive the qualification for the lucky draw.</p>
-<p>2. The lucky draw opportunity is valid on the day and cannot be accumulated to the next day. Please use it promptly, as it will be reset after expiration.</p>
-<p>3. If you win a physical prize, please take a screenshot and contact the product manager with your account to claim it.</p>
-<p>4. The lucky draw is open for a limited time, with more luxurious prizes coming soon. Stay tuned!</p>
-<p>5. The final interpretation of this event belongs to EXARAI official.</p>
-</div>
-</main>
-</div>
+      <div class="title">Lucky draw</div>
+    </header>
 
-<script src="sb-config.js"></script>
-<script src="auth.js"></script>
-<script src="common-nav.js"></script>
-<script src="lucky-draw.js"></script>
+    <div class="panel">
+      <section class="tag-row">
+        <div class="tag-column">
+          <div class="pill" id="btnRules">Activity rules</div>
+          <div class="pill" id="btnRecord">Lottery number record</div>
+        </div>
+        <div class="pill secondary" id="btnMyPrize">My prize</div>
+      </section>
+
+      <div class="meta-row">
+        <div class="meta">User: <b id="userShort">-</b></div>
+        <div class="meta">Spins: <b id="spinsCount">0</b></div>
+      </div>
+
+      <section class="grid" id="grid">
+        <div class="prize-card" data-slot="1">
+          <img alt="95 USDT" src="images/b47dd2e41f360c16613470c80a09e689.png" />
+          <div class="prize-label">95 USDT</div>
+        </div>
+        <div class="prize-card" data-slot="2">
+          <img alt="5 USDT" src="images/98ded52b9f0b901b516b86e5159bb887.png" />
+          <div class="prize-label">5 USDT</div>
+        </div>
+        <div class="prize-card" data-slot="3">
+          <img alt="iPhone 17" src="images/a973a083c60a443bbfe0e16facd3612f.png" />
+          <div class="prize-label">iPhone 17</div>
+        </div>
+        <div class="prize-card" data-slot="4">
+          <img alt="9 USDT" src="images/98ded52b9f0b901b516b86e5159bb887.png" />
+          <div class="prize-label">9 USDT</div>
+        </div>
+        <div class="prize-card" data-slot="5">
+          <img alt="Audi A6" src="images/90c8491c6b7b33d9291d509492a938a6.png" />
+          <div class="prize-label">Audi A6</div>
+        </div>
+        <div class="prize-card" data-slot="6">
+          <img alt="15 USDT" src="images/98ded52b9f0b901b516b86e5159bb887.png" />
+          <div class="prize-label">15 USDT</div>
+        </div>
+        <div class="prize-card" data-slot="7">
+          <img alt="iPad" src="images/a973a083c60a443bbfe0e16facd3612f.png" />
+          <div class="prize-label">iPad</div>
+        </div>
+        <div class="prize-card" data-slot="8">
+          <img alt="25 USDT" src="images/98ded52b9f0b901b516b86e5159bb887.png" />
+          <div class="prize-label">25 USDT</div>
+        </div>
+        <div class="prize-card" data-slot="9">
+          <img alt="55 USDT" src="images/b47dd2e41f360c16613470c80a09e689.png" />
+          <div class="prize-label">55 USDT</div>
+        </div>
+      </section>
+
+      <button class="start" id="btnStart" disabled>Start</button>
+
+      <div class="remaining">
+        Remaining <span id="remainingTimes">0</span> times lottery opportunities
+      </div>
+
+      <div class="rules-title">Participation rules and conditions</div>
+      <div class="rules-card">
+        <p>1. During the event, when subordinates meet the recharge criteria, superiors will automatically receive the qualification for the lucky draw.</p>
+        <p>2. The lucky draw opportunity is valid on the day and cannot be accumulated to the next day. Please use it promptly.</p>
+        <p>3. If you win a physical prize, please take a screenshot and contact support. (Display-only prizes will never be awarded.)</p>
+        <p>4. The lucky draw is open for a limited time. Stay tuned for more events.</p>
+        <p>5. Final interpretation belongs to the official platform.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="sb-config.js"></script>
+  <script src="auth.js"></script>
+  <script src="common-nav.js"></script>
+  <script src="lucky-draw_APP.js"></script>
 </body>
 </html>

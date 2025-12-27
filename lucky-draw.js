@@ -1,7 +1,7 @@
-/* Lucky Draw PROD (REST RPC, no Supabase JS client)
+/* Lucky Draw APP (REST RPC, no Supabase JS client)
    - Uses SB_CONFIG from sb-config.js
    - Uses ExaAuth.ensureSupabaseUserId() from auth.js
-   - Animation is UI-only; DB decides final slot via RPC lucky_draw_spin
+   - UI-only animation; DB decides result via RPC lucky_draw_spin
 */
 
 (function () {
@@ -14,15 +14,26 @@
     back: $('btnBack'),
     start: $('btnStart'),
     remaining: $('remainingTimes'),
-    cards: Array.prototype.slice.call(document.querySelectorAll('.grid .prize-card'))
+    spins: $('spinsCount'),
+    userShort: $('userShort'),
+    toast: $('toast'),
+    cards: Array.prototype.slice.call(document.querySelectorAll('#grid .prize-card')),
+    btnRules: $('btnRules'),
+    btnRecord: $('btnRecord'),
+    btnMyPrize: $('btnMyPrize')
   };
+
+  function showToast(msg, ok) {
+    if (!el.toast) return;
+    el.toast.innerHTML = ok ? ('<b>OK:</b> ' + msg) : ('<b>Error:</b> ' + msg);
+    el.toast.classList.add('show');
+    setTimeout(function(){ el.toast.classList.remove('show'); }, 2600);
+  }
 
   function setStartEnabled(enabled) {
     if (!el.start) return;
+    el.start.disabled = !enabled;
     el.start.classList.toggle('enabled', !!enabled);
-    el.start.classList.toggle('disabled', !enabled);
-    el.start.setAttribute('aria-disabled', enabled ? 'false' : 'true');
-    el.start.style.opacity = enabled ? '1' : '.55';
   }
 
   function setActive(index) {
@@ -79,23 +90,25 @@
     return s - 1;
   }
 
-  function setRemaining(spins) {
-    if (el.remaining) el.remaining.textContent = String(spins) + ' times';
+  function setMeta(uid, spins) {
+    if (el.userShort) el.userShort.textContent = uid ? (uid.slice(0, 6) + '…' + uid.slice(-4)) : '-';
+    if (el.spins) el.spins.textContent = String(spins || 0);
+    if (el.remaining) el.remaining.textContent = String(spins || 0);
   }
 
   async function refresh() {
     try {
       var uid = await getUserId();
       if (!uid) {
-        setRemaining(0);
+        setMeta(null, 0);
         setStartEnabled(false);
         return;
       }
       var spins = await fetchSpins(uid);
-      setRemaining(spins);
+      setMeta(uid, spins);
       setStartEnabled(spins > 0);
     } catch (e) {
-      setRemaining(0);
+      setMeta(null, 0);
       setStartEnabled(false);
     }
   }
@@ -107,11 +120,11 @@
       var uid = await getUserId();
       if (!uid) throw new Error('Not logged in');
 
-      // UI-only animation
+      // Start animation immediately
       var idx = 0;
       setActive(idx);
 
-      var minSpinMs = 2200;
+      var minSpinMs = 2400;
       var startAt = Date.now();
 
       var interval = setInterval(function () {
@@ -127,6 +140,7 @@
       clearInterval(interval);
 
       if (!res || res.ok !== true) {
+        showToast((res && res.error) ? res.error : 'Spin failed', false);
         await refresh();
         return;
       }
@@ -145,14 +159,22 @@
         await sleep(120);
       }
 
+      showToast((res.prize && res.prize.title ? res.prize.title : 'WIN') + ' +' + (res.prize && res.prize.amount ? res.prize.amount : ''), true);
+
       await refresh();
     } catch (e) {
+      showToast(String(e && e.message ? e.message : e), false);
       await refresh();
     }
   }
 
   if (el.back) el.back.addEventListener('click', function () { history.back(); });
   if (el.start) el.start.addEventListener('click', runSpin);
+
+  // Optional: if common-nav.js provides routing helpers, you can wire these buttons there.
+  if (el.btnRules) el.btnRules.addEventListener('click', function(){ /* hook in common-nav.js if needed */ });
+  if (el.btnRecord) el.btnRecord.addEventListener('click', function(){ /* hook in common-nav.js if needed */ });
+  if (el.btnMyPrize) el.btnMyPrize.addEventListener('click', function(){ /* hook in common-nav.js if needed */ });
 
   refresh();
 })();
