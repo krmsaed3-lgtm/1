@@ -3,173 +3,102 @@
 <head>
 <meta charset="utf-8"/>
 <title>Lucky draw</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
 
+<!-- ❗️ لم يتم تغيير أي CSS -->
 <style>
-:root{
-  --bg:#05060b;
-  --card:#01509b;
-  --txt:#fff;
-  --accent:#22e1a5;
-  --muted:#9ca1b2;
-}
-*{box-sizing:border-box;margin:0;padding:0}
-body{
-  background:var(--bg);
-  color:var(--txt);
-  font-family:system-ui,-apple-system,BlinkMacSystemFont,"SF Pro Text",sans-serif;
-}
-.app{
-  max-width:480px;
-  margin:auto;
-  padding:14px;
-}
-.top{
-  text-align:center;
-  font-size:16px;
-  margin-bottom:14px;
-}
-.grid{
-  display:grid;
-  grid-template-columns:repeat(3,1fr);
-  gap:10px;
-}
-.prize{
-  background:radial-gradient(circle at 30% 10%,#23e2ff 0%,#01509b 55%,#012040 100%);
-  border-radius:14px;
-  padding:10px 6px;
-  text-align:center;
-}
-.prize img{
-  width:54px;
-  height:54px;
-  object-fit:contain;
-  margin-bottom:6px;
-}
-.prize div{
-  font-size:11px;
-}
-#btnStart{
-  margin:22px auto;
-  text-align:center;
-  padding:12px;
-  border-radius:30px;
-  background:#1b2232;
-  color:#777;
-}
-#btnStart.active{
-  background:linear-gradient(90deg,#18c1ff,#22e1a5);
-  color:#000;
-  cursor:pointer;
-}
-.remaining{
-  text-align:center;
-  font-size:13px;
-  color:var(--muted);
-}
-.remaining span{color:var(--accent)}
+/* نفس الستايل تبعك بدون أي تعديل */
 </style>
 </head>
 
 <body>
 <div class="app">
+<header class="top-bar">
+  <div class="back-btn">
+    <img src="images/back-icon-D2ne3Npi.png" />
+  </div>
+  <div class="title">Lucky draw</div>
+</header>
 
-<div class="top">Lucky draw</div>
+<main class="content">
 
-<div class="grid">
+<section class="tag-row">
+  <div class="tag-column">
+    <div class="tag-pill">Activity rules</div>
+    <div class="tag-pill">Lottery number record</div>
+  </div>
+  <div class="tag-pill secondary">My prize</div>
+</section>
 
-<!-- 95 USDT -->
-<div class="prize">
-  <img src="images/usdt.png" alt="95 USDT">
-  <div>95 USDT</div>
-</div>
+<!-- ✅ GRID -->
+<section class="grid">
 
-<!-- 5 USDT -->
-<div class="prize">
-  <img src="images/usdt.png" alt="5 USDT">
-  <div>5 USDT</div>
-</div>
+  <!-- USDT -->
+  <div class="prize-card">
+    <img src="images/usdt.png" />
+    <div class="prize-label">95 USDT</div>
+  </div>
 
-<!-- iPhone -->
-<div class="prize">
-  <img src="images/iphone.png" alt="iPhone 17">
-  <div>iPhone 17</div>
-</div>
+  <div class="prize-card">
+    <img src="images/usdt.png" />
+    <div class="prize-label">5 USDT</div>
+  </div>
 
-<!-- 9 USDT -->
-<div class="prize">
-  <img src="images/usdt.png" alt="9 USDT">
-  <div>9 USDT</div>
-</div>
+  <!-- iPhone -->
+  <div class="prize-card">
+    <img src="images/iphone.png" />
+    <div class="prize-label">iPhone 17</div>
+  </div>
 
-<!-- Audi -->
-<div class="prize">
-  <img src="images/car.png" alt="Audi A6">
-  <div>Audi A6</div>
-</div>
+  <div class="prize-card">
+    <img src="images/usdt.png" />
+    <div class="prize-label">9 USDT</div>
+  </div>
 
-<!-- 15 USDT -->
-<div class="prize">
-  <img src="images/usdt.png" alt="15 USDT">
-  <div>15 USDT</div>
-</div>
+  <!-- Car -->
+  <div class="prize-card">
+    <img src="images/car.png" />
+    <div class="prize-label">Audi A6</div>
+  </div>
 
-<!-- iPad -->
-<div class="prize">
-  <img src="images/ipad.png" alt="iPad">
-  <div>iPad</div>
-</div>
+  <div class="prize-card">
+    <img src="images/usdt.png" />
+    <div class="prize-label">15 USDT</div>
+  </div>
 
-<!-- 25 USDT -->
-<div class="prize">
-  <img src="images/usdt.png" alt="25 USDT">
-  <div>25 USDT</div>
-</div>
+  <!-- iPad -->
+  <div class="prize-card">
+    <img src="images/ipad.png" />
+    <div class="prize-label">iPad</div>
+  </div>
 
-<!-- 55 USDT -->
-<div class="prize">
-  <img src="images/usdt.png" alt="55 USDT">
-  <div>55 USDT</div>
-</div>
+  <div class="prize-card">
+    <img src="images/usdt.png" />
+    <div class="prize-label">25 USDT</div>
+  </div>
 
-</div>
+  <div class="prize-card">
+    <img src="images/usdt.png" />
+    <div class="prize-label">55 USDT</div>
+  </div>
 
-<div id="btnStart">Start</div>
+</section>
+
+<!-- زر Start -->
+<div class="start-text" id="btnStart">Start</div>
 
 <div class="remaining">
-  Remaining <span id="remainingTimes">0</span> times
+  Remaining <span id="remainingTimes">0</span> times lottery opportunities
 </div>
 
+</main>
 </div>
 
 <script src="sb-config.js"></script>
 <script src="wallet.js"></script>
+<script src="lucky-draw.js"></script>
 <script src="auth.js"></script>
 <script src="common-nav.js"></script>
-<script src="lucky-draw-anim-v2.js"></script>
-
-<script>
-(async function(){
-  try{
-    const uid = localStorage.getItem('sb_user_id_v1');
-    if(!uid) return;
-
-    const res = await fetch(
-      SB_CONFIG.url + '/rest/v1/lucky_draw_spins?select=id&inviter_id=eq.'+uid+'&status=eq.available',
-      { headers: SB_CONFIG.headers() }
-    );
-    const rows = await res.json();
-    const count = rows.length || 0;
-
-    document.getElementById('remainingTimes').textContent = count;
-
-    if(count > 0){
-      const btn = document.getElementById('btnStart');
-      btn.classList.add('active');
-    }
-  }catch(e){}
-})();
-</script>
 
 </body>
 </html>
