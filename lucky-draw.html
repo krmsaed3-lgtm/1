@@ -59,6 +59,7 @@
     }
 
     .back-btn img {
+      transform: rotate(180deg);
       width: 18px;
       height: 18px;
       display: block;
@@ -345,9 +346,11 @@ document.getElementById('btnRules')?.addEventListener('click', ()=>{
   document.getElementById('rulesModal').style.display='flex';
 });
 document.getElementById('btnMyPrize')?.addEventListener('click', ()=>{
-  const prize = localStorage.getItem('last_prize');
-  document.getElementById('myPrizeText').textContent =
-    prize ? `You won: ${prize}` : 'You have no prizes yet.';
+  const list = JSON.parse(localStorage.getItem('prize_history') || '[]');
+  document.getElementById('myPrizeText').innerHTML =
+    list.length
+      ? list.map(p => `• ${p}`).join('<br>')
+      : 'You have no prizes yet.';
   document.getElementById('myPrizeModal').style.display='flex';
 });
 </script>
