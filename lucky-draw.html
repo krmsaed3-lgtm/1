@@ -226,10 +226,9 @@
 <main class="content">
 <section class="tag-row">
 <div class="tag-column">
-<div class="tag-pill">Activity rules</div>
-<div class="tag-pill">Lottery number record</div>
+<div class="tag-pill" id="btnRules">Activity rules</div>
 </div>
-<div class="tag-pill secondary">My prize</div>
+<div class="tag-pill secondary" id="btnMyPrize">My prize</div>
 </section>
 <section class="grid">
 <div class="prize-card">
@@ -288,5 +287,37 @@
 <script src="auth.js"></script>
 <script src="common-nav.js"></script>
   <script src="lucky-draw_PROD_EFFECTS.js"></script>
+
+<!-- INTERNAL MODALS (no style change) -->
+<div id="rulesModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9999;align-items:center;justify-content:center;">
+  <div style="max-width:420px;background:#0b1220;border-radius:14px;padding:16px;color:#9ca1b2;">
+    <h3 style="color:#fff;text-align:center;margin-bottom:10px;">Participation rules and conditions</h3>
+    <p>1. This activity is organized by <b>JOPAI</b>. Only real users are allowed.</p>
+    <p>2. Invite a new user who recharges <b>103 USDT</b> using your referral code to get a lucky draw chance.</p>
+    <p>3. Each invited user is counted once only.</p>
+    <p>4. Lucky draw chances are valid for the same day.</p>
+    <p>5. Physical prizes require screenshot proof.</p>
+    <p>6. JOPAI reserves the final right of interpretation.</p>
+    <button onclick="this.parentNode.parentNode.style.display='none'" style="margin-top:12px;width:100%;padding:10px;border-radius:10px;">Close</button>
+  </div>
+</div>
+
+<div id="myPrizeModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9999;align-items:center;justify-content:center;">
+  <div style="max-width:360px;background:#0b1220;border-radius:14px;padding:16px;color:#9ca1b2;text-align:center;">
+    <h3 style="color:#fff;margin-bottom:10px;">My prizes</h3>
+    <p>You have no prizes yet.</p>
+    <button onclick="this.parentNode.parentNode.style.display='none'" style="margin-top:12px;width:100%;padding:10px;border-radius:10px;">Close</button>
+  </div>
+</div>
+
+<script>
+document.getElementById('btnRules')?.addEventListener('click', ()=>{
+  document.getElementById('rulesModal').style.display='flex';
+});
+document.getElementById('btnMyPrize')?.addEventListener('click', ()=>{
+  document.getElementById('myPrizeModal').style.display='flex';
+});
+</script>
+
 </body>
 </html>
