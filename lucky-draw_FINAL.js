@@ -46,15 +46,12 @@
     return { res, text, json };
   }
 
-  async function getAvailableSpinsToday(inviterId) {
-    const r = utcDayRangeISO();
+  async function getAvailableSpins(inviterId) {
     const url =
       SB.url +
       "/rest/v1/lucky_draw_entries?select=id&inviter_id=eq." +
       encodeURIComponent(inviterId) +
-      "&status=eq.available" +
-      "&created_at=gte." + encodeURIComponent(r.startISO) +
-      "&created_at=lt." + encodeURIComponent(r.endISO);
+      "&status=eq.available";
 
     const { res, text, json } = await fetchJSON(url, { headers: sbHeaders() });
     if (!res.ok) throw new Error("entries_fetch_failed:" + res.status + ":" + text);
@@ -214,7 +211,7 @@
     }
 
     try {
-      const cnt = await getAvailableSpinsToday(inviterId);
+      const cnt = await getAvailableSpins(inviterId);
       if (remainingEl) remainingEl.textContent = cnt + " times";
       setStartEnabled(btn, cnt > 0);
       return cnt;
@@ -249,7 +246,17 @@
       return;
     }
 
-    if (!row || row.ok !== true) {
+    // Accept multiple response shapes from RPC
+    const okFlag =
+      row &&
+      (row.ok === true ||
+        row.success === true ||
+        row.result === true ||
+        (row.prize_title != null || row.title != null) ||
+        (row.prize != null || row.prize_amount != null || row.amount != null));
+
+    if (!okFlag) {
+      // If RPC returns an empty object/array, treat as no spins
       showModal("Info", "No spins available.");
       await refresh();
       return;
