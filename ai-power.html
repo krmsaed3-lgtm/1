@@ -989,6 +989,56 @@
     return n.toFixed(2) + " USDT";
   }
 
+
+  // --- Daily cooldown (24h) ---
+  var RUN_COOLDOWN_MS = 24 * 60 * 60 * 1000;
+  function lastRunKey(userId){ return "aiPower_lastRunAt__" + String(userId || ""); }
+  function getLastRun(userId){
+    try {
+      var v = localStorage.getItem(lastRunKey(userId));
+      var n = Number(v);
+      return isFinite(n) ? n : 0;
+    } catch(e){ return 0; }
+  }
+  function setLastRun(userId, ts){
+    try {
+      localStorage.setItem(lastRunKey(userId), String(ts || Date.now()));
+    } catch(e){}
+  }
+  function remainingMs(userId){
+    var last = getLastRun(userId);
+    if (!last) return 0;
+    var rem = (last + RUN_COOLDOWN_MS) - Date.now();
+    return rem > 0 ? rem : 0;
+  }
+  function fmtRemaining(ms){
+    ms = Math.max(0, Number(ms || 0));
+    var totalSec = Math.ceil(ms / 1000);
+    var h = Math.floor(totalSec / 3600);
+    var m = Math.floor((totalSec % 3600) / 60);
+    var s = totalSec % 60;
+    if (h > 0) return h + "h " + m + "m";
+    if (m > 0) return m + "m " + s + "s";
+    return s + "s";
+  }
+  function lockRunButtons(lockedNow){
+    try {
+      var btns = Array.from(document.querySelectorAll(".gpu-button-wrap .btn-gradient"));
+      btns.forEach(function(b){
+        if (!b) return;
+        if (lockedNow) {
+          b.disabled = true;
+          b.style.opacity = "0.35";
+          b.style.pointerEvents = "none";
+        } else {
+          b.disabled = false;
+          b.style.opacity = "";
+          b.style.pointerEvents = "";
+        }
+      });
+    } catch(e){}
+  }
+
   // --- UI handles ---
   var topCard = document.querySelector(".card");
   var topAmountEl = topCard ? topCard.querySelector(".card-value") : null;
@@ -1105,7 +1155,8 @@ function openConfirmModal() {
       // Top card shows total assets
       setText(topAmountEl, formatUSDT(s.usdt_balance));
       // Cosmetic cards: show remaining times as "—" and room as current level
-      setText(timesCardValueEl, "—");
+      var rem = remainingMs(userId);
+      setText(timesCardValueEl, rem > 0 ? "0 Times" : "1 Times");
       setText(runRoomValueEl, (currentLevel || "V0"));
       // Update today's profit on unlocked cards (use today's personal income)
       cards.forEach(function (c) {
@@ -1150,6 +1201,14 @@ function openConfirmModal() {
           return;
         }
 
+        var remMs = remainingMs(userId);
+        if (remMs > 0) {
+          lockRunButtons(true);
+          setText(timesCardValueEl, "0 Times");
+          alert("Too soon. Please try again after " + fmtRemaining(remMs) + " (Canada time).");
+          return;
+        }
+
 
 openConfirmModal().then(function (ok) {
   if (!ok) return;
@@ -1171,6 +1230,11 @@ openConfirmModal().then(function (ok) {
           } else {
             alert("Run completed.");
           }
+
+          // Lock runs for 24h after a successful run
+          setLastRun(userId, Date.now());
+          lockRunButtons(true);
+          setText(timesCardValueEl, "0 Times");
 
           // Refresh totals (today/total/team) via summary
           return refreshTopSummary(userId);
@@ -1204,6 +1268,9 @@ openConfirmModal().then(function (ok) {
       setText(runRoomValueEl, currentLevel);
 
       bindCards(userId);
+      var _remInit = remainingMs(userId);
+      lockRunButtons(_remInit > 0);
+      setText(timesCardValueEl, _remInit > 0 ? "0 Times" : "1 Times");
       return refreshTopSummary(userId);
     });
   }).catch(function (e) {

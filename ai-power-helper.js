@@ -2,6 +2,33 @@
 ;(function () {
   'use strict';
 
+  // --- Daily cooldown (24h) ---
+  var RUN_COOLDOWN_MS = 24 * 60 * 60 * 1000;
+  function lastRunKey(userId){ return "aiPower_lastRunAt__" + String(userId || ""); }
+  function getLastRun(userId){
+    try { var v = localStorage.getItem(lastRunKey(userId)); var n = Number(v); return isFinite(n) ? n : 0; } catch(e){ return 0; }
+  }
+  function setLastRun(userId, ts){
+    try { localStorage.setItem(lastRunKey(userId), String(ts || Date.now())); } catch(e){}
+  }
+  function remainingMs(userId){
+    var last = getLastRun(userId);
+    if (!last) return 0;
+    var rem = (last + RUN_COOLDOWN_MS) - Date.now();
+    return rem > 0 ? rem : 0;
+  }
+  function fmtRemaining(ms){
+    ms = Math.max(0, Number(ms || 0));
+    var totalSec = Math.ceil(ms / 1000);
+    var h = Math.floor(totalSec / 3600);
+    var m = Math.floor((totalSec % 3600) / 60);
+    var s = totalSec % 60;
+    if (h > 0) return h + "h " + m + "m";
+    if (m > 0) return m + "m " + s + "s";
+    return s + "s";
+  }
+
+
   function qs(sel, root){ return (root || document).querySelector(sel); }
   function qsa(sel, root){ return Array.prototype.slice.call((root || document).querySelectorAll(sel)); }
 
@@ -35,6 +62,21 @@
       }
     }, 1000);
     return function(){ try{ clearInterval(t); }catch(e){} };
+  }
+
+
+  async function getUserId(){
+    try {
+      if (window.ExaAuth && typeof window.ExaAuth.ensureSupabaseUserId === 'function') {
+        return (await window.ExaAuth.ensureSupabaseUserId()) || '';
+      }
+    } catch(e){}
+    try {
+      if (window.DemoWallet && typeof window.DemoWallet.getUserId === 'function') {
+        return (await window.DemoWallet.getUserId()) || '';
+      }
+    } catch(e){}
+    return '';
   }
 
   async function refreshUI(){
@@ -90,10 +132,20 @@
         b.disabled = !!disabled;
         b.style.opacity = disabled ? '0.65' : '';
         b.style.cursor = disabled ? 'not-allowed' : '';
+        b.style.pointerEvents = disabled ? 'none' : '';
       });
     }
 
     async function doRun(){
+      var uid = await getUserId();
+      var remMs = remainingMs(uid);
+      if (remMs > 0) {
+        setRunsLeft(false);
+        setDisabled(true);
+        alert('Too soon. Please try again after ' + fmtRemaining(remMs) + ' (Canada time).');
+        return;
+      }
+
       setDisabled(true);
       showModal(true);
 
@@ -116,7 +168,9 @@
             alert('Success!');
           }
           // After success, cannot run again for 24h
+          try { setLastRun(uid, Date.now()); } catch(e){}
           setRunsLeft(false);
+          setDisabled(true);
         } catch (e) {
           showModal(false);
           var msg = (e && e.message) ? e.message : 'Run failed';
@@ -145,8 +199,12 @@
 
     // Initial UI
     refreshUI().then(function(){
-      // Assume can run; if server says too soon, user will see on click.
-      setRunsLeft(true);
+      // Check local 24h cooldown
+      var uid = await getUserId();
+      var rem = remainingMs(uid);
+      var can = !(rem > 0);
+      setRunsLeft(can);
+      setDisabled(!can);
     });
   }
 
@@ -156,4 +214,3 @@
     bind();
   }
 })();
-<script src="ai-power-popup.js"></script>
