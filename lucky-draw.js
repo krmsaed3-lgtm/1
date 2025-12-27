@@ -1,38 +1,28 @@
-/* Lucky Draw (REST RPC, no Supabase JS client)
+/* Lucky Draw PROD (REST RPC, no Supabase JS client)
    - Uses SB_CONFIG from sb-config.js
-   - Uses ExaAuth.ensureSupabaseUserId() from auth.js to get current user id
-   - Animation is UI-only; DB decides the final slot via RPC lucky_draw_spin
+   - Uses ExaAuth.ensureSupabaseUserId() from auth.js
+   - Animation is UI-only; DB decides final slot via RPC lucky_draw_spin
 */
 
 (function () {
   'use strict';
 
   var SB = window.SB_CONFIG;
-  if (!SB) {
-    console.error('SB_CONFIG missing. Load sb-config.js before lucky-draw.js');
-    return;
-  }
-
   function $(id) { return document.getElementById(id); }
 
   var el = {
     back: $('btnBack'),
-    uShort: $('uShort'),
-    spins: $('spins'),
     start: $('btnStart'),
-    status: $('status'),
-    out: $('out'),
-    cards: Array.prototype.slice.call(document.querySelectorAll('#grid .card'))
+    remaining: $('remainingTimes'),
+    cards: Array.prototype.slice.call(document.querySelectorAll('.grid .prize-card'))
   };
 
-  function setStatus(text, ok) {
-    el.status.textContent = text;
-    el.status.className = ok ? 'ok' : 'err';
-  }
-
-  function logJson(obj, ok) {
-    el.out.className = ok ? 'ok' : 'err';
-    el.out.textContent = (typeof obj === 'string') ? obj : JSON.stringify(obj, null, 2);
+  function setStartEnabled(enabled) {
+    if (!el.start) return;
+    el.start.classList.toggle('enabled', !!enabled);
+    el.start.classList.toggle('disabled', !enabled);
+    el.start.setAttribute('aria-disabled', enabled ? 'false' : 'true');
+    el.start.style.opacity = enabled ? '1' : '.55';
   }
 
   function setActive(index) {
@@ -45,6 +35,7 @@
   function sleep(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
 
   function rpc(name, body) {
+    if (!SB) return Promise.reject(new Error('SB_CONFIG missing (load sb-config.js first)'));
     return fetch(SB.url + '/rest/v1/rpc/' + name, {
       method: 'POST',
       headers: SB.headers(),
@@ -71,7 +62,8 @@
   }
 
   async function fetchSpins(userId) {
-    var url = SB.url + '/rest/v1/lucky_draw_user_spins?select=spins_balance&user_id=eq.' + encodeURIComponent(userId) + '&limit=1';
+    var url = SB.url + '/rest/v1/lucky_draw_user_spins?select=spins_balance&user_id=eq.' +
+      encodeURIComponent(userId) + '&limit=1';
     var res = await fetch(url, { method: 'GET', headers: SB.headers() });
     if (!res.ok) return 0;
     var rows = await res.json();
@@ -87,60 +79,39 @@
     return s - 1;
   }
 
-  async function refreshUI() {
-    try {
-      setStatus('Loading…', true);
+  function setRemaining(spins) {
+    if (el.remaining) el.remaining.textContent = String(spins) + ' times';
+  }
 
+  async function refresh() {
+    try {
       var uid = await getUserId();
       if (!uid) {
-        el.uShort.textContent = '-';
-        el.spins.textContent = '0';
-        el.start.disabled = true;
-        el.start.classList.remove('enabled');
-        setStatus('Not logged in', false);
-        logJson('Login first (currentUserId missing in localStorage).', false);
+        setRemaining(0);
+        setStartEnabled(false);
         return;
       }
-
-      el.uShort.textContent = uid.slice(0, 6) + '…' + uid.slice(-4);
-
       var spins = await fetchSpins(uid);
-      el.spins.textContent = String(spins);
-
-      if (spins > 0) {
-        el.start.disabled = false;
-        el.start.classList.add('enabled');
-        setStatus('Ready', true);
-        logJson({ user_id: uid, spins: spins }, true);
-      } else {
-        el.start.disabled = true;
-        el.start.classList.remove('enabled');
-        setStatus('No spins', false);
-        logJson({ user_id: uid, spins: spins, hint: 'No spins in lucky_draw_user_spins for this user yet.' }, false);
-      }
+      setRemaining(spins);
+      setStartEnabled(spins > 0);
     } catch (e) {
-      el.start.disabled = true;
-      el.start.classList.remove('enabled');
-      setStatus('Error', false);
-      logJson(String(e && e.message ? e.message : e), false);
+      setRemaining(0);
+      setStartEnabled(false);
     }
   }
 
   async function runSpin() {
     try {
-      el.start.disabled = true;
-      el.start.classList.remove('enabled');
+      setStartEnabled(false);
 
       var uid = await getUserId();
       if (!uid) throw new Error('Not logged in');
 
-      setStatus('Spinning…', true);
-      logJson('Calling RPC lucky_draw_spin…', true);
-
+      // UI-only animation
       var idx = 0;
       setActive(idx);
 
-      var minSpinMs = 2400;
+      var minSpinMs = 2200;
       var startAt = Date.now();
 
       var interval = setInterval(function () {
@@ -148,7 +119,6 @@
         setActive(idx);
       }, 80);
 
-      // DB decides result
       var res = await rpc('lucky_draw_spin', { p_user_id: uid });
 
       var elapsed = Date.now() - startAt;
@@ -157,9 +127,7 @@
       clearInterval(interval);
 
       if (!res || res.ok !== true) {
-        setStatus('Failed', false);
-        logJson(res || { ok: false, error: 'EMPTY_RESPONSE' }, false);
-        await refreshUI();
+        await refresh();
         return;
       }
 
@@ -177,19 +145,14 @@
         await sleep(120);
       }
 
-      setStatus('WIN', true);
-      logJson(res, true);
-
-      await refreshUI();
+      await refresh();
     } catch (e) {
-      setStatus('Error', false);
-      logJson(String(e && e.message ? e.message : e), false);
-      await refreshUI();
+      await refresh();
     }
   }
 
   if (el.back) el.back.addEventListener('click', function () { history.back(); });
   if (el.start) el.start.addEventListener('click', runSpin);
 
-  refreshUI();
+  refresh();
 })();
