@@ -133,8 +133,6 @@
     }
 
     .start-text {
-      user-select: none;
-
       text-align: center;
       margin: 18px 0 22px;
       font-size: 16px;
@@ -186,39 +184,6 @@
         border: 1px solid #171924;
       }
     }
-  
-    .start-text.is-enabled { color: #ffffff; }
-    .start-text.is-disabled { opacity: .45; pointer-events: none; }
-  
-    .start-text { background: transparent; border: none; width: 100%; }
-    .start-text.is-enabled { color: #ffffff; cursor: pointer; }
-    .start-text.is-disabled { opacity: .45; pointer-events: none; cursor: not-allowed; }
-    .prize-card.is-active {
-      outline: 2px solid rgba(29,224,162,0.95);
-      box-shadow: 0 0 0 3px rgba(29,224,162,0.25), 0 12px 22px rgba(0,0,0,0.55);
-      transform: translateY(-2px);
-    }
-    .ld-modal-overlay{
-      position: fixed; inset:0; background: rgba(0,0,0,0.65);
-      display:flex; align-items:center; justify-content:center;
-      z-index: 99998; padding: 18px;
-    }
-    .ld-modal{
-      width: 92%; max-width: 380px; border-radius: 16px;
-      background: #0b1220; border: 1px solid rgba(255,255,255,0.12);
-      padding: 16px;
-      box-shadow: 0 14px 34px rgba(0,0,0,0.55);
-      color: #fff;
-      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
-    }
-    .ld-modal h3{ font-size: 15px; margin-bottom: 8px; font-weight: 600; }
-    .ld-modal p{ font-size: 13px; color: #cbd0dd; line-height: 1.45; }
-    .ld-modal .ld-actions{ margin-top: 14px; display:flex; gap:10px; justify-content:flex-end; }
-    .ld-modal button{
-      border-radius: 999px; padding: 8px 14px; border: 1px solid rgba(255,255,255,0.18);
-      background: rgba(255,255,255,0.10); color: #fff; cursor: pointer; font-size: 13px;
-    }
-
   </style>
 </head>
 <body>
@@ -238,46 +203,46 @@
 <div class="tag-pill secondary">My prize</div>
 </section>
 <section class="grid">
-<div class="prize-card" data-label="95 USDT">
-<img alt="95 USDT" src="images/usdtt.png"/>
+<div class="prize-card">
+<img alt="95 USDT" src="images/b47dd2e41f360c16613470c80a09e689.png"/>
 <div class="prize-label">95 USDT</div>
 </div>
-<div class="prize-card" data-label="5 USDT">
-<img alt="5 USDT" src="images/usdtt.png"/>
+<div class="prize-card">
+<img alt="5 USDT" src="images/98ded52b9f0b901b516b86e5159bb887.png"/>
 <div class="prize-label">5 USDT</div>
 </div>
-<div class="prize-card" data-label="iPhone 17">
-<img alt="iPhone 17" src="images/iphone.png"/>
+<div class="prize-card">
+<img alt="iPhone 17" src="images/a973a083c60a443bbfe0e16facd3612f.png"/>
 <div class="prize-label">iPhone 17</div>
 </div>
-<div class="prize-card" data-label="9 USDT">
-<img alt="9 USDT" src="images/usdtt.png"/>
+<div class="prize-card">
+<img alt="9 USDT" src="images/98ded52b9f0b901b516b86e5159bb887.png"/>
 <div class="prize-label">9 USDT</div>
 </div>
-<div class="prize-card" data-label="Audi A6">
-<img alt="Audi A6" src="images/car.png"/>
+<div class="prize-card">
+<img alt="Audi A6" src="images/90c8491c6b7b33d9291d509492a938a6.png"/>
 <div class="prize-label">Audi A6</div>
 </div>
-<div class="prize-card" data-label="15 USDT">
-<img alt="15 USDT" src="images/usdtt.png"/>
+<div class="prize-card">
+<img alt="15 USDT" src="images/98ded52b9f0b901b516b86e5159bb887.png"/>
 <div class="prize-label">15 USDT</div>
 </div>
-<div class="prize-card" data-label="iPad">
-<img alt="iPad" src="images/ipad.png"/>
+<div class="prize-card">
+<img alt="iPad" src="images/a973a083c60a443bbfe0e16facd3612f.png"/>
 <div class="prize-label">iPad</div>
 </div>
-<div class="prize-card" data-label="25 USDT">
-<img alt="25 USDT" src="images/usdtt.png"/>
+<div class="prize-card">
+<img alt="25 USDT" src="images/98ded52b9f0b901b516b86e5159bb887.png"/>
 <div class="prize-label">25 USDT</div>
 </div>
-<div class="prize-card" data-label="55 USDT">
-<img alt="55 USDT" src="images/usdtt.png"/>
+<div class="prize-card">
+<img alt="55 USDT" src="images/b47dd2e41f360c16613470c80a09e689.png"/>
 <div class="prize-label">55 USDT</div>
 </div>
 </section>
-<button class="start-text" id="btnStart" type="button">Start</button>
+<div class="start-text">Start</div>
 <div class="remaining">
-        Remaining <span id="remainingTimes">0 times</span> lottery opportunities
+        Remaining <span>0 times</span> lottery opportunities
       </div>
 <div class="rules-title">Participation rules and conditions</div>
 <div class="rules-card">
@@ -285,7 +250,7 @@
 <p>2. The lucky draw opportunity is valid on the day and cannot be accumulated to the next day. Please use it promptly, as it will be reset after expiration.</p>
 <p>3. If you win a physical prize, please take a screenshot and contact the product manager with your account to claim it.</p>
 <p>4. The lucky draw is open for a limited time, with more luxurious prizes coming soon. Stay tuned!</p>
-<p>5. The final interpretation of this event belongs to JOPAI official.</p>
+<p>5. The final interpretation of this event belongs to EXARAI official.</p>
 </div>
 </main>
 </div>
@@ -293,6 +258,6 @@
 <script src="sb-config.js"></script>
 <script src="auth.js"></script>
 <script src="common-nav.js"></script>
-<script src="lucky-draw_FINAL.js"></script>
+<script src="lucky-draw_FINAL_FIXED.js"></script>
 </body>
 </html>
