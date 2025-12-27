@@ -1,20 +1,17 @@
 ;(function () {
   "use strict";
 
-  // Requires sb-config.js which defines window.SB_CONFIG = { url, anonKey, headers() }
   if (!window.SB_CONFIG) {
-    console.warn("lucky-draw: SB_CONFIG missing");
+    console.warn("lucky-draw: SB_CONFIG missing (sb-config.js not loaded)");
     return;
   }
   const SB = window.SB_CONFIG;
 
   function sbHeaders() {
-    // SB.headers() should already include apikey + Authorization
-    return SB.headers();
+    return SB.headers ? SB.headers() : {};
   }
 
   function getUserId() {
-    // Matches your auth flow keys
     const keys = ["sb_user_id_v1", "currentUserId"];
     for (const k of keys) {
       const v = localStorage.getItem(k);
@@ -26,9 +23,12 @@
   function setStartEnabled(btn, enabled) {
     if (!btn) return;
     btn.disabled = !enabled;
+
+    // Keep your original design, just make enabled state obvious (minimal inline change)
     btn.style.opacity = enabled ? "1" : "0.45";
     btn.style.pointerEvents = enabled ? "auto" : "none";
     btn.style.cursor = enabled ? "pointer" : "not-allowed";
+    btn.style.color = enabled ? "#1de0a2" : "#555a68";
   }
 
   function utcDayRangeISO() {
@@ -36,6 +36,14 @@
     const start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, 0, 0));
     const end = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1, 0, 0, 0));
     return { startISO: start.toISOString(), endISO: end.toISOString() };
+  }
+
+  async function fetchJSON(url, options) {
+    const res = await fetch(url, options);
+    const text = await res.text().catch(() => "");
+    let json = null;
+    try { json = text ? JSON.parse(text) : null; } catch {}
+    return { res, text, json };
   }
 
   async function getAvailableSpinsToday(inviterId) {
@@ -48,56 +56,49 @@
       "&created_at=gte." + encodeURIComponent(r.startISO) +
       "&created_at=lt." + encodeURIComponent(r.endISO);
 
-    const res = await fetch(url, { headers: sbHeaders() });
-    if (!res.ok) {
-      const txt = await res.text().catch(() => "");
-      throw new Error("entries_fetch_failed:" + res.status + ":" + txt);
-    }
-    const rows = await res.json();
-    return Array.isArray(rows) ? rows.length : 0;
+    const { res, text, json } = await fetchJSON(url, { headers: sbHeaders() });
+    if (!res.ok) throw new Error("entries_fetch_failed:" + res.status + ":" + text);
+    return Array.isArray(json) ? json.length : 0;
   }
 
   async function spinRPC(inviterId) {
-    const url = SB.url + "/rest/v1/rpc/do_lucky_draw_spin_v3";
-    const res = await fetch(url, {
-      method: "POST",
-      headers: { ...sbHeaders(), "Content-Type": "application/json" },
-      body: JSON.stringify({ p_user: inviterId }),
-    });
-    if (!res.ok) {
-      const txt = await res.text().catch(() => "");
-      throw new Error("rpc_failed:" + res.status + ":" + txt);
+    // Try multiple RPC names/arg keys to match DB exactly without breaking anything.
+    const attempts = [
+      { fn: "do_lucky_draw_spin_v3", body: { p_user: inviterId } },
+      { fn: "do_lucky_draw_spin_v3", body: { user_id: inviterId } },
+      { fn: "do_lucky_draw_spin_v3", body: { p_inviter: inviterId } },
+      { fn: "do_lucky_draw_spin", body: { p_user: inviterId } },
+      { fn: "do_lucky_draw_spin", body: { user_id: inviterId } },
+    ];
+
+    let lastErr = null;
+
+    for (const a of attempts) {
+      const url = SB.url + "/rest/v1/rpc/" + a.fn;
+      const { res, text, json } = await fetchJSON(url, {
+        method: "POST",
+        headers: { ...sbHeaders(), "Content-Type": "application/json" },
+        body: JSON.stringify(a.body),
+      });
+
+      if (res.ok) {
+        const data = Array.isArray(json) ? json[0] : json;
+        return data;
+      }
+
+      lastErr = { fn: a.fn, status: res.status, text: text || "" };
+
+      // If function not found, keep trying other names/args
+      if (res.status === 404 || /Could not find the function|function .* does not exist/i.test(text)) continue;
+
+      // Other errors (permissions, logic errors) should stop here
+      break;
     }
-    const data = await res.json();
-    return Array.isArray(data) ? data[0] : data;
+
+    const msg = lastErr ? (lastErr.fn + " -> " + lastErr.status + ": " + lastErr.text) : "unknown";
+    throw new Error("rpc_failed:" + msg);
   }
 
-  function getCards() {
-    return Array.from(document.querySelectorAll(".prize-card"));
-  }
-
-  function getCardLabel(card) {
-    const el = card.querySelector(".prize-label");
-    return el ? el.textContent.trim() : "";
-  }
-
-  function findCardIndexByTitle(cards, prizeTitle) {
-    const t = (prizeTitle || "").trim().toLowerCase();
-    if (!t) return -1;
-    for (let i = 0; i < cards.length; i++) {
-      const lbl = getCardLabel(cards[i]).trim().toLowerCase();
-      if (lbl === t) return i;
-    }
-    return -1;
-  }
-
-  function setActive(cards, idx) {
-    for (let i = 0; i < cards.length; i++) {
-      cards[i].classList.toggle("is-active", i === idx);
-    }
-  }
-
-  // Inject minimal highlight style (no design change, only outline)
   function ensureStyles() {
     if (document.getElementById("ld-v3-style")) return;
     const st = document.createElement("style");
@@ -121,7 +122,7 @@
         font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
       }
       .ld-modal h3{font-size:15px; margin:0 0 8px 0; font-weight:600;}
-      .ld-modal p{font-size:13px; margin:0; color:#cbd0dd; line-height:1.45;}
+      .ld-modal p{font-size:13px; margin:0; color:#cbd0dd; line-height:1.45; white-space:pre-wrap;}
       .ld-modal .ld-actions{margin-top:14px; display:flex; justify-content:flex-end;}
       .ld-modal button{
         border-radius:999px; padding:8px 14px;
@@ -158,10 +159,35 @@
     document.body.appendChild(overlay);
   }
 
+  function getCards() {
+    return Array.from(document.querySelectorAll(".prize-card"));
+  }
+
+  function getCardLabel(card) {
+    const el = card.querySelector(".prize-label");
+    return el ? el.textContent.trim() : "";
+  }
+
+  function findCardIndexByTitle(cards, prizeTitle) {
+    const t = (prizeTitle || "").trim().toLowerCase();
+    if (!t) return -1;
+    for (let i = 0; i < cards.length; i++) {
+      const lbl = getCardLabel(cards[i]).trim().toLowerCase();
+      if (lbl === t) return i;
+    }
+    return -1;
+  }
+
+  function setActive(cards, idx) {
+    for (let i = 0; i < cards.length; i++) {
+      cards[i].classList.toggle("is-active", i === idx);
+    }
+  }
+
   function animateAndStop(cards, stopIndex) {
     ensureStyles();
     const n = cards.length;
-    const steps = n * 5 + stopIndex; // 5 full rounds
+    const steps = n * 5 + stopIndex; // 5 rounds
     return new Promise((resolve) => {
       let step = 0;
       function tick() {
@@ -217,7 +243,8 @@
       row = await spinRPC(inviterId);
     } catch (e) {
       console.warn(e);
-      showModal("Error", "Spin failed. Please try again.");
+      // Show the real error so we can fix DB/RPC name/permissions immediately
+      showModal("Error", "Spin failed.\n\n" + String(e && e.message ? e.message : e));
       await refresh();
       return;
     }
@@ -230,7 +257,7 @@
 
     const prizeTitle = row.prize_title ? String(row.prize_title) : "";
     const prizeType = row.prize_type ? String(row.prize_type) : "usdt";
-    const prizeAmt = Number(row.prize || 0);
+    const prizeAmt = Number(row.prize || row.amount || 0);
     const remaining = Number(row.remaining_spins || 0);
 
     let stopIndex = findCardIndexByTitle(cards, prizeTitle);
@@ -256,7 +283,6 @@
     const btn = document.getElementById("btnStart");
     if (!btn) return;
 
-    // Some templates used <div id="btnStart">; click still works
     btn.addEventListener("click", onStart);
 
     refresh();
