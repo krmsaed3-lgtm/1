@@ -184,6 +184,57 @@
         border: 1px solid #171924;
       }
     }
+  
+    .start-text {
+      width: 100%;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+    }
+    .start-text.is-disabled {
+      cursor: not-allowed;
+      opacity: 0.55;
+      pointer-events: none;
+    }
+    .prize-card.is-active {
+      outline: 2px solid rgba(29,224,162,0.95);
+      box-shadow: 0 0 0 3px rgba(29,224,162,0.25), 0 12px 22px rgba(0,0,0,0.55);
+      transform: translateY(-2px);
+    }
+    .ld-toast {
+      position: fixed;
+      left: 50%;
+      transform: translateX(-50%);
+      bottom: 18px;
+      background: rgba(0,0,0,0.72);
+      color: #fff;
+      padding: 10px 14px;
+      border-radius: 12px;
+      font-size: 13px;
+      z-index: 99999;
+      max-width: 92%;
+      text-align: center;
+      border: 1px solid rgba(255,255,255,0.15);
+    }
+    .ld-modal-overlay{
+      position: fixed; inset:0; background: rgba(0,0,0,0.65);
+      display:flex; align-items:center; justify-content:center;
+      z-index: 99998; padding: 18px;
+    }
+    .ld-modal{
+      width: 92%; max-width: 380px; border-radius: 16px;
+      background: #0b1220; border: 1px solid rgba(255,255,255,0.12);
+      padding: 16px;
+      box-shadow: 0 14px 34px rgba(0,0,0,0.55);
+    }
+    .ld-modal h3{ font-size: 15px; margin-bottom: 8px; font-weight: 600; }
+    .ld-modal p{ font-size: 13px; color: #cbd0dd; line-height: 1.45; }
+    .ld-modal .ld-actions{ margin-top: 14px; display:flex; gap:10px; justify-content:flex-end; }
+    .ld-modal button{
+      border-radius: 999px; padding: 8px 14px; border: 1px solid rgba(255,255,255,0.18);
+      background: rgba(255,255,255,0.10); color: #fff; cursor: pointer; font-size: 13px;
+    }
+
   </style>
 </head>
 <body>
@@ -203,46 +254,46 @@
 <div class="tag-pill secondary">My prize</div>
 </section>
 <section class="grid">
-<div class="prize-card">
+<div class="prize-card" data-prize="95">
 <img alt="95 USDT" src="images/b47dd2e41f360c16613470c80a09e689.png"/>
 <div class="prize-label">95 USDT</div>
 </div>
-<div class="prize-card">
+<div class="prize-card" data-prize="5">
 <img alt="5 USDT" src="images/98ded52b9f0b901b516b86e5159bb887.png"/>
 <div class="prize-label">5 USDT</div>
 </div>
-<div class="prize-card">
+<div class="prize-card" data-prize="17">
 <img alt="iPhone 17" src="images/a973a083c60a443bbfe0e16facd3612f.png"/>
 <div class="prize-label">iPhone 17</div>
 </div>
-<div class="prize-card">
+<div class="prize-card" data-prize="9">
 <img alt="9 USDT" src="images/98ded52b9f0b901b516b86e5159bb887.png"/>
 <div class="prize-label">9 USDT</div>
 </div>
-<div class="prize-card">
+<div class="prize-card" data-prize="6">
 <img alt="Audi A6" src="images/90c8491c6b7b33d9291d509492a938a6.png"/>
 <div class="prize-label">Audi A6</div>
 </div>
-<div class="prize-card">
+<div class="prize-card" data-prize="15">
 <img alt="15 USDT" src="images/98ded52b9f0b901b516b86e5159bb887.png"/>
 <div class="prize-label">15 USDT</div>
 </div>
-<div class="prize-card">
+<div class="prize-card" data-prize="physical">
 <img alt="iPad" src="images/a973a083c60a443bbfe0e16facd3612f.png"/>
 <div class="prize-label">iPad</div>
 </div>
-<div class="prize-card">
+<div class="prize-card" data-prize="25">
 <img alt="25 USDT" src="images/98ded52b9f0b901b516b86e5159bb887.png"/>
 <div class="prize-label">25 USDT</div>
 </div>
-<div class="prize-card">
+<div class="prize-card" data-prize="55">
 <img alt="55 USDT" src="images/b47dd2e41f360c16613470c80a09e689.png"/>
 <div class="prize-label">55 USDT</div>
 </div>
 </section>
-<div class="start-text" id="btnStart">Start</div>
+<div class="start-text">Start</div>
 <div class="remaining">
-        Remaining <span id="remainingTimes">0 times</span> lottery opportunities
+        Remaining <span>0 times</span> lottery opportunities
       </div>
 <div class="rules-title">Participation rules and conditions</div>
 <div class="rules-card">
@@ -254,10 +305,6 @@
 </div>
 </main>
 </div>
-
-<script src="sb-config.js"></script>
-<script src="wallet.js"></script>
-<script src="lucky-draw.js"></script>
 <script src="auth.js"></script>
 <script src="common-nav.js"></script>
 </body>
