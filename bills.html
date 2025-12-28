@@ -214,6 +214,13 @@
       }
     }
   </style>
+
+<style id="black-bg-override">
+  body {
+    background: #000000 !important;
+  }
+</style>
+
 </head>
 
 <body>
@@ -282,5 +289,23 @@
 
   <script src="sb-config.js"></script>
   <script src="records.js"></script>
+
+<script id="label-fix">
+(function(){
+  function fix(){
+    document.querySelectorAll('*').forEach(function(el){
+      if(el.childNodes.length === 1 && el.textContent.trim() === 'wallet_balances'){
+        el.textContent = 'Wallet Balance';
+      }
+    });
+  }
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', fix);
+  } else {
+    fix();
+  }
+})();
+</script>
+
 </body>
 </html>
