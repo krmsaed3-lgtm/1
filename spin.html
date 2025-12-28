@@ -1,0 +1,346 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1" />
+  <title>Spin</title>
+  <style>
+:root{
+  --bg0:#070a0d;
+  --bg1:#0b0f14;
+  --panel:#0f1b28;
+  --panel2:#0d1722;
+  --stroke:rgba(255,255,255,.08);
+  --muted:rgba(255,255,255,.66);
+  --text:rgba(255,255,255,.92);
+  --shadow:0 18px 45px rgba(0,0,0,.55);
+  --r:20px;
+  --r16:16px;
+  --accentA:#29b6ff;
+  --accentB:#2de5c5;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+  background:
+    radial-gradient(1100px 650px at 50% -220px, rgba(41,182,255,.16) 0%, rgba(11,15,20,0) 55%),
+    radial-gradient(900px 520px at 30% 85%, rgba(45,229,197,.14) 0%, rgba(11,15,20,0) 60%),
+    linear-gradient(180deg,var(--bg1),var(--bg0));
+  color:var(--text);
+  min-height:100vh;
+  padding:14px;
+}
+
+/* Layout */
+.phone{
+  width:min(520px,100%);
+  margin:0 auto;
+  position:relative;
+}
+.topbar{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:8px 4px 14px;
+}
+.title{
+  font-weight:800;
+  letter-spacing:.2px;
+  opacity:.98;
+}
+.iconbtn{
+  width:40px;height:40px;
+  border-radius:14px;
+  background:rgba(255,255,255,.04);
+  border:1px solid var(--stroke);
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;user-select:none;
+  -webkit-tap-highlight-color:transparent;
+}
+.iconbtn:active{transform:scale(.98)}
+
+/* Cards */
+.card{
+  background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.015));
+  border:1px solid var(--stroke);
+  border-radius:var(--r);
+  padding:16px;
+  box-shadow:var(--shadow);
+}
+.row{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.label{font-size:13px;color:var(--muted)}
+.balance{font-size:13px;color:var(--muted)}
+.balance span{color:var(--accentB);font-weight:800}
+
+.inputRow{
+  margin-top:12px;
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+.amt{
+  flex:1;
+  min-width:0;
+  border-radius:18px;
+  background:rgba(0,0,0,.22);
+  border:1px solid var(--stroke);
+  padding:13px 14px;
+  color:var(--text);
+  outline:none;
+  font-size:16px;
+}
+.amt::placeholder{color:rgba(255,255,255,.30)}
+
+.maxBtn{
+  border:none;
+  background:transparent;
+  color:var(--accentA);
+  font-weight:900;
+  letter-spacing:.3px;
+  cursor:pointer;
+  padding:8px 6px;
+}
+.maxBtn:active{transform:scale(.98)}
+
+/* Token dropdown */
+.tokenWrap{position:relative;flex:0 1 150px;width:150px;max-width:45vw;min-width:120px}
+.tokenSelect{
+  width:100%;
+  min-width:0;
+  overflow:hidden;
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  padding:11px 12px;
+  border-radius:18px;
+  background:rgba(255,255,255,.06);
+  border:1px solid var(--stroke);
+  cursor:pointer;user-select:none;
+}
+.tokenLeft{display:flex;align-items:center;gap:10px;min-width:0}
+.tokenIcon{width:26px;height:26px;border-radius:10px;background:rgba(255,255,255,.06);overflow:hidden;display:flex;align-items:center;justify-content:center}
+.tokenIcon img{width:100%;height:100%;object-fit:cover}
+.tokenSym{font-weight:800;font-size:14px;white-space:nowrap}
+.chev{opacity:.75}
+.menu{
+  position:absolute;top:56px;left:0;right:0;
+  background:rgba(12,20,32,.98);
+  border:1px solid rgba(255,255,255,.10);
+  border-radius:18px;
+  overflow:hidden;
+  box-shadow:0 18px 50px rgba(0,0,0,.55);
+  display:none;
+  z-index:50;
+}
+.menu.open{display:block}
+.token-option{
+  display:flex;align-items:center;gap:10px;
+  padding:12px 12px;
+  cursor:pointer;
+  border-top:1px solid rgba(255,255,255,.06);
+  font-weight:750;
+  font-size:14px;
+}
+.token-option:first-child{border-top:none}
+.token-option:hover{background:rgba(255,255,255,.05)}
+.token-option .token-icon{width:24px;height:24px;border-radius:10px;overflow:hidden;background:rgba(255,255,255,.06)}
+.token-option img{width:100%;height:100%;object-fit:cover}
+
+/* Switch button */
+.switcher{display:flex;align-items:center;justify-content:center;margin:14px 0}
+.switchBtn{
+  width:44px;height:44px;
+  border-radius:18px;
+  background:rgba(255,255,255,.05);
+  border:1px solid var(--stroke);
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;
+}
+.switchBtn:active{transform:scale(.98)}
+
+/* Swap CTA */
+.swapBtn{
+  margin-top:14px;
+  width:100%;
+  height:54px;
+  border:none;
+  border-radius:22px;
+  font-weight:900;
+  letter-spacing:.3px;
+  color:#041510;
+  background:linear-gradient(90deg, rgba(41,182,255,.92), rgba(45,229,197,.92));
+  cursor:pointer;
+  box-shadow:0 18px 45px rgba(0,0,0,.45);
+}
+.swapBtn:disabled{opacity:.45;cursor:not-allowed;filter:saturate(.6)}
+
+/* Info section like screenshot */
+.info{
+  margin-top:16px;
+  padding:0;
+  background:transparent;
+  border:none;
+  font-size:14px;
+}
+.infoRow{
+  display:flex;
+  justify-content:space-between;
+  gap:14px;
+  padding:10px 2px;
+  border-top:1px solid rgba(255,255,255,.06);
+}
+.infoRow:first-child{border-top:none}
+.muted{color:var(--muted)}
+
+/* Small text */
+.hint{margin-top:10px;font-size:12px;color:rgba(255,255,255,.55);line-height:1.35}
+.dbg{margin-top:8px;font-size:11px;color:rgba(255,255,255,.45)}
+
+/* Toast */
+.toast{
+  position:fixed;
+  left:50%;
+  bottom:26px;
+  transform:translateX(-50%);
+  background:rgba(10,16,24,.94);
+  border:1px solid rgba(255,255,255,.10);
+  border-radius:16px;
+  padding:10px 12px;
+  font-size:13px;
+  color:var(--text);
+  box-shadow:0 16px 50px rgba(0,0,0,.6);
+  opacity:0;
+  pointer-events:none;
+  transition:opacity .18s ease;
+  max-width:min(520px,90vw);
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.toast.show{opacity:1}
+
+/* Floating home button (design only) */
+.homeFab{
+  position:fixed;
+  right:16px;
+  bottom:16px;
+  width:50px;
+  height:50px;
+  border-radius:18px;
+  display:grid;
+  place-items:center;
+  background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.10);
+  color:rgba(255,255,255,.88);
+  text-decoration:none;
+  box-shadow:0 18px 45px rgba(0,0,0,.55);
+  -webkit-tap-highlight-color:transparent;
+}
+.homeFab:active{transform:scale(.98)}
+
+/* Hide debug / session text (design-only) */
+.hint, .dbg, #dbg{ display:none !important; }
+
+/* Hide top-right buttons but keep spacing (do not break layout or JS) */
+#refreshBtn, #saveBtn{
+  opacity:0 !important;
+  pointer-events:none !important;
+}
+
+
+/* Responsive fix: prevent token dropdown from overflowing on small screens */
+@media (max-width: 380px){
+  .inputRow{gap:10px}
+  .tokenWrap{width:auto;max-width:44vw;min-width:110px}
+  .maxBtn{padding:8px 4px}
+}
+
+</style>
+
+<style id="black-bg-override">
+  body {
+    background: #000000 !important;
+  }
+</style>
+
+</head>
+<body>
+  <div class="phone">
+    <div class="topbar">
+      <div class="iconbtn" id="backBtn" title="Back">‹</div>
+      <div class="title">Spin</div>
+      <div style="display:flex;gap:10px;">
+        <div class="iconbtn" id="refreshBtn" title="Refresh">⟳</div>
+        <div class="iconbtn" id="saveBtn" title="Save">≡</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="row">
+        <div class="label">From</div>
+        <div class="balance">Balance: <span id="from-balance">0</span></div>
+      </div>
+
+      <div class="inputRow">
+        <input id="from-amount" class="amt" inputmode="decimal" placeholder="0 (min 100)" />
+        <button class="maxBtn" type="button" id="maxBtn">MAX</button>
+        <div class="tokenWrap" id="from-token-wrapper">
+          <div class="tokenSelect" id="from-token-select">
+            <div class="tokenLeft">
+              <div class="tokenIcon"><img id="from-token-icon" src="images/usdt.png" alt="USDT"></div>
+              <div class="tokenSym" id="from-token-symbol">USDT</div>
+            </div>
+            <div class="chev">▾</div>
+          </div>
+          <div class="menu" id="from-token-menu"></div>
+        </div>
+      </div>
+
+      <div class="hint">Fee: 1% (1 per 100). Real mode: balances are updated instantly.</div>
+      <div class="dbg" id="dbg">Booting...</div>
+    </div>
+
+    <div class="switcher">
+      <div class="switchBtn" id="switchBtn" title="Switch">⇅</div>
+    </div>
+
+    <div class="card">
+      <div class="row">
+        <div class="label">To</div>
+        <div class="balance">Balance: <span id="to-balance">0</span></div>
+      </div>
+
+      <div class="inputRow">
+        <input id="to-amount" class="amt" inputmode="decimal" placeholder="0" disabled />
+        <div class="tokenWrap" id="to-token-wrapper">
+          <div class="tokenSelect" id="to-token-select">
+            <div class="tokenLeft">
+              <div class="tokenIcon"><img id="to-token-icon" src="images/usdc.png" alt="USDC"></div>
+              <div class="tokenSym" id="to-token-symbol">USDC</div>
+            </div>
+            <div class="chev">▾</div>
+          </div>
+          <div class="menu" id="to-token-menu"></div>
+        </div>
+      </div>
+    </div>
+
+    <button class="swapBtn" id="swap-btn" disabled>Swap</button>
+
+    <div class="info">
+      <div class="infoRow"><div class="muted">Rate</div><div id="rate-text">-</div></div>
+      <div class="infoRow"><div class="muted">Fee</div><div id="fee-text">-</div></div>
+      <div class="infoRow"><div class="muted">Expected to get</div><div id="expected-text">-</div></div>
+    </div>
+  </div>
+
+  <a class="homeFab" href="index.html" aria-label="Home">⌂</a>
+  <div id="toast" class="toast"></div>
+
+  <script src="sb-config.js"></script>
+  <script src="auth.js"></script>
+  <script src="wallet.js"></script>
+  <script src="swap.js" defer></script>
+</body>
+</html>
