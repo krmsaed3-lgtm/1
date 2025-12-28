@@ -2,14 +2,9 @@
   'use strict';
 
   function $(id){ return document.getElementById(id); }
-  function setDbg(msg){
-    var d = $('dbg');
-    if(!d) return;
-    d.textContent = msg || '';
-  }
   function toast(msg){
     var t = $('toast');
-    if(!t) { console.log('[toast]', msg); return; }
+    if(!t){ console.log('[toast]', msg); return; }
     t.textContent = msg;
     t.classList.add('show');
     clearTimeout(window.__toastT);
@@ -23,268 +18,288 @@
   }
 
   var TOKENS = [
-    {sym:'USDT', img:'images/usdt.png', cg:'tether'},
-    {sym:'USDC', img:'images/usdc.png', cg:'usd-coin'},
-    {sym:'BTC',  img:'images/btc.png',  cg:'bitcoin'},
-    {sym:'ETH',  img:'images/eth.png',  cg:'ethereum'},
-    {sym:'TRX',  img:'images/trx.png',  cg:'tron'}
+    {sym:'USDT', img:'images/usdt.png'},
+    {sym:'USDC', img:'images/usdc.png'},
+    {sym:'BTC',  img:'images/btc.png'},
+    {sym:'ETH',  img:'images/eth.png'},
+    {sym:'TRX',  img:'images/trx.png'}
   ];
 
   var MIN_SWAP = 100;
   var FEE_RATE = 0.01;
-  var DEFAULT_RATE = 1; // UI shows 1:1
+
+  var state = {
+    from:'USDT',
+    to:'USDC',
+    rate: 0,
+    balances: { USDT:0, USDC:0, BTC:0, ETH:0, TRX:0 }
+  };
 
   var el = {};
-  var state = {
-    from: 'USDT',
-    to: 'USDC',
-    balances: { USDT:0, USDC:0, BTC:0, ETH:0, TRX:0 },
-    rate: DEFAULT_RATE
-  };
+
+  function token(sym){
+    for(var i=0;i<TOKENS.length;i++) if(TOKENS[i].sym===sym) return TOKENS[i];
+    return TOKENS[0];
+  }
 
   function getUserId(){
     try{
       if(window.DemoWallet && typeof window.DemoWallet.getUserId === 'function'){
-        var uid = window.DemoWallet.getUserId();
-        if(uid) return uid;
+        return window.DemoWallet.getUserId() || '';
       }
     }catch(_){}
-    // common fallbacks
-    return localStorage.getItem('user_id') || localStorage.getItem('uid') || '';
+    return '';
   }
 
-  function setTokenUI(which, sym){
-    var token = TOKENS.find(function(t){ return t.sym===sym; }) || TOKENS[0];
-    if(which==='from'){
-      $('from-token-symbol').textContent = token.sym;
-      $('from-token-icon').src = token.img;
-    }else{
-      $('to-token-symbol').textContent = token.sym;
-      $('to-token-icon').src = token.img;
+  function setBalancesFromJson(obj){
+    if(!obj || typeof obj !== 'object') return;
+    state.balances.USDT = Number(obj.USDT ?? obj.usdt ?? obj.usdt_balance ?? 0) || 0;
+    state.balances.USDC = Number(obj.USDC ?? obj.usdc ?? obj.usdc_balance ?? 0) || 0;
+    state.balances.BTC  = Number(obj.BTC  ?? obj.btc  ?? obj.btc_balance  ?? 0) || 0;
+    state.balances.ETH  = Number(obj.ETH  ?? obj.eth  ?? obj.eth_balance  ?? 0) || 0;
+    state.balances.TRX  = Number(obj.TRX  ?? obj.trx  ?? obj.trx_balance  ?? 0) || 0;
+  }
+
+  function renderMenus(){
+    function mkOption(side, t){
+      var div = document.createElement('div');
+      div.className = 'token-option';
+      div.innerHTML = '<div class="token-icon"><img src="'+t.img+'" alt="'+t.sym+'"></div><span>'+t.sym+'</span>';
+      div.addEventListener('click', function(){ selectToken(side, t.sym); });
+      return div;
     }
+    el.fromMenu.innerHTML = '';
+    el.toMenu.innerHTML = '';
+    TOKENS.forEach(function(t){
+      el.fromMenu.appendChild(mkOption('from', t));
+      el.toMenu.appendChild(mkOption('to', t));
+    });
   }
 
-  function renderBalances(){
-    $('from-balance').textContent = fmt(state.balances[state.from], 6);
-    $('to-balance').textContent = fmt(state.balances[state.to], 6);
+  function openMenu(side){
+    var menu = side === 'from' ? el.fromMenu : el.toMenu;
+    var other = side === 'from' ? el.toMenu : el.fromMenu;
+    other.classList.remove('open');
+    menu.classList.toggle('open');
+  }
+
+  function closeMenus(){
+    el.fromMenu.classList.remove('open');
+    el.toMenu.classList.remove('open');
+  }
+
+  function selectToken(side, sym){
+    if(side === 'from'){ state.from = sym; } else { state.to = sym; }
+    if(state.from === state.to){
+      state.to = (state.from === 'USDT') ? 'USDC' : 'USDT';
+    }
+
+    el.fromSym.textContent = state.from;
+    el.toSym.textContent = state.to;
+    el.fromIcon.src = token(state.from).img;
+    el.toIcon.src = token(state.to).img;
+
+    closeMenus();
+    refreshRateAndUI();
+  }
+
+  function switchTokens(){
+    var tmp = state.from;
+    state.from = state.to;
+    state.to = tmp;
+
+    if(state.from === state.to){
+      state.to = (state.from === 'USDT') ? 'USDC' : 'USDT';
+    }
+
+    el.fromSym.textContent = state.from;
+    el.toSym.textContent = state.to;
+    el.fromIcon.src = token(state.from).img;
+    el.toIcon.src = token(state.to).img;
+
+    refreshRateAndUI();
+  }
+
+  function updateBalancesUI(){
+    el.fromBalance.textContent = fmt(state.balances[state.from], 6);
+    el.toBalance.textContent = fmt(state.balances[state.to], 6);
   }
 
   function updateExpected(){
-    var fromAmt = num($('from-amount').value);
-    if(fromAmt <= 0){
-      $('fee-text').textContent = '-';
-      $('expected-text').textContent = '-';
-      return;
+    var amount = num(el.fromAmount.value);
+    var bal = Number(state.balances[state.from] || 0);
+
+    el.swapBtn.disabled = true;
+    el.toAmount.value = '';
+    el.expectedText.textContent = '-';
+    el.feeText.textContent = '-';
+
+    if(state.rate > 0){
+      el.rateText.textContent = '1 ' + state.from + ' = ' + fmt(state.rate, 12) + ' ' + state.to;
+    }else{
+      el.rateText.textContent = '-';
     }
-    var fee = fromAmt * FEE_RATE;
-    var net = fromAmt - fee;
-    var got = net * state.rate;
 
-    $('rate-text').textContent = '1 ' + state.from + ' = ' + fmt(state.rate, 6) + ' ' + state.to;
-    $('fee-text').textContent = fmt(fee, 6) + ' ' + state.from;
-    $('expected-text').textContent = fmt(got, 6) + ' ' + state.to;
+    if(!(amount > 0)) return;
+    if(amount < MIN_SWAP) return;
+    if(amount > bal) return;
+    if(!(state.rate > 0)) return;
+    if(state.from === state.to) return;
 
-    // button state
-    var ok = (fromAmt >= MIN_SWAP) && (fromAmt <= state.balances[state.from]) && (state.from !== state.to);
-    $('swap-btn').disabled = !ok;
+    var fee = amount * FEE_RATE;
+    var net = amount - fee;
+    var out = net * state.rate;
+
+    el.feeText.textContent = fmt(fee, 8) + ' ' + state.from;
+    el.toAmount.value = fmt(out, 8);
+    el.expectedText.textContent = fmt(out, 8) + ' ' + state.to;
+
+    el.swapBtn.disabled = false;
   }
 
-  function openMenu(which){
-    var menu = $(which+'-token-menu');
-    menu.classList.toggle('show');
-  }
-  function closeMenus(){
-    $('from-token-menu').classList.remove('show');
-    $('to-token-menu').classList.remove('show');
-  }
-
-  function attachMenus(){
-    function buildMenu(which){
-      var menu = $(which+'-token-menu');
-      menu.innerHTML = '';
-      TOKENS.forEach(function(t){
-        var btn = document.createElement('button');
-        btn.className = 'token-item';
-        btn.type = 'button';
-        btn.innerHTML = '<img src="'+t.img+'" alt="'+t.sym+'"><span>'+t.sym+'</span>';
-        btn.addEventListener('click', function(){
-          if(which==='from'){
-            state.from = t.sym;
-            // prevent same
-            if(state.to===state.from){
-              state.to = (t.sym==='USDT') ? 'USDC' : 'USDT';
-              setTokenUI('to', state.to);
-            }
-            setTokenUI('from', state.from);
-          }else{
-            state.to = t.sym;
-            if(state.to===state.from){
-              state.from = (t.sym==='USDT') ? 'USDC' : 'USDT';
-              setTokenUI('from', state.from);
-            }
-            setTokenUI('to', state.to);
-          }
-          closeMenus();
-          renderBalances();
-          updateExpected();
-        });
-        menu.appendChild(btn);
-      });
-    }
-    buildMenu('from');
-    buildMenu('to');
-  }
-
-  function setBalancesFromSwapRow(row){
-    state.balances.USDT = Number(row.usdt_balance ?? row.usdt ?? 0) || 0;
-    state.balances.USDC = Number(row.usdc_balance ?? row.usdc ?? 0) || 0;
-    state.balances.BTC  = Number(row.btc_balance  ?? row.btc  ?? 0) || 0;
-    state.balances.ETH  = Number(row.eth_balance  ?? row.eth  ?? 0) || 0;
-    state.balances.TRX  = Number(row.trx_balance  ?? row.trx  ?? 0) || 0;
+  function updateUI(){
+    updateBalancesUI();
+    updateExpected();
   }
 
   async function loadBalances(){
     var uid = getUserId();
-    if(!uid){
-      setDbg('❌ ما في User ID (مش مسجّل دخول) — لازم تسجّل دخول من نفس الجهاز/المتصفح.');
-      // keep zeros
-      return;
-    }
+    if(!uid) return;
 
-    setDbg('✅ user_id: ' + uid + ' ... تحميل الرصيد');
-
-    // 1) Try RPC get_swap_balances (recommended)
     try{
-      if(window.DemoWallet && typeof window.DemoWallet.rpc === 'function'){
-        var r = await window.DemoWallet.rpc('get_swap_balances', { p_user: uid });
-        if(Array.isArray(r)) r = r[0] || null;
-        if(r){
-          setBalancesFromSwapRow(r);
-          setDbg('✅ تم تحميل swap_balances');
-          return;
-        }
+      if(!(window.DemoWallet && typeof window.DemoWallet.rpc === 'function')){
+        throw new Error('wallet.js not loaded');
       }
+      var b = await window.DemoWallet.rpc('demo_get_balances', { p_user: uid });
+      if(Array.isArray(b)) b = b[0] || null;
+      setBalancesFromJson(b);
     }catch(e){
-      setDbg('⚠️ RPC get_swap_balances فشلت: ' + (e && (e.message||e.error_description||e.toString()) ));
-      // continue fallback
+      console.error(e);
+      toast('Balance error');
     }
+  }
 
-    // 2) Fallback: read swap_balances directly if client is exposed
+  async function loadRate(){
     try{
-      var client = (window.DemoWallet && window.DemoWallet.db) || window.sb || window.supabase || window.supabaseClient;
-      if(client && typeof client.from === 'function'){
-        var q = await client.from('swap_balances').select('*').eq('user_id', uid).maybeSingle();
-        if(q && q.data){
-          setBalancesFromSwapRow(q.data);
-          setDbg('✅ تم تحميل swap_balances (direct)');
-          return;
-        }
+      if(!(window.DemoWallet && typeof window.DemoWallet.rpc === 'function')){
+        throw new Error('wallet.js not loaded');
       }
-    }catch(e2){
-      // continue
+      var r = await window.DemoWallet.rpc('demo_get_rate', { p_from: state.from, p_to: state.to });
+      if(Array.isArray(r)) r = r[0];
+      state.rate = Number(r) || 0;
+    }catch(e){
+      console.error(e);
+      state.rate = 0;
+      toast('Rate not available');
     }
+  }
 
-    // 3) Last fallback: show demo USDT from wallet_balances (common expectation)
-    try{
-      var client2 = (window.DemoWallet && window.DemoWallet.db) || window.sb || window.supabase || window.supabaseClient;
-      if(client2 && typeof client2.from === 'function'){
-        var w = await client2.from('wallet_balances').select('usdt_balance').eq('user_id', uid).maybeSingle();
-        if(w && w.data){
-          state.balances.USDT = Number(w.data.usdt_balance || 0) || 0;
-          setDbg('ℹ️ swap_balances غير متاحة — عرض USDT من wallet_balances فقط');
-          return;
-        }
-      }
-    }catch(e3){}
+  async function refreshAll(){
+    el.swapBtn.disabled = true;
+    await loadBalances();
+    await loadRate();
+    updateUI();
+  }
 
-    setDbg('❌ ما قدرنا نجيب الرصيد. غالبًا: RPC غير معمول / صلاحيات RLS / أو DemoWallet ما عم يعرّف Supabase.');
+  async function refreshRateAndUI(){
+    el.swapBtn.disabled = true;
+    await loadRate();
+    updateUI();
   }
 
   async function performSwap(){
     var uid = getUserId();
-    if(!uid){ toast('لازم تسجّل دخول أولاً'); return; }
+    if(!uid){ toast('Not logged in'); return; }
 
-    var fromAmt = num($('from-amount').value);
-    if(fromAmt < MIN_SWAP){ toast('الحد الأدنى ' + MIN_SWAP); return; }
-    if(state.from === state.to){ toast('اختر عملتين مختلفتين'); return; }
-    if(fromAmt > state.balances[state.from]){ toast('رصيد غير كافي'); return; }
+    var amount = num(el.fromAmount.value);
+    var bal = Number(state.balances[state.from] || 0);
 
-    $('swap-btn').disabled = true;
+    if(!(amount > 0)){ toast('Enter amount'); return; }
+    if(amount < MIN_SWAP){ toast('Min is ' + MIN_SWAP); return; }
+    if(amount > bal){ toast('Insufficient balance'); return; }
+    if(!(state.rate > 0)){ toast('Rate not available'); return; }
+    if(state.from === state.to){ toast('Choose different tokens'); return; }
+
+    el.swapBtn.disabled = true;
 
     try{
-      if(window.DemoWallet && typeof window.DemoWallet.rpc === 'function'){
-        var res = await window.DemoWallet.rpc('do_swap', {
-          p_user: uid,
-          p_from_currency: state.from,
-          p_to_currency: state.to,
-          p_from_amount: fromAmt,
-          p_rate: state.rate,
-          p_ref: 'web'
-        });
-        if(Array.isArray(res)) res = res[0] || null;
-        if(res){
-          setBalancesFromSwapRow(res);
-          toast('تم التبديل ✅');
-          $('from-amount').value = '';
-          $('to-amount').value = '';
-          renderBalances();
-          updateExpected();
-          return;
-        }
+      if(!(window.DemoWallet && typeof window.DemoWallet.rpc === 'function')){
+        throw new Error('wallet.js not loaded');
       }
-      throw new Error('RPC do_swap غير متاحة أو لم تُرجع نتيجة');
+
+      var resp = await window.DemoWallet.rpc('demo_swap', {
+        p_user: uid,
+        p_from: state.from,
+        p_to: state.to,
+        p_amount: amount
+      });
+
+      if(Array.isArray(resp)) resp = resp[0] || null;
+      setBalancesFromJson(resp);
+
+      toast('Swap completed');
+      el.fromAmount.value = '';
+      el.toAmount.value = '';
+      await refreshAll();
     }catch(e){
-      toast('Swap فشل: راجع DBG/Console');
-      setDbg(( $('dbg')?.textContent || '') + '\n' + '❌ do_swap: ' + (e.message || e.toString()));
-    }finally{
-      $('swap-btn').disabled = false;
+      console.error(e);
+      toast('Swap error');
+      await refreshAll();
     }
   }
 
-  function switchTokens(){
-    var tmp = state.from; state.from = state.to; state.to = tmp;
-    setTokenUI('from', state.from);
-    setTokenUI('to', state.to);
-    renderBalances();
-    updateExpected();
-  }
-
-  async function refreshAll(){
-    await loadBalances();
-    renderBalances();
+  function setMax(){
+    el.fromAmount.value = fmt(state.balances[state.from] || 0, 6);
     updateExpected();
   }
 
   function init(){
-    // cache elements
+    el.backBtn = $('backBtn');
+    el.refreshBtn = $('refreshBtn');
+    el.switchBtn = $('switchBtn');
+    el.maxBtn = $('maxBtn');
     el.fromAmount = $('from-amount');
     el.toAmount = $('to-amount');
+    el.fromBalance = $('from-balance');
+    el.toBalance = $('to-balance');
+    el.swapBtn = $('swap-btn');
+    el.rateText = $('rate-text');
+    el.feeText = $('fee-text');
+    el.expectedText = $('expected-text');
 
-    // init UI
-    setTokenUI('from', state.from);
-    setTokenUI('to', state.to);
-    attachMenus();
+    el.fromSelect = $('from-token-select');
+    el.toSelect = $('to-token-select');
+    el.fromMenu = $('from-token-menu');
+    el.toMenu = $('to-token-menu');
+    el.fromIcon = $('from-token-icon');
+    el.toIcon = $('to-token-icon');
+    el.fromSym = $('from-token-symbol');
+    el.toSym = $('to-token-symbol');
+    el.fromWrap = $('from-token-wrapper');
+    el.toWrap = $('to-token-wrapper');
 
-    $('from-token-select').addEventListener('click', function(){ openMenu('from'); });
-    $('to-token-select').addEventListener('click', function(){ openMenu('to'); });
-    $('switchBtn').addEventListener('click', function(){ switchTokens(); });
-    $('swap-btn').addEventListener('click', function(){ performSwap(); });
+    renderMenus();
 
-    $('from-amount').addEventListener('input', updateExpected);
-    $('refreshBtn').addEventListener('click', refreshAll);
+    el.backBtn.addEventListener('click', function(){ if(history.length > 1) history.back(); });
+    el.refreshBtn.addEventListener('click', function(){ refreshAll(); });
+    el.switchBtn.addEventListener('click', function(){ switchTokens(); });
+    el.maxBtn.addEventListener('click', function(){ setMax(); });
+    el.fromAmount.addEventListener('input', function(){ updateExpected(); });
 
-    var maxBtn = $('maxBtn');
-    if(maxBtn){
-      maxBtn.addEventListener('click', function(){
-        var b = Number(state.balances[state.from] || 0);
-        $('from-amount').value = (b > 0) ? fmt(b, 6) : '';
-        updateExpected();
-      });
-    }
+    el.fromSelect.addEventListener('click', function(){ openMenu('from'); });
+    el.toSelect.addEventListener('click', function(){ openMenu('to'); });
+    el.swapBtn.addEventListener('click', function(){ performSwap(); });
 
     document.addEventListener('click', function(e){
-      if(!$('from-token-wrapper').contains(e.target) && !$('to-token-wrapper').contains(e.target)) closeMenus();
+      if(!el.fromWrap.contains(e.target) && !el.toWrap.contains(e.target)){
+        closeMenus();
+      }
     });
+
+    el.fromSym.textContent = state.from;
+    el.toSym.textContent = state.to;
+    el.fromIcon.src = token(state.from).img;
+    el.toIcon.src = token(state.to).img;
 
     refreshAll();
   }
