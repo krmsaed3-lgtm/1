@@ -278,5 +278,11 @@ a{color:inherit;text-decoration:none}
   .select-box, .network-pill, .add-address-btn, .withdraw-btn{height:52px}
 }
 
-/* black background override */
-body{background:#000000 !important;}
+
+/* black background override (strong) */
+html, body{
+  background-color:#000000 !important;
+  background-image:none !important;
+  background:none !important;
+}
+
