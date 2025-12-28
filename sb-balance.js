@@ -26,9 +26,21 @@
     return n.toFixed(2);
   }
 
-  async function update() {
-    if (!window.ExaAuth || typeof window.ExaAuth.ensureSupabaseUserId !== 'function') return;
-    var uid = await window.ExaAuth.ensureSupabaseUserId();
+  
+  function getFallbackUserId() {
+    try {
+      return (localStorage.getItem('sb_user_id_v1') || '').trim();
+    } catch (e) {
+      return '';
+    }
+  }
+
+async function update() {
+    var uid = '';
+    if (window.ExaAuth && typeof window.ExaAuth.ensureSupabaseUserId === 'function') {
+      uid = await window.ExaAuth.ensureSupabaseUserId();
+    }
+    if (!uid) uid = getFallbackUserId();
     if (!uid) return;
 
     var rows = await rpc('get_assets_summary', { p_user: uid });
