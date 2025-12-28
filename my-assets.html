@@ -751,15 +751,7 @@
     try { initActionButtons(); } catch(e){}
     try { initCurrencyToggles(); } catch(e){}
     try { initBottomNav(); } catch(e){}
-     try {
-       var bal = document.querySelector('.assets-usdt-balance');
-       var title = document.querySelector('.assets-title');
-       [bal, title].forEach(function(el){
-         if(!el) return;
-         el.style.cursor = 'pointer';
-         el.addEventListener('click', function(){ window.location.href = ''; });
-       });
-     } catch(e){}
+
 
   }
 
