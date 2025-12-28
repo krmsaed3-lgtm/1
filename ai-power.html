@@ -989,132 +989,6 @@
     return n.toFixed(2) + " USDT";
   }
 
-  
-// --- V1 Run limits (Canada Time) ---
-var CANADA_TZ = "America/Toronto";
-var MAX_RUNS_BY_LEVEL = { V1: 2 }; // start with V1 only
-
-// Returns { startIso, endIso } for today's [start, end) in Canada time.
-function getCanadaDayRangeIso() {
-  try {
-    var now = new Date();
-    var dtf = new Intl.DateTimeFormat("en-CA", {
-      timeZone: CANADA_TZ,
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
-      hour12: false,
-      timeZoneName: "shortOffset"
-    });
-
-    var parts = dtf.formatToParts(now);
-    var y = "", mo = "", d = "", off = "";
-    parts.forEach(function (p) {
-      if (p.type === "year") y = p.value;
-      if (p.type === "month") mo = p.value;
-      if (p.type === "day") d = p.value;
-      if (p.type === "timeZoneName") off = p.value; // like "GMT-5"
-    });
-
-    // Convert "GMT-5" -> "-05:00"
-    var m = /GMT([+-])(\d{1,2})(?::?(\d{2}))?/.exec(off || "");
-    var sign = m ? m[1] : "+";
-    var hh = m ? String(m[2]).padStart(2, "0") : "00";
-    var mm = m && m[3] ? String(m[3]).padStart(2, "0") : "00";
-    var offset = sign + hh + ":" + mm;
-
-    var start = new Date(y + "-" + mo + "-" + d + "T00:00:00" + offset);
-    var end = new Date(start.getTime() + 24 * 60 * 60 * 1000);
-    return { startIso: start.toISOString(), endIso: end.toISOString() };
-  } catch (e) {
-    // Fallback: use local day
-    var s = new Date(); s.setHours(0,0,0,0);
-    var e2 = new Date(s.getTime() + 24*60*60*1000);
-    return { startIso: s.toISOString(), endIso: e2.toISOString() };
-  }
-}
-
-function supabaseCountIpowerActions(userId, startIso, endIso) {
-  // Use HEAD + Prefer: count=exact for fast counts
-  var url = SB.url + "/rest/v1/ipower_actions?select=id&user_id=eq." + encodeURIComponent(userId) +
-    "&created_at=gte." + encodeURIComponent(startIso) + "&created_at=lt." + encodeURIComponent(endIso);
-
-  var headers = SB.headers();
-  headers["Prefer"] = "count=exact";
-
-  return fetch(url, { method: "HEAD", headers: headers }).then(function (res) {
-    if (!res.ok) return 0;
-    var c = res.headers.get("content-range"); // e.g. "0-1/2"
-    var m = /\/(\d+)\s*$/.exec(c || "");
-    return m ? parseInt(m[1], 10) : 0;
-  }).catch(function () { return 0; });
-}
-
-var v1RemainingRuns = null;
-
-function setButtonDisabled(btn, disabled) {
-  if (!btn) return;
-  btn.disabled = !!disabled;
-  btn.style.opacity = disabled ? "0.65" : "";
-  btn.style.cursor = disabled ? "not-allowed" : "";
-}
-
-function findCardByLevel(level) {
-  for (var i = 0; i < cards.length; i++) {
-    if (String(getCardLevel(cards[i]) || "").toUpperCase() === String(level || "").toUpperCase()) return cards[i];
-  }
-  return null;
-}
-
-function updateV1UI(runsToday, maxRuns) {
-  var remaining = Math.max(0, (maxRuns || 0) - (runsToday || 0));
-  v1RemainingRuns = remaining;
-
-  // "Number of times that can be run today"
-  if (timesCardValueEl) timesCardValueEl.textContent = remaining + " Times";
-
-  // V1 card run times & button state
-  var v1Card = findCardByLevel("V1");
-  if (v1Card) {
-    var rt = getRunTimesEl(v1Card);
-    if (rt) rt.textContent = runsToday + "/" + maxRuns;
-
-    var btn = getRunBtn(v1Card);
-    setButtonDisabled(btn, remaining <= 0);
-    if (btn && remaining <= 0) btn.textContent = "Come back tomorrow";
-    if (btn && remaining > 0) btn.textContent = "Run";
-  }
-}
-
-function updateRunAvailability(userId) {
-  // Only enforce V1 now (per your request)
-  if (locked) {
-    // lock everything visually
-    if (timesCardValueEl) timesCardValueEl.textContent = "0 Times";
-    cards.forEach(function (c) {
-      setButtonDisabled(getRunBtn(c), true);
-    });
-    v1RemainingRuns = 0;
-    return Promise.resolve();
-  }
-
-  var lvl = String(currentLevel || "V0").toUpperCase();
-  if (lvl !== "V1") {
-    // Keep page as-is for other levels for now
-    v1RemainingRuns = null;
-    return Promise.resolve();
-  }
-
-  var range = getCanadaDayRangeIso();
-  return supabaseCountIpowerActions(userId, range.startIso, range.endIso).then(function (runsToday) {
-    updateV1UI(runsToday || 0, MAX_RUNS_BY_LEVEL.V1 || 2);
-  });
-}
-
-
   // --- UI handles ---
   var topCard = document.querySelector(".card");
   var topAmountEl = topCard ? topCard.querySelector(".card-value") : null;
@@ -1230,7 +1104,7 @@ function openConfirmModal() {
       if (!s) return;
       // Top card shows total assets
       setText(topAmountEl, formatUSDT(s.usdt_balance));
-      // Cosmetic cards: show remaining times as "—" and room as current level
+      // Remaining times is controlled by per-level logic (e.g., V1 daily cap)
       setText(runRoomValueEl, (currentLevel || "V0"));
       // Update today's profit on unlocked cards (use today's personal income)
       cards.forEach(function (c) {
@@ -1239,6 +1113,138 @@ function openConfirmModal() {
       });
     }).catch(function () {});
   }
+
+
+// ---------------------------
+// V1 daily cap (Canada time)
+// - V1 allows 2 runs per Canada day (America/Toronto)
+// - UI disables Run button after cap is reached to prevent useless clicks
+// Notes:
+// - Earning percentage (e.g., 1.75%) remains enforced by Supabase RPC perform_ipower_action
+// ---------------------------
+var TZ_CANADA = "America/Toronto";
+var MAX_RUNS = { V1: 2 };
+
+function getOffsetMinutes(date, timeZone) {
+  // Returns offset minutes for `timeZone` at `date` (positive east of UTC).
+  // Uses Intl timeZoneName: 'shortOffset' when available (e.g., 'GMT-5').
+  try {
+    var dtf = new Intl.DateTimeFormat("en-US", { timeZone: timeZone, timeZoneName: "shortOffset" });
+    var parts = dtf.formatToParts(date);
+    var tzPart = parts.find(function(p){ return p.type === "timeZoneName"; });
+    var s = tzPart ? tzPart.value : "";
+    // Possible values: "GMT-5", "GMT-05:00", "UTC+03:00"
+    var m = s.match(/([+-])(\d{1,2})(?::?(\d{2}))?/);
+    if (m) {
+      var sign = (m[1] === "-") ? -1 : 1;
+      var hh = parseInt(m[2], 10) || 0;
+      var mm = parseInt(m[3] || "0", 10) || 0;
+      return sign * (hh * 60 + mm);
+    }
+  } catch (e) {}
+  // Fallback: approximate using local offset (less correct for Canada if browser tz differs)
+  return -date.getTimezoneOffset();
+}
+
+function getNowPartsInTZ(timeZone) {
+  var dtf = new Intl.DateTimeFormat("en-CA", {
+    timeZone: timeZone,
+    year: "numeric", month: "2-digit", day: "2-digit",
+    hour: "2-digit", minute: "2-digit", second: "2-digit",
+    hour12: false
+  });
+  var parts = dtf.formatToParts(new Date());
+  function p(type){ var x = parts.find(function(i){ return i.type === type; }); return x ? x.value : ""; }
+  return {
+    year: parseInt(p("year"), 10),
+    month: parseInt(p("month"), 10),
+    day: parseInt(p("day"), 10)
+  };
+}
+
+function getCanadaDayRangeUTC() {
+  // Compute [startUTC, endUTC) for current Canada day (America/Toronto)
+  var d = getNowPartsInTZ(TZ_CANADA);
+  var approx = new Date(Date.UTC(d.year, d.month - 1, d.day, 0, 0, 0));
+  var offMin = getOffsetMinutes(approx, TZ_CANADA);
+  // Local midnight (Canada) -> UTC instant = local - offset
+  var startMs = Date.UTC(d.year, d.month - 1, d.day, 0, 0, 0) - offMin * 60 * 1000;
+  var endMs = startMs + 24 * 60 * 60 * 1000;
+  return { start: new Date(startMs), end: new Date(endMs) };
+}
+
+function iso(d) { return d.toISOString(); }
+
+function fetchRunsToday(userId) {
+  // Count ipower_actions for this user in current Canada day window
+  var r = getCanadaDayRangeUTC();
+  var url = SB.url + "/rest/v1/ipower_actions?select=id,created_at"
+    + "&user_id=eq." + encodeURIComponent(userId)
+    + "&created_at=gte." + encodeURIComponent(iso(r.start))
+    + "&created_at=lt." + encodeURIComponent(iso(r.end))
+    + "&order=created_at.desc&limit=20";
+  return fetch(url, { method: "GET", headers: SB.headers() })
+    .then(function(res){ if (!res.ok) return []; return res.json(); })
+    .then(function(rows){ return Array.isArray(rows) ? rows.length : 0; })
+    .catch(function(){ return 0; });
+}
+
+function setBtnState(btn, enabled, label) {
+  if (!btn) return;
+  btn.disabled = !enabled;
+  if (label) btn.textContent = label;
+  // inline only (no CSS changes)
+  btn.style.opacity = enabled ? "" : "0.55";
+  btn.style.cursor = enabled ? "" : "not-allowed";
+}
+
+async function refreshV1UI(userId) {
+  // Only affects V1 card + top "Number of times..." card
+  if (!userId) return;
+
+  if (locked) {
+    if (timesCardValueEl) timesCardValueEl.textContent = "0 Times";
+    cards.forEach(function(cardEl){
+      var lvl = String(getCardLevel(cardEl) || "").toUpperCase();
+      if (lvl === "V1") {
+        var runTimesEl = getRunTimesEl(cardEl);
+        if (runTimesEl) runTimesEl.textContent = "—";
+        var btn = getRunBtn(cardEl);
+        setBtnState(btn, false, "Run");
+      }
+    });
+    return;
+  }
+
+  var runs = await fetchRunsToday(userId);
+  var max = MAX_RUNS.V1;
+  var remaining = Math.max(0, max - runs);
+
+  if (timesCardValueEl) timesCardValueEl.textContent = remaining + " Times";
+
+  cards.forEach(function(cardEl){
+    var lvl = String(getCardLevel(cardEl) || "").toUpperCase();
+    if (lvl !== "V1") return;
+
+    var reqRank = levelRank(lvl);
+    var isUsableLevel = reqRank >= 1 && reqRank <= 3;
+    var unlocked = (!locked) && isUsableLevel && (currentRank >= reqRank);
+
+    var runTimesEl = getRunTimesEl(cardEl);
+    if (runTimesEl) runTimesEl.textContent = runs + "/" + max;
+
+    var btn = getRunBtn(cardEl);
+    if (btn) btn.dataset.remainingRuns = String(remaining);
+
+    if (!unlocked) return;
+
+    if (remaining <= 0) {
+      setBtnState(btn, false, "Come back tomorrow");
+    } else {
+      setBtnState(btn, true, "Run");
+    }
+  });
+}
 
   var currentLevel = "V0";
   var currentRank = 0;
@@ -1261,8 +1267,8 @@ function openConfirmModal() {
 
       if (lockTextEl) lockTextEl.textContent = unlocked ? "Unlocked" : "Not unlocked";
       if (btn) btn.textContent = unlocked ? "Run" : "Run after unlocking";
-      // run times will be refreshed from DB
-      if (runTimesEl) runTimesEl.textContent = "—";
+      // Per-level run-times display (V1 uses live daily count)
+      if (runTimesEl && String(lvl).toUpperCase() !== "V1") runTimesEl.textContent = "—";
 
       if (!btn) return;
 
@@ -1276,10 +1282,13 @@ function openConfirmModal() {
           return;
         }
 
-        // V1: enforce remaining runs client-side to prevent useless clicks
-        if (String(lvl).toUpperCase() === "V1" && v1RemainingRuns !== null && v1RemainingRuns <= 0) {
-          alert("You have completed today's runs. Come back tomorrow (Canada time).");
-          return;
+        // V1 daily cap guard (2 runs per Canada day)
+        if (String(lvl).toUpperCase() === "V1") {
+          var rem = Number((btn && btn.dataset && btn.dataset.remainingRuns) ? btn.dataset.remainingRuns : 0);
+          if (!(rem > 0)) {
+            alert("Today's runs are completed. Come back tomorrow.");
+            return;
+          }
         }
 
 
@@ -1304,8 +1313,8 @@ openConfirmModal().then(function (ok) {
             alert("Run completed.");
           }
 
-          // Refresh totals + run availability
-          return refreshTopSummary(userId).then(function(){ return updateRunAvailability(userId); });
+          // Refresh totals (today/total/team) via summary
+          return refreshTopSummary(userId).then(function(){ return refreshV1UI(userId); });
         }).catch(function (err) {
           var msg = (err && err.message) ? err.message : String(err || "Run failed");
           // Make backend errors readable
@@ -1336,7 +1345,7 @@ openConfirmModal().then(function (ok) {
       setText(runRoomValueEl, currentLevel);
 
       bindCards(userId);
-      return refreshTopSummary(userId).then(function(){ return updateRunAvailability(userId); });
+      return refreshTopSummary(userId).then(function(){ return refreshV1UI(userId); });
     });
   }).catch(function (e) {
     console.error(e);
