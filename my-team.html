@@ -639,29 +639,19 @@
       }
 
       async function fetchFundedMapByUserIds(userIds) {
+        // NEW: Determine "effective" based on DEMO balance (wallet_balances) via view v_user_effective_demo
+        // This avoids reading real deposits and matches the DB logic: effective when demo_balance >= 100
         var map = Object.create(null);
         userIds = uniq(userIds || []);
         if (!userIds.length) return map;
 
         var baseUrl = (window.SB_CONFIG && window.SB_CONFIG.url) ? window.SB_CONFIG.url : "";
-        var url = baseUrl + "/rest/v1/rpc/rpc_users_funded";
-        var res = await fetch(url, {
-          method: "POST",
-          headers: apiHeaders(),
-          body: JSON.stringify({ user_ids: userIds })
-        });
+        // Query the view directly (works like a table in Supabase REST)
+        var url = baseUrl + "/rest/v1/v_user_effective_demo"
+          + "?select=user_id,is_effective"
+          + "&user_id=" + inFilter(userIds);
 
-        // Backward compatible: some DB versions used param name p_user_ids
-        if (!res.ok) {
-          try {
-            res = await fetch(url, {
-              method: "POST",
-              headers: apiHeaders(),
-              body: JSON.stringify({ p_user_ids: userIds })
-            });
-          } catch (e) {}
-        }
-
+        var res = await fetch(url, { method: "GET", headers: apiHeaders() });
         if (!res.ok) return map;
 
         var rows = await res.json();
@@ -669,7 +659,7 @@
 
         rows.forEach(function (r) {
           if (!r || !r.user_id) return;
-          map[String(r.user_id)] = (r.funded === true);
+          map[String(r.user_id)] = (r.is_effective === true);
         });
         return map;
       }
