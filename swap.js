@@ -1,6 +1,10 @@
 ;(function(){
   'use strict';
 
+  // Run after DOM is ready (swap.html loads scripts in <head>)
+  function __run(){
+
+
   function $(id){ return document.getElementById(id); }
   function toast(msg){
     var t = $('toast');
@@ -24,7 +28,7 @@
     {sym:'TRX',  img:'images/trx.png',  cg:'tron'}
   ];
 
-  var MIN_SWAP = 100;
+  var MIN_SWAP = 1;
   var FEE_RATE = 0.01;
 
   var state = {
@@ -319,4 +323,12 @@
   });
 
   refreshAll();
+
+  }
+
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', __run);
+  } else {
+    __run();
+  }
 })();
