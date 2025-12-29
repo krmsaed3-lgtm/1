@@ -1,0 +1,1107 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport"/>
+<title>Mine</title>
+<style>
+    :root {
+      --page-bg: #05070b;
+      --card-main: #0B2F3B;
+      --text-main: #ffffff;
+      --text-muted: #7b8593;
+      --accent: #00e4c0;
+      --border-soft: #283341;
+      --bottom-active: #00d1ff;
+      --bottom-bg: #0C0B10;
+      --item-bg: #12151d;
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
+      background-color: var(--page-bg);
+      color: var(--text-main);
+    }
+
+    .page {
+      min-height: 100vh;
+      background-color: var(--page-bg);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .nav-bar {
+      height: 46px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      font-weight: 500;
+      color: #ffffffd9;
+    }
+
+    .content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px 12px 80px 12px;
+    }
+
+    .profile-card {
+      display: flex;
+      align-items: center;
+      padding: 16px 4px 12px 4px;
+    }
+
+    .avatar {
+      width: 56px;
+      height: 56px;
+      border-radius: 999px;
+      overflow: hidden;
+      margin-right: 12px;
+      flex-shrink: 0;
+    }
+
+    .avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .profile-info {
+      flex: 1;
+    }
+
+    .profile-phone {
+      font-size: 15px;
+      font-weight: 500;
+      margin-bottom: 4px;
+    }
+
+    .profile-id {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    .profile-level {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background-color: #1b2230;
+      font-size: 11px;
+      color: #c7d2fe;
+    }
+
+    .profile-arrow {
+      font-size: 18px;
+      color: #ffffffb3;
+      padding-left: 8px;
+    }
+
+    .shortcut-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 18px 8px;
+      padding: 4px 0 14px 0;
+    }
+
+    .shortcut-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      font-size: 11px;
+      color: #e5e7eb;
+    }
+
+    .shortcut-icon-wrap {
+      width: 36px;
+      height: 36px;
+      border-radius: 999px;
+      background-color: #10141e;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 6px;
+    }
+
+    .shortcut-icon-wrap img {
+      width: 20px;
+      height: 20px;
+      object-fit: contain;
+    }
+
+    
+    .invite-banner {
+      position: relative;
+      margin: 6px 0 16px 0;
+      border-radius: 16px;
+      overflow: hidden;
+    }
+
+    .invite-banner img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .invite-content {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      color: #ffffff;
+      pointer-events: none;
+    }
+
+    .invite-title {
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .invite-subtitle {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+    }
+
+    .invite-go {
+      pointer-events: auto;
+      border: none;
+      padding: 2px 12px;
+      border-radius: 999px;
+      font-size: 11px;
+      background: #00d28f;
+      color: #ffffff;
+      cursor: pointer;
+    }
+.section-list {
+      margin-top: 4px;
+    }
+
+    .section-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 4px;
+      border-bottom: 0.5px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .section-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .section-icon {
+      width: 30px;
+      height: 30px;
+      border-radius: 999px;
+      background-color: #10141e;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .section-icon img {
+      width: 18px;
+      height: 18px;
+      object-fit: contain;
+    }
+
+    .section-label {
+      font-size: 14px;
+      color: #e5e7eb;
+    }
+
+    .section-arrow {
+      font-size: 16px;
+      color: #ffffff80;
+    }
+
+    .logout-wrap {
+      margin-top: 20px;
+      padding-bottom: 16px;
+    }
+
+    .logout-btn {
+      width: 100%;
+      border-radius: 10px;
+      border: none;
+      background-color: #17202D;
+      color: #e5e7eb;
+      padding: 12px 0;
+      font-size: 14px;
+    }
+
+    .bottom-nav {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 78px;
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      padding: 8px 0 30px 0;
+      background-color: var(--bottom-bg);
+      box-shadow: 0 -1px 0 rgba(255, 255, 255, 0.04);
+    }
+
+    .bottom-item {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .bottom-icon-img {
+      width: 26px;
+      height: 26px;
+      object-fit: contain;
+    }
+
+    .bottom-item.power .bottom-icon-img.power-img {
+      width: 40px;
+      height: 40px;
+      border-radius: 999px;
+    }
+
+    .bottom-item.active span {
+      color: var(--bottom-active);
+    }
+
+    @media (min-width: 480px) {
+      .page {
+        max-width: 480px;
+        margin: 0 auto;
+      }
+
+      .bottom-nav {
+        left: 50%;
+        right: auto;
+        transform: translateX(-50%);
+        max-width: 480px;
+      }
+    }
+  
+    /* Modal (Room task lock) */
+    .jt-modal{
+      position: fixed;
+      inset: 0;
+      display: none;
+      z-index: 9999;
+    }
+    .jt-modal.is-open{ display:block; }
+    .jt-modal__backdrop{
+      position:absolute;
+      inset:0;
+      background: rgba(0,0,0,0.55);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+    }
+    .jt-modal__panel{
+      position: absolute;
+      left: 50%;
+      top: 52%;
+      transform: translate(-50%, -50%);
+      width: min(92vw, 420px);
+      border-radius: 16px;
+      background: #0f1420;
+      border: 1px solid rgba(255,255,255,0.08);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.55);
+      overflow: hidden;
+    }
+    .jt-modal__header{
+      display:flex;
+      gap:12px;
+      padding: 16px 16px 10px 16px;
+      align-items:center;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      background: linear-gradient(180deg, rgba(0,228,192,0.10), rgba(0,0,0,0));
+    }
+    .jt-modal__icon{
+      width: 40px;
+      height: 40px;
+      border-radius: 999px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      background: rgba(0,228,192,0.14);
+      color: var(--accent);
+      font-size: 18px;
+      flex-shrink:0;
+    }
+    .jt-modal__title{
+      font-size: 15px;
+      font-weight: 600;
+      color: #ffffff;
+      line-height: 1.2;
+    }
+    .jt-modal__subtitle{
+      margin-top: 2px;
+      font-size: 12px;
+      color: rgba(255,255,255,0.68);
+    }
+    .jt-modal__body{
+      padding: 12px 16px 16px 16px;
+    }
+    .jt-modal__text{
+      font-size: 13px;
+      color: rgba(255,255,255,0.78);
+      line-height: 1.55;
+    }
+    .jt-modal__actions{
+      padding: 0 16px 16px 16px;
+      display:flex;
+      gap: 10px;
+    }
+    .jt-btn{
+      flex:1;
+      border: none;
+      border-radius: 12px;
+      padding: 12px 10px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .jt-btn.primary{
+      background: rgba(0,228,192,0.18);
+      color: #eafffb;
+      border: 1px solid rgba(0,228,192,0.35);
+    }
+    .jt-btn.ghost{
+      background: rgba(255,255,255,0.06);
+      color: rgba(255,255,255,0.85);
+      border: 1px solid rgba(255,255,255,0.10);
+    }
+
+  
+/* === AI Robot Buddy Overlay (Prototype) === */
+.avatar-shell{
+  position: relative;
+  width: 56px;
+  height: 56px;
+  margin-right: 12px;
+  flex-shrink: 0;
+}
+.avatar-shell .avatar{
+  width: 56px;
+  height: 56px;
+  margin-right: 0 !important;
+}
+
+.robot-buddy{
+  position: absolute;
+  right: -10px;
+  top: -14px;
+  width: 40px;
+  height: 40px;
+  pointer-events: none;
+  filter: drop-shadow(0 6px 10px rgba(0,0,0,0.45));
+}
+.robot-buddy svg{ width:100%; height:100%; display:block; }
+
+/* Blink */
+.robot-eye{
+  transform-origin: center;
+  animation: robotBlink 7s infinite;
+}
+@keyframes robotBlink{
+  0%, 92%, 100% { transform: scaleY(1); }
+  94% { transform: scaleY(0.12); }
+  96% { transform: scaleY(1); }
+}
+
+/* Wave */
+.robot-hand{
+  transform-origin: 26px 26px;
+  animation: robotWave 14s infinite;
+}
+@keyframes robotWave{
+  0%, 84% { transform: rotate(0deg); }
+  86% { transform: rotate(18deg); }
+  88% { transform: rotate(-12deg); }
+  90% { transform: rotate(16deg); }
+  92% { transform: rotate(-8deg); }
+  94% { transform: rotate(10deg); }
+  96%, 100% { transform: rotate(0deg); }
+}
+
+</style>
+</head>
+<body>
+<div class="page">
+<header class="nav-bar">
+<div>Mine</div>
+</header>
+<main class="content">
+<section class="profile-card">
+<div class="avatar-shell">
+  <div class="avatar">
+    <img alt="Avatar" id="mine-avatar" src="images/ec72cc3f0db8049d48f6fbcea83f4437.png"/>
+  </div>
+
+<div class="robot-buddy" aria-hidden="true">
+  <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="rbG" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0%" stop-color="#18c1ff"/>
+        <stop offset="100%" stop-color="#22e1a5"/>
+      </linearGradient>
+    </defs>
+
+    <!-- hand (wave) -->
+    <g class="robot-hand">
+      <path d="M50 32c4 0 7 3 7 7 0 6-6 11-15 11h-3" fill="none" stroke="url(#rbG)" stroke-width="4" stroke-linecap="round"/>
+      <path d="M39 50c2-3 3-7 3-11 0-3-1-5-3-7" fill="none" stroke="rgba(255,255,255,0.65)" stroke-width="2" stroke-linecap="round"/>
+    </g>
+
+    <!-- head -->
+    <g>
+      <path d="M16 22c0-7 6-13 13-13h6c7 0 13 6 13 13v10c0 7-6 13-13 13h-6c-7 0-13-6-13-13V22z"
+            fill="rgba(0,0,0,0.35)" stroke="url(#rbG)" stroke-width="2"/>
+      <path d="M18 23c0-6 5-11 11-11h6c6 0 11 5 11 11v7c0 6-5 11-11 11h-6c-6 0-11-5-11-11v-7z"
+            fill="rgba(0,0,0,0.18)"/>
+
+      <!-- eyes -->
+      <g class="robot-eye">
+        <circle cx="28" cy="30" r="3.4" fill="rgba(255,255,255,0.85)"/>
+        <circle cx="36" cy="30" r="3.4" fill="rgba(255,255,255,0.85)"/>
+        <circle cx="28" cy="30" r="1.4" fill="url(#rbG)"/>
+        <circle cx="36" cy="30" r="1.4" fill="url(#rbG)"/>
+      </g>
+
+      <!-- mouth -->
+      <path d="M27 40h10" stroke="rgba(255,255,255,0.55)" stroke-width="2" stroke-linecap="round"/>
+
+      <!-- antenna -->
+      <path d="M32 7v6" stroke="url(#rbG)" stroke-width="2" stroke-linecap="round"/>
+      <circle cx="32" cy="6" r="2.2" fill="url(#rbG)"/>
+    </g>
+  </svg>
+</div>
+
+</div>
+<div class="profile-info">
+<div class="profile-phone" id="mine-phone"></div>
+<div class="profile-id" id="mine-id">ID: -</div>
+
+</div>
+<div class="profile-arrow">›</div>
+</section>
+<section class="shortcut-grid">
+<div class="shortcut-item">
+<div class="shortcut-icon-wrap">
+<img alt="Room task" src="images/Room%20task.png"/>
+</div>
+<span>Room task</span>
+</div>
+<div class="shortcut-item">
+<div class="shortcut-icon-wrap">
+<img alt="Member" src="images/Member.png"/>
+</div>
+<span>Member</span>
+</div>
+<div class="shortcut-item">
+<div class="shortcut-icon-wrap">
+<img alt="My Team" src="images/My%20Team.png"/>
+</div>
+<span>My Team</span>
+</div>
+<div class="shortcut-item">
+<div class="shortcut-icon-wrap">
+<img alt="Task Center" src="images/Task%20Center.png"/>
+</div>
+<span>Task Center</span>
+</div>
+<div class="shortcut-item">
+<div class="shortcut-icon-wrap">
+<img alt="My Works" src="images/My%20Works.png"/>
+</div>
+<span>My Works</span>
+</div>
+<div class="shortcut-item">
+<div class="shortcut-icon-wrap">
+<img alt="Tool" src="images/Tool.png"/>
+</div>
+<span>Tool</span>
+</div>
+<div class="shortcut-item">
+<div class="shortcut-icon-wrap">
+<img alt="Run record" src="images/Run%20record.png"/>
+</div>
+<span>Run record</span>
+</div>
+<div class="shortcut-item">
+<div class="shortcut-icon-wrap">
+<img alt="Content" src="images/Content.png"/>
+</div>
+<span>Content</span>
+</div>
+</section>
+<div class="invite-banner">
+<img alt="Invite Friends" src="images/invite-icon-S4SotH5Q.png"/>
+<div class="invite-content">
+<div class="invite-title">Invite Friends</div>
+<div class="invite-subtitle">
+<span>Earn more rewards</span>
+<button class="invite-go">Go</button>
+</div>
+</div>
+</div>
+<section class="section-list">
+<div class="section-item">
+<div class="section-left">
+<div class="section-icon">
+<img alt="Lucky draw" src="images/Lucky%20draw.png"/>
+</div>
+<span class="section-label">Lucky draw</span>
+</div>
+<div class="section-arrow">›</div>
+</div>
+<div class="section-item">
+<div class="section-left">
+<div class="section-icon">
+<img alt="Security Center" src="images/Security%20Center.png"/>
+</div>
+<span class="section-label">Security Center</span>
+</div>
+<div class="section-arrow">›</div>
+</div>
+<div class="section-item">
+<div class="section-left">
+<div class="section-icon">
+<img alt="Site message" src="images/Site%20message.png"/>
+</div>
+<span class="section-label">Site message</span>
+</div>
+<div class="section-arrow">›</div>
+</div>
+<div class="section-item">
+<div class="section-left">
+<div class="section-icon">
+<img alt="Help Center" src="images/Help%20Center.png"/>
+</div>
+<span class="section-label">Help Center</span>
+</div>
+<div class="section-arrow">›</div>
+</div>
+<div class="section-item">
+<div class="section-left">
+<div class="section-icon">
+<img alt="Clear Cache" src="images/Clear%20Cache.png"/>
+</div>
+<span class="section-label">Clear Cache</span>
+</div>
+<div class="section-arrow">›</div>
+</div>
+<div class="section-item">
+<div class="section-left">
+<div class="section-icon">
+<img alt="Theme" src="images/Theme.png"/>
+</div>
+<span class="section-label">Theme</span>
+</div>
+<div class="section-arrow">›</div>
+</div>
+<div class="section-item">
+<div class="section-left">
+<div class="section-icon">
+<img alt="About Us" src="images/About%20Us.png"/>
+</div>
+<span class="section-label">About Us</span>
+</div>
+<div class="section-arrow">›</div>
+</div>
+<div class="section-item">
+<div class="section-left">
+<div class="section-icon">
+<img alt="Switch language" src="images/icon-18-RHnDR78D.png"/>
+</div>
+<span class="section-label">Switch language</span>
+</div>
+<div class="section-arrow">›</div>
+</div>
+<div class="section-item">
+<div class="section-left">
+<div class="section-icon">
+<img alt="Online customer service" src="images/icon-17-CMs7hPtH.png"/>
+</div>
+<span class="section-label">Online customer service</span>
+</div>
+<div class="section-arrow">›</div>
+</div>
+<div class="section-item">
+<div class="section-left">
+<div class="section-icon">
+<img alt="APP download" src="images/icon-10-DeYOj72H.png"/>
+</div>
+<span class="section-label">APP download</span>
+</div>
+<div class="section-arrow">›</div>
+</div>
+</section>
+<div class="logout-wrap">
+<button class="logout-btn" type="button">Log Out</button>
+</div>
+
+<!-- Room task lock modal -->
+<div id="roomTaskModal" class="jt-modal" aria-hidden="true">
+  <div class="jt-modal__backdrop" data-jt-close></div>
+  <div class="jt-modal__panel" role="dialog" aria-modal="true" aria-labelledby="jtRoomTitle">
+    <div class="jt-modal__header">
+      <div class="jt-modal__icon">🔒</div>
+      <div>
+        <div id="jtRoomTitle" class="jt-modal__title">Locked</div>
+        <div class="jt-modal__subtitle">Available at Level V3</div>
+      </div>
+    </div>
+    <div class="jt-modal__body">
+      <p class="jt-modal__text">
+        Room task is currently unavailable. Reach <b>Level V3</b> to unlock access.
+      </p>
+    </div>
+    <div class="jt-modal__actions">
+      <button type="button" class="jt-btn ghost" data-jt-close>Not now</button>
+      <button type="button" class="jt-btn primary" data-jt-close>OK</button>
+    </div>
+  </div>
+</div>
+
+</main>
+<nav class="bottom-nav">
+<div class="bottom-item tools">
+<img alt="AI-Tools" class="bottom-icon-img" src="images/tools-icon.png"/>
+<span>AI–Tools</span>
+</div>
+<div class="bottom-item chat">
+<img alt="AI Chat" class="bottom-icon-img" src="images/chat-icon.png"/>
+<span>AI Chat</span>
+</div>
+<div class="bottom-item power">
+<img alt="AI Power" class="bottom-icon-img power-img" src="images/ai-power.gif"/>
+<span>AI Power</span>
+</div>
+<div class="bottom-item assets">
+<img alt="Assets" class="bottom-icon-img" src="images/assets-icon.png"/>
+<span>Assets</span>
+</div>
+<div class="bottom-item mine active">
+<img alt="Mine" class="bottom-icon-img" src="images/mine-icon.png"/>
+<span>Mine</span>
+</div>
+</nav>
+</div>
+<script>
+    (function() {
+      var profileCard = document.querySelector('.profile-card');
+      if (profileCard) {
+        profileCard.addEventListener('click', function () {
+          window.location.href = 'account-information.html';
+        });
+      }
+
+      var shortcutMap = {
+        'Room task': 'room-task.html',
+        'Member': 'member.html',
+        'My Team': 'my-team.html',
+        'Task Center': 'task-center.html',
+        'My Works': 'my-works.html',
+        'Tool': 'tool.html',
+        'Run record': 'run-record.html',
+        'Content': 'content.html'
+      };
+
+      
+      function tryParseJson(v){ try { return JSON.parse(v); } catch(e){ return null; } }
+
+      function getCachedProfile(){
+        // Try common keys first; then scan all keys for a profile-like object.
+        var keys = [
+          'sb_user_profile_v1','sb_profile_v1','user_profile','profile','currentUserProfile',
+          'exa_user_profile','exarai_profile','sb-user','sbUser'
+        ];
+        for (var i=0;i<keys.length;i++){
+          var raw = localStorage.getItem(keys[i]);
+          if(!raw) continue;
+          var obj = tryParseJson(raw);
+          if(obj && (obj.phone || obj.publicId || obj.id || obj.level || obj.vipLevel || obj.vip_level)) return obj;
+        }
+        for (var j=0;j<localStorage.length;j++){
+          var k = localStorage.key(j);
+          if(!k) continue;
+          var r = localStorage.getItem(k);
+          if(!r || r.length > 8000) continue;
+          var o = tryParseJson(r);
+          if(o && typeof o === 'object' && (o.phone || o.publicId || o.id || o.level || o.vipLevel || o.vip_level)) return o;
+        }
+        return null;
+      }
+
+      function extractLevelNumber(v){
+        if(v === null || v === undefined) return null;
+        if(typeof v === 'number' && isFinite(v)) return v;
+        var t = String(v).trim();
+        if(!t) return null;
+        var m = t.match(/v\s*(\d+)/i);
+        if(m) return parseInt(m[1],10);
+        var n = t.match(/^(\d+)$/);
+        if(n) return parseInt(n[1],10);
+        return null;
+      }
+
+      function getUserLevelNumber(){
+        // Prefer window.SBUser profile if present, otherwise cached profile or simple keys.
+        var profile = null;
+        try { profile = getCachedProfile(); } catch(e){ profile = null; }
+        var candidates = [];
+        if(profile){
+          candidates.push(profile.level, profile.vipLevel, profile.vip_level, profile.user_level, profile.userLevel);
+        }
+        candidates.push(localStorage.getItem('user_level'));
+        candidates.push(localStorage.getItem('vip_level'));
+        candidates.push(localStorage.getItem('level'));
+        for(var i=0;i<candidates.length;i++){
+          var lv = extractLevelNumber(candidates[i]);
+          if(lv !== null && !isNaN(lv)) return lv;
+        }
+        return 0;
+      }
+
+      function openRoomLockModal(){
+        var modal = document.getElementById('roomTaskModal');
+        if(!modal) return;
+        modal.classList.add('is-open');
+        modal.setAttribute('aria-hidden','false');
+        document.body.style.overflow = 'hidden';
+      }
+
+      function closeRoomLockModal(){
+        var modal = document.getElementById('roomTaskModal');
+        if(!modal) return;
+        modal.classList.remove('is-open');
+        modal.setAttribute('aria-hidden','true');
+        document.body.style.overflow = '';
+      }
+
+      // Close modal handlers
+      document.addEventListener('click', function(ev){
+        var t = ev.target;
+        if(t && t.getAttribute && t.getAttribute('data-jt-close') !== null){
+          closeRoomLockModal();
+        }
+      });
+
+      var shortcuts = document.querySelectorAll('.shortcut-item');
+      shortcuts.forEach(function (item) {
+        var label = item.querySelector('span');
+        if (!label) return;
+        var text = label.textContent.trim();
+        var target = shortcutMap[text];
+        if (!target) return;
+
+        item.addEventListener('click', function () {
+          if (text === 'Room task') {
+            var lv = getUserLevelNumber();
+            if (lv < 3) {
+              openRoomLockModal();
+              return;
+            }
+          }
+          window.location.href = target;
+        });
+      });
+
+
+      var inviteBtn = document.querySelector('.invite-banner .invite-go');
+      if (inviteBtn) {
+        inviteBtn.addEventListener('click', function () {
+          window.location.href = 'invite.html';
+        });
+      }
+
+      var sectionMap = {
+        'Lucky draw': 'lucky-draw.html',
+        'Security Center': 'security-center.html',
+        'Site message': 'site-message.html',
+        'Help Center': 'help-center.html',
+        'About Us': 'about-us.html',
+        'Theme': 'theme.html',
+        'Switch language': 'choose-language.html',
+        'Online customer service': 'help-center.html'
+      };
+
+      var sectionItems = document.querySelectorAll('.section-item');
+      sectionItems.forEach(function (item) {
+        var label = item.querySelector('.section-label');
+        if (!label) return;
+        var text = label.textContent.trim();
+        if (text === 'Clear Cache') {
+          item.addEventListener('click', function () {
+            window.location.reload();
+          });
+          return;
+        }
+        if (text === 'APP download') {
+          return;
+        }
+        var target = sectionMap[text];
+        if (target) {
+          item.addEventListener('click', function () {
+            window.location.href = target;
+          });
+        }
+      });
+
+      var logoutBtn = document.querySelector('.logout-btn');
+      if (logoutBtn) {
+        logoutBtn.addEventListener('click', function () {
+          window.location.href = 'login.html';
+        });
+      }
+
+      var bottomTools = document.querySelector('.bottom-nav .bottom-item.tools');
+      if (bottomTools) {
+        bottomTools.addEventListener('click', function () {
+          window.location.href = 'ai-tools.html';
+        });
+      }
+      var bottomChat = document.querySelector('.bottom-nav .bottom-item.chat');
+      if (bottomChat) {
+        bottomChat.addEventListener('click', function () {
+          window.location.href = 'ai-chat.html';
+        });
+      }
+      var bottomPower = document.querySelector('.bottom-nav .bottom-item.power');
+      if (bottomPower) {
+        bottomPower.addEventListener('click', function () {
+          window.location.href = 'ai-power.html';
+        });
+      }
+      var bottomAssets = document.querySelector('.bottom-nav .bottom-item.assets');
+      if (bottomAssets) {
+        bottomAssets.addEventListener('click', function () {
+          window.location.href = 'my-assets.html';
+        });
+      }
+      var bottomMine = document.querySelector('.bottom-nav .bottom-item.mine');
+      if (bottomMine) {
+        bottomMine.addEventListener('click', function () {
+          window.location.href = 'mine.html';
+        });
+      }
+    })();
+  
+</script>
+<!-- Load Supabase configuration -->
+<script src="sb-config.js"></script>
+<!-- Authentication helpers -->
+<script src="auth.js"></script>
+<!-- User profile helpers -->
+<script src="sb-user.js"></script><script src="avatar.js"></script>
+<!-- Enforce login redirects -->
+<script src="common-nav.js"></script>
+<script>
+// Paint Mine header from cached profile ASAP (prevents showing old hardcoded values)
+(function () {
+  'use strict';
+  function safeText(v){ if(v===null||v===undefined) return ''; var t=String(v).trim(); return t; }
+
+  function tryParseJson(v){
+    try { return JSON.parse(v); } catch(e){ return null; }
+  }
+
+  function pickProfileFromStorage(){
+    // Try a few likely keys, then scan all keys for an object with phone/id/publicId
+    var keys = [
+      'sb_user_profile_v1','sb_profile_v1','user_profile','profile','currentUserProfile',
+      'exa_user_profile','exarai_profile','sb-user','sbUser'
+    ];
+    for (var i=0;i<keys.length;i++){
+      var raw = localStorage.getItem(keys[i]);
+      if(!raw) continue;
+      var obj = tryParseJson(raw);
+      if(obj && (obj.phone || obj.publicId || obj.id)) return obj;
+    }
+    for (var j=0;j<localStorage.length;j++){
+      var k = localStorage.key(j);
+      if(!k) continue;
+      var r = localStorage.getItem(k);
+      if(!r || r.length > 5000) continue;
+      var o = tryParseJson(r);
+      if(o && typeof o === 'object' && (o.phone || o.publicId || o.id)) return o;
+    }
+    return null;
+  }
+
+  function formatPhone(raw){
+    var t = safeText(raw);
+    if(!t) return '';
+    // Keep digits only (removes labels like 'Call', spaces, +, etc.)
+    var digits = t.replace(/[^\d]/g,'');
+    if(!digits) return '';
+    if(digits.length > 8){
+      return digits.slice(0,3)+' '+digits.slice(3);
+    }
+    return digits;
+  }
+
+  function paint(profile){
+    if(!profile) return;
+    var phoneEl = document.getElementById('mine-phone');
+    var idEl = document.getElementById('mine-id');
+    if(phoneEl){
+      var ph = formatPhone(profile.phone || profile.mobile || profile.phone_number);
+      if(ph) phoneEl.textContent = ph;
+    }
+    if(idEl){
+      var idVal = profile.publicId || profile.public_id || profile.uid || profile.id;
+      if(idVal) idEl.textContent = 'ID: ' + String(idVal).trim();
+    }
+    if(window.UserAvatar && typeof window.UserAvatar.apply === 'function'){
+      window.UserAvatar.apply(profile);
+    }
+  }
+
+  // Run as soon as possible
+  var cached = null;
+  try { cached = pickProfileFromStorage(); } catch(e){}
+  if(cached) paint(cached);
+})();
+</script><script>
+    // Keep Mine header values in sync with Account Information (Supabase users table)
+    (function () {
+      function safeText(v, fallback) {
+        if (v === null || v === undefined) return fallback;
+        var t = String(v).trim();
+        return t ? t : fallback;
+      }
+
+      function formatPhone(raw, fallback) {
+        var t = safeText(raw, "");
+        if (!t) return fallback || "";
+        // Keep digits only (removes labels like 'Call', spaces, +, etc.)
+        var digits = t.replace(/[^\d]/g, "");
+        if (!digits) return fallback || "";
+        if (digits.length > 8) {
+          return digits.slice(0, 3) + " " + digits.slice(3);
+        }
+        return digits;
+      }
+
+      async function paintFromSupabase() {
+        try {
+          if (!window.SBUser || typeof window.SBUser.getCurrentProfile !== "function") return;
+
+          var profile = await window.SBUser.getCurrentProfile();
+          if (!profile) return;
+
+          var phoneEl = document.getElementById("mine-phone");
+          if (phoneEl) {
+            phoneEl.textContent = formatPhone(profile.phone, phoneEl.textContent || "");
+          }
+
+          var idEl = document.getElementById("mine-id");
+          if (window.UserAvatar && typeof window.UserAvatar.apply === "function") {
+            window.UserAvatar.apply(profile);
+          }
+
+          if (idEl) {
+            var idVal = profile.publicId || profile.id;
+            idEl.textContent = "ID: " + safeText(idVal, "-");
+          }
+        } catch (e) {
+          try { console.error(e); } catch (_) {}
+        }
+      }
+
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", paintFromSupabase);
+      } else {
+        paintFromSupabase();
+      }
+    })();
+  </script>
+
+<style id="jt-modal-dark-fix">
+/* ===== FORCE DARK MODAL + GRADIENT BUTTON ===== */
+#roomTaskModal .jt-modal__panel{
+  background-color:#000 !important;
+  background-image:none !important;
+}
+#roomTaskModal .jt-modal__title,
+#roomTaskModal .jt-modal__subtitle,
+#roomTaskModal .jt-modal__text{
+  color:#ffffff !important;
+}
+#roomTaskModal .jt-modal__subtitle{opacity:.7}
+
+#roomTaskModal .jt-modal__ok{
+  background-image: linear-gradient(90deg, #18c1ff, #22e1a5) !important;
+  background-color: transparent !important;
+  color:#001a14 !important;
+  border:none !important;
+}
+
+#roomTaskModal .jt-modal__cancel{
+  background: transparent !important;
+  color:#cfd6dd !important;
+  border:1px solid rgba(255,255,255,.25) !important;
+}
+</style>
+
+
+<style id="jt-modal-gradient-final">
+/* ===== MODAL GRADIENT FINAL ===== */
+#roomTaskModal .jt-modal__panel{
+  background-image: linear-gradient(90deg, #18c1ff, #22e1a5) !important;
+  background-color: transparent !important;
+  border: none !important;
+}
+#roomTaskModal .jt-modal__header{
+  background: transparent !important;
+  border-bottom: 1px solid rgba(255,255,255,0.25);
+}
+#roomTaskModal .jt-modal__icon{
+  background: rgba(0,0,0,0.25) !important;
+  color:#ffffff !important;
+}
+#roomTaskModal .jt-modal__title,
+#roomTaskModal .jt-modal__subtitle,
+#roomTaskModal .jt-modal__text{
+  color:#ffffff !important;
+}
+#roomTaskModal .jt-btn.primary{
+  background-image: linear-gradient(90deg, #18c1ff, #22e1a5) !important;
+  color:#00332a !important;
+  border:none !important;
+}
+#roomTaskModal .jt-btn.ghost{
+  background: rgba(0,0,0,0.35) !important;
+  color:#ffffff !important;
+  border:1px solid rgba(255,255,255,0.4) !important;
+}
+</style>
+
+</body>
+</html>
