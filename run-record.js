@@ -66,6 +66,16 @@
 
   function iso(d) { return d.toISOString(); }
 
+  function updateLastUpdated() {
+    try {
+      var d = new Date();
+      var s = d.toLocaleString([], { year:"numeric", month:"2-digit", day:"2-digit", hour:"2-digit", minute:"2-digit" });
+      setText(lastUpdatedEl, "Last updated: " + s);
+    } catch (e) {
+      setText(lastUpdatedEl, "Last updated: —");
+    }
+  }
+
   function fmtTime(isoStr) {
     try {
       var d = new Date(isoStr);
@@ -85,6 +95,13 @@
   var tabAll = document.getElementById("tabAll");
   var loadMoreBtn = document.getElementById("loadMoreBtn");
 
+  var modeLabelEl = document.getElementById("modeLabel");
+  var lastUpdatedEl = document.getElementById("lastUpdated");
+  var refreshBtn = document.getElementById("refreshBtn");
+  var refreshTopBtn = document.getElementById("refreshTopBtn");
+  var exportBtn = document.getElementById("exportBtn");
+
+
   var mode = "today"; // 'today' | 'all'
   var pageSize = 20;
   var offset = 0;
@@ -93,6 +110,7 @@
   function setActiveTab() {
     if (tabToday) tabToday.classList.toggle("active", mode === "today");
     if (tabAll) tabAll.classList.toggle("active", mode === "all");
+    setText(modeLabelEl, mode === "today" ? "Today" : "All");
   }
 
   function clearList() {
@@ -100,6 +118,7 @@
     if (listEl) listEl.innerHTML = '<div class="loading" id="loading"><div class="spinner"></div>Loading…</div>';
     loadingEl = document.getElementById("loading");
     if (loadMoreBtn) loadMoreBtn.style.display = "none";
+    updateLastUpdated();
   }
 
   function buildQueryUrl(userId, mode, limit, offset) {
@@ -186,7 +205,9 @@
         // Update counters
         var currentCount = (mode === "today") ? (offset + rows.length) : (offset + rows.length);
         setText(countValueEl, String(currentCount));
-        setText(countSubEl, mode === "today" ? (String(currentCount) + " today") : (String(currentCount) + " total loaded"));
+        setText(countSubEl, mode === "today" ? (String(currentCount) + " today") : (String(currentCount) + " loaded"));
+
+        updateLastUpdated();
 
         // pagination
         if (rows.length === pageSize) {
@@ -218,6 +239,15 @@
   if (tabToday) tabToday.addEventListener("click", function () { switchMode("today"); });
   if (tabAll) tabAll.addEventListener("click", function () { switchMode("all"); });
   if (loadMoreBtn) loadMoreBtn.addEventListener("click", function () { fetchPage(true); });
+
+  function hardRefresh() {
+    clearList();
+    return fetchPage(false);
+  }
+
+  if (refreshBtn) refreshBtn.addEventListener("click", function () { hardRefresh(); });
+  if (refreshTopBtn) refreshTopBtn.addEventListener("click", function () { hardRefresh(); });
+  if (exportBtn) exportBtn.addEventListener("click", function () { /* reserved */ });
 
   // Init
   getUserId().then(function (uid) {

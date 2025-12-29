@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>Run record</title>
+  <title>Run records</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <style>
     * { margin:0; padding:0; box-sizing:border-box; }
@@ -20,14 +20,61 @@
       align-items:center;
       border-bottom:1px solid rgba(255,255,255,0.06);
       flex-shrink:0;
+      background:rgba(5,7,11,0.92);
+      backdrop-filter:saturate(160%) blur(10px);
+      -webkit-backdrop-filter:saturate(160%) blur(10px);
     }
     .header-left{ width:40px; display:flex; align-items:center; }
-    .back-btn{ display:inline-flex; align-items:center; justify-content:center; width:24px; height:24px; }
+    .back-btn{ display:inline-flex; align-items:center; justify-content:center; width:28px; height:28px; border-radius:10px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.10); }
     .back-icon{ width:10px; height:10px; border-left:2px solid #ffffff; border-bottom:2px solid #ffffff; transform:rotate(45deg); }
-    .header-title{ flex:1; text-align:center; font-size:16px; font-weight:500; }
-    .header-right{ width:40px; }
+    .header-title{ flex:1; text-align:center; font-size:16px; font-weight:600; letter-spacing:0.2px; }
+    .header-right{ width:40px; display:flex; justify-content:flex-end; }
+    .icon-btn{ width:28px; height:28px; border-radius:10px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.10); display:inline-flex; align-items:center; justify-content:center; color:#fff; font-size:14px; }
+    .icon-dot{ width:3px; height:3px; background:#fff; border-radius:50%; box-shadow:0 0 0 0 rgba(0,209,255,0.0); }
+    .icon-ellipsis{ display:flex; gap:3px; opacity:0.85; }
 
     .main{ flex:1; padding:10px 10px 18px; overflow-y:auto; }
+
+    .hero{
+      border-radius:14px;
+      overflow:hidden;
+      border:1px solid rgba(0,209,255,0.10);
+      background:
+        radial-gradient(700px 220px at 10% 10%, rgba(0,209,255,0.20), rgba(0,0,0,0)),
+        radial-gradient(600px 260px at 80% 30%, rgba(70,238,172,0.16), rgba(0,0,0,0)),
+        linear-gradient(180deg, rgba(16,27,32,0.95), rgba(12,20,26,0.95));
+      margin-bottom:10px;
+      position:relative;
+    }
+    .hero-img{
+      width:100%;
+      height:110px;
+      background-image:url('images/run-record-banner.jpg');
+      background-size:cover;
+      background-position:center;
+      opacity:0.95;
+    }
+    .hero-overlay{
+      position:absolute; inset:0;
+      background:linear-gradient(180deg, rgba(0,0,0,0.15), rgba(0,0,0,0.65));
+      pointer-events:none;
+    }
+    .hero-content{
+      position:absolute;
+      left:12px; right:12px; bottom:10px;
+      display:flex; align-items:flex-end; justify-content:space-between; gap:10px;
+    }
+    .hero-title{ font-size:14px; font-weight:700; letter-spacing:0.2px; }
+    .hero-sub{ font-size:11px; color:rgba(255,255,255,0.75); margin-top:2px; }
+    .hero-chip{
+      font-size:10px;
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid rgba(0,209,255,0.55);
+      color:#00d1ff;
+      background:rgba(0,209,255,0.10);
+      white-space:nowrap;
+    }
 
     .card{
       border-radius:12px;
@@ -38,8 +85,24 @@
     }
     .row{ display:flex; justify-content:space-between; align-items:center; gap:10px; }
     .title{ font-size:12px; color:rgba(255,255,255,0.75); margin-bottom:6px; }
-    .value{ font-size:16px; font-weight:600; color:#00d1ff; }
-    .sub{ font-size:12px; color:rgba(255,255,255,0.65); margin-top:4px; }
+    .value{ font-size:18px; font-weight:700; color:#00d1ff; }
+    .sub{ font-size:11px; color:rgba(255,255,255,0.65); margin-top:4px; }
+
+    .stats{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:10px;
+      margin-top:10px;
+    }
+    .stat{
+      padding:10px 12px;
+      border-radius:12px;
+      background:#0c141a;
+      border:1px solid rgba(255,255,255,0.08);
+    }
+    .stat-k{ font-size:10px; color:rgba(255,255,255,0.65); }
+    .stat-v{ font-size:14px; font-weight:700; margin-top:6px; color:#ffffff; }
+    .stat-v .accent{ color:#00d1ff; }
 
     .pillbar{ display:flex; gap:10px; }
     .pill{
@@ -58,6 +121,32 @@
       border-color:rgba(0,209,255,0.7);
       color:#00d1ff;
       background:rgba(0,209,255,0.10);
+    }
+
+    .tools{
+      display:flex;
+      gap:10px;
+      margin-top:10px;
+    }
+    .tool-btn{
+      flex:1;
+      padding:9px 12px;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,0.12);
+      background:rgba(255,255,255,0.06);
+      color:rgba(255,255,255,0.90);
+      font-size:12px;
+      font-weight:600;
+      -webkit-tap-highlight-color:transparent;
+    }
+    .tool-btn.primary{
+      border:none;
+      background-image:linear-gradient(90deg,#00d1ff,#46EEAC);
+      color:#05070b;
+      font-weight:800;
+    }
+    .tool-btn:disabled{
+      opacity:0.55;
     }
 
     .list{ margin-top:10px; }
@@ -96,7 +185,7 @@
       background-image:linear-gradient(90deg,#00d1ff,#46EEAC);
       color:#05070b;
       font-size:12px;
-      font-weight:700;
+      font-weight:800;
       width:100%;
       cursor:pointer;
       -webkit-tap-highlight-color:transparent;
@@ -118,6 +207,13 @@
       animation:spin 0.8s linear infinite;
     }
     @keyframes spin{ to{ transform:rotate(360deg);} }
+
+    .note{
+      margin-top:8px;
+      font-size:11px;
+      color:rgba(255,255,255,0.55);
+      line-height:1.4;
+    }
   </style>
 </head>
 <body>
@@ -126,24 +222,60 @@
       <div class="header-left">
         <a class="back-btn" href="javascript:history.back();" aria-label="Back"><span class="back-icon"></span></a>
       </div>
-      <div class="header-title">Run record</div>
-      <div class="header-right"></div>
+      <div class="header-title">Run records</div>
+      <div class="header-right">
+        <button class="icon-btn" id="refreshTopBtn" type="button" aria-label="Refresh">
+          <span class="icon-ellipsis" aria-hidden="true"><span class="icon-dot"></span><span class="icon-dot"></span><span class="icon-dot"></span></span>
+        </button>
+      </div>
     </div>
 
     <div class="main">
+
+      <div class="hero">
+        <div class="hero-img"></div>
+        <div class="hero-overlay"></div>
+        <div class="hero-content">
+          <div>
+            <div class="hero-title">Activity history</div>
+            <div class="hero-sub" id="lastUpdated">Last updated: —</div>
+          </div>
+          <div class="hero-chip">Secure logs</div>
+        </div>
+      </div>
+
       <div class="card">
         <div class="title">Records</div>
         <div class="row">
           <div>
             <div class="value" id="countValue">0</div>
-            <div class="sub" id="countSub">0 total</div>
+            <div class="sub" id="countSub">0 loaded</div>
           </div>
         </div>
+
+        <div class="stats">
+          <div class="stat">
+            <div class="stat-k">Mode</div>
+            <div class="stat-v"><span class="accent" id="modeLabel">Today</span></div>
+          </div>
+          <div class="stat">
+            <div class="stat-k">Status</div>
+            <div class="stat-v">Completed</div>
+          </div>
+        </div>
+
         <div style="height:10px"></div>
         <div class="pillbar">
-          <div class="pill active" id="tabToday">Today (Canada)</div>
+          <div class="pill active" id="tabToday">Today</div>
           <div class="pill" id="tabAll">All</div>
         </div>
+
+        <div class="tools">
+          <button class="tool-btn primary" id="refreshBtn" type="button">Refresh</button>
+          <button class="tool-btn" id="exportBtn" type="button" disabled>Export</button>
+        </div>
+
+        <div class="note">Tip: The “Today” tab follows the Toronto day boundary for consistency with the run limits.</div>
       </div>
 
       <div class="list" id="list">
