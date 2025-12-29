@@ -172,11 +172,35 @@
       }
       var b = await window.DemoWallet.rpc('demo_get_balances', { p_user: uid });
       if(Array.isArray(b)) b = b[0] || null;
-      setBalancesFromJson(b);
+      if(b && typeof b === 'object'){
+        var bb = b.balances || b.data || b;
+        setBalancesFromJson(bb);
+      }else{
+        setBalancesFromJson(b);
+      }
     }catch(e){
       console.error(e);
       toast('Balance error');
     }
+  }
+
+  
+  function extractRate(r){
+    // Accept: number, numeric-string, object {rate:...}, object {value:...}, etc.
+    if(r == null) return 0;
+    if(Array.isArray(r)) r = r[0];
+    if(typeof r === 'number') return (isFinite(r) ? r : 0);
+    if(typeof r === 'string') {
+      var n = Number(r);
+      return (isFinite(n) ? n : 0);
+    }
+    if(typeof r === 'object'){
+      var v = r.rate ?? r.value ?? r.p_rate ?? r.result ?? r.data ?? r.r;
+      var n2 = Number(v);
+      return (isFinite(n2) ? n2 : 0);
+    }
+    var n3 = Number(r);
+    return (isFinite(n3) ? n3 : 0);
   }
 
   async function loadRate(){
@@ -185,14 +209,14 @@
         throw new Error('wallet.js not loaded');
       }
       var r = await window.DemoWallet.rpc('demo_get_rate', { p_from: state.from, p_to: state.to });
-      if(Array.isArray(r)) r = r[0];
-      state.rate = Number(r) || 0;
+      state.rate = extractRate(r);
     }catch(e){
       console.error(e);
       state.rate = 0;
       toast('Rate not available');
     }
   }
+
 
   async function refreshAll(){
     el.swapBtn.disabled = true;
@@ -235,7 +259,14 @@
       });
 
       if(Array.isArray(resp)) resp = resp[0] || null;
-      setBalancesFromJson(resp);
+
+      // Some RPCs return {balances:{...}} or {data:{...}}; accept both.
+      if(resp && typeof resp === 'object'){
+        var b = resp.balances || resp.data || resp;
+        setBalancesFromJson(b);
+      }else{
+        setBalancesFromJson(resp);
+      }
 
       toast('Swap completed');
       el.fromAmount.value = '';
