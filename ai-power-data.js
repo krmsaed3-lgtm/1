@@ -195,7 +195,7 @@ function openConfirmModal() {
 // - Earning percentage (e.g., 1.75%) remains enforced by Supabase RPC perform_ipower_action
 // ---------------------------
 var TZ_CANADA = "America/Toronto";
-var MAX_RUNS = { V1: 2, V2: 3 };
+var MAX_RUNS = { V1: 2 };
 
 function getOffsetMinutes(date, timeZone) {
   // Returns offset minutes for `timeZone` at `date` (positive east of UTC).
@@ -289,7 +289,7 @@ async function refreshV1UI(userId) {
   }
 
   var runs = await fetchRunsToday(userId);
-  var max = Number(MAX_RUNS[String(currentLevel).toUpperCase()] || MAX_RUNS.V1 || 0);
+  var max = MAX_RUNS.V1;
   var remaining = Math.max(0, max - runs);
 
   if (timesCardValueEl) timesCardValueEl.textContent = remaining + " Times";
@@ -354,15 +354,15 @@ async function refreshV1UI(userId) {
           return;
         }
 
-        // Daily cap guard (Canada day). V1=2 runs, V2=3 runs.
-        var cap = Number(MAX_RUNS[String(lvl).toUpperCase()] || 0);
-        if (cap > 0) {
+        // V1 daily cap guard (2 runs per Canada day)
+        if (String(lvl).toUpperCase() === "V1") {
           var rem = Number((btn && btn.dataset && btn.dataset.remainingRuns) ? btn.dataset.remainingRuns : 0);
           if (!(rem > 0)) {
             alert("Today's runs are completed. Come back tomorrow.");
             return;
           }
         }
+
 
 openConfirmModal().then(function (ok) {
   if (!ok) return;
