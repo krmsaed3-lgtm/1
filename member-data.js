@@ -170,10 +170,10 @@
   const RULES = {
     V1: { minBalance: 50,   minUsers: 0 },
     V2: { minBalance: 500,  minUsers: 5 },
-    V3: { minBalance: 1000, minUsers: 10 },
-    V4: { minBalance: 10000, minUsers: 15 },
-    V5: { minBalance: 10000, minUsers: 20 },
-    V6: { minBalance: 100000, minUsers: 25 },
+    V3: { minBalance: 3000, minUsers: 10 },
+    V4: { minBalance: 5000, minUsers: 15 },
+    V5: { minBalance: 7000, minUsers: 20 },
+    V6: { minBalance: 9999, minUsers: 25 },
   };
 
   function updateTopBar(currentLevel, nextLevel) {
@@ -235,6 +235,28 @@
   }
 
 
+
+  function hasMetLevel(level, balance, effectiveUsersGen1){
+    if (!level || !RULES[level]) return false;
+    var r = RULES[level];
+    var okBal = (r.minBalance || 0) <= 0 ? true : (Number(balance) >= Number(r.minBalance));
+    var okUsr = (r.minUsers || 0) <= 0 ? true : (Number(effectiveUsersGen1) >= Number(r.minUsers));
+    return okBal && okUsr;
+  }
+
+  function showV3AchievedModal(){
+    var el = document.getElementById("v3AchievedModal");
+    if (!el) return;
+    el.classList.add("show");
+  }
+
+  function hideV3AchievedModal(){
+    var el = document.getElementById("v3AchievedModal");
+    if (!el) return;
+    el.classList.remove("show");
+  }
+
+
 // ---------- MAIN ----------
   async function loadMemberData() {
     const userId = await getCurrentUserId();
@@ -250,6 +272,18 @@
     // Count Gen-1 effective users
     const gen1 = Array.isArray(team) ? team.filter(r => r.depth === 1) : [];
     const effectiveUsersGen1 = gen1.filter(isEffectiveRow).length;
+    // Show a one-time popup when V3 requirements are met
+    try {
+      var metV3 = hasMetLevel("V3", balance, effectiveUsersGen1);
+      if (metV3) {
+        var key = "v3_achieved_shown_v1";
+        if (!localStorage.getItem(key)) {
+          localStorage.setItem(key, "1");
+          showV3AchievedModal();
+        }
+      }
+    } catch (e) {}
+
 
     // Update top bar
     const lvl = currentLevel || "V0";
