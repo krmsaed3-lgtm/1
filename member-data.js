@@ -140,7 +140,38 @@
     return typeof lvl === "string" && lvl ? lvl : null;
   }
 
-  // ---------- DOMAIN LOGIC ----------
+  
+  function levelToNumber(lvl) {
+    var m = String(lvl || "").trim().match(/^V(\d+)$/i);
+    return m ? Number(m[1]) : null;
+  }
+
+  function updateLocks(currentLevel) {
+    var curN = levelToNumber(currentLevel);
+    if (curN == null) return;
+
+    var sections = document.querySelectorAll(".vip-section");
+    sections.forEach(function (sec) {
+      var lvl = sec.getAttribute("data-level");
+      var n = levelToNumber(lvl);
+      if (n == null) return;
+
+      var badge = sec.querySelector(".vip-locked");
+      if (!badge) return;
+
+      var unlocked = n <= curN;
+      if (unlocked) {
+        badge.classList.add("unlocked");
+        badge.textContent = "Unlocked";
+      } else {
+        badge.classList.remove("unlocked");
+        badge.textContent = "Locked at this Level";
+      }
+    });
+  }
+
+
+// ---------- DOMAIN LOGIC ----------
   function isEffectiveRow(r) {
     if (!r) return false;
     if (r.is_effective === true) return true;
@@ -221,6 +252,9 @@
     // Count Gen-1 effective users
     const gen1 = Array.isArray(team) ? team.filter(r => r.depth === 1) : [];
     const effectiveUsersGen1 = gen1.filter(isEffectiveRow).length;
+
+    // Update lock badges
+    updateLocks(lvl);
 
     // Update top bar
     const lvl = currentLevel || "V0";

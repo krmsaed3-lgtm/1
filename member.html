@@ -338,13 +338,22 @@
     .profit-rate span {
       margin-right: 8px;
     }
+  
+    .vip-locked.unlocked {
+      background: rgba(0, 0, 0, 0.25);
+      color: rgba(255, 255, 255, 0.9);
+    }
+    .vip-locked.unlocked::before {
+      content: "\1F513"; /* open lock */
+    }
+
   </style>
 </head>
 <body>
 <div class="page">
 <div class="header">
 <div class="header-left">
-<a aria-label="Back" class="back-btn" href="javascript:history.back();">
+<a aria-label="Back" class="back-btn" href="#" id="backBtn">
 <span class="back-icon"></span>
 </a>
 </div>
@@ -954,6 +963,24 @@
 <!-- Member data logic extracted to external JS -->
 <script src="member-data.js"></script>
 
+
+
+<script>
+  (function () {
+    var a = document.getElementById('backBtn');
+    if (!a) return;
+    a.addEventListener('click', function (e) {
+      e.preventDefault();
+      var ref = (document.referrer || '').toLowerCase();
+      if (window.history.length > 1 && ref.indexOf('my-assets.html') === -1) {
+        window.history.back();
+        return;
+      }
+      // Fallback destination (edit if your home page differs)
+      window.location.href = 'index.html';
+    });
+  })();
+</script>
 
 </body>
 </html>
