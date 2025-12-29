@@ -1,250 +1,46 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>Help Center - EXARAI</title>
-
-  <style>
-    :root{
-      --bg:#0b0f14;
-      --panel:#111827;
-      --panel2:#0f172a;
-      --text:#e5e7eb;
-      --muted:#9ca3af;
-      --line:rgba(255,255,255,.08);
-      --accent1:#22d3ee;
-      --accent2:#34d399;
-      --shadow: 0 10px 30px rgba(0,0,0,.35);
-      --radius:18px;
-    }
-
-    *{ box-sizing:border-box; }
-    html,body{ height:100%; }
-    body{
-      margin:0;
-      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
-      background: radial-gradient(1000px 600px at 20% -10%, rgba(34,211,238,.18), transparent 55%),
-                  radial-gradient(900px 600px at 90% 10%, rgba(52,211,153,.14), transparent 50%),
-                  var(--bg);
-      color:var(--text);
-    }
-
-    /* Safe area padding for iPhone */
-    .app{
-      min-height:100%;
-      padding: calc(14px + env(safe-area-inset-top)) 14px calc(24px + env(safe-area-inset-bottom));
-      max-width: 520px;
-      margin: 0 auto;
-    }
-
-    .app-header{
-      display:flex;
-      align-items:center;
-      gap:12px;
-      padding: 10px 4px 16px;
-      position: sticky;
-      top: 0;
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-      background: linear-gradient(to bottom, rgba(11,15,20,.92), rgba(11,15,20,.55));
-      z-index: 5;
-    }
-
-    .back-btn{
-      width:44px; height:44px;
-      display:grid; place-items:center;
-      border-radius:14px;
-      background: rgba(255,255,255,.06);
-      border: 1px solid var(--line);
-      text-decoration:none;
-      box-shadow: 0 6px 18px rgba(0,0,0,.25);
-      flex: 0 0 auto;
-    }
-    .back-btn:active{ transform: scale(.98); }
-
-    .back-arrow{
-      width: 10px; height: 10px;
-      border-left: 2px solid var(--text);
-      border-bottom: 2px solid var(--text);
-      transform: rotate(45deg);
-      margin-left: 4px;
-      opacity: .95;
-    }
-
-    .app-header-title{
-      font-size: 18px;
-      font-weight: 700;
-      letter-spacing: .2px;
-    }
-
-    .help-list{
-      display:flex;
-      flex-direction:column;
-      gap:12px;
-      margin-top: 6px;
-    }
-
-    .help-item{
-      display:flex;
-      align-items:center;
-      gap:12px;
-      padding: 14px 14px;
-      border-radius: var(--radius);
-      background: linear-gradient(180deg, rgba(17,24,39,.92), rgba(15,23,42,.88));
-      border: 1px solid var(--line);
-      box-shadow: var(--shadow);
-      text-decoration:none;
-      color: var(--text);
-      position: relative;
-      overflow:hidden;
-    }
-
-    /* subtle glow */
-    .help-item::before{
-      content:"";
-      position:absolute;
-      inset:-2px;
-      background: radial-gradient(420px 120px at 18% 30%, rgba(34,211,238,.16), transparent 60%),
-                  radial-gradient(420px 120px at 70% 60%, rgba(52,211,153,.12), transparent 62%);
-      opacity:.9;
-      pointer-events:none;
-    }
-
-    .help-item > *{ position:relative; z-index:1; }
-
-    .help-item:active{ transform: scale(.995); }
-
-    .help-icon-wrap{
-      width: 54px; height: 54px;
-      border-radius: 50%;
-      display:grid; place-items:center;
-      background: linear-gradient(135deg, rgba(34,211,238,.22), rgba(52,211,153,.20));
-      border: 1px solid rgba(255,255,255,.12);
-      flex: 0 0 auto;
-    }
-
-    .help-icon{
-      width: 28px;
-      height: 28px;
-      opacity: .95;
-      filter: drop-shadow(0 8px 18px rgba(0,0,0,.35));
-    }
-
-    .help-label{
-      font-size: 16px;
-      font-weight: 650;
-      line-height: 1.2;
-    }
-
-    .help-sub{
-      display:block;
-      font-size: 12px;
-      font-weight: 500;
-      color: var(--muted);
-      margin-top: 4px;
-    }
-
-    .help-dot{
-      margin-left:auto;
-      width:10px; height:10px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, var(--accent1), var(--accent2));
-      box-shadow: 0 0 0 6px rgba(34,211,238,.10);
-      border: 1px solid rgba(255,255,255,.18);
-      flex: 0 0 auto;
-    }
-
-> yazan:
-/* Optional: arrow chevron */
-    .chev{
-      margin-left:10px;
-      width: 10px; height: 10px;
-      border-right: 2px solid rgba(229,231,235,.7);
-      border-top: 2px solid rgba(229,231,235,.7);
-      transform: rotate(45deg);
-      opacity:.65;
-      flex: 0 0 auto;
-    }
-  </style>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Help Center</title>
+  <link rel="stylesheet" href="help-center.css" />
 </head>
-
 <body>
-  <div class="app">
-    <header class="app-header">
-      <a class="back-btn" href="javascript:history.back()" aria-label="Back">
-        <div class="back-arrow"></div>
-      </a>
-      <div class="app-header-title">Help Center</div>
-    </header>
+  <header class="topbar">
+    <button class="back-btn" type="button" id="backBtn" aria-label="Back">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M15 18l-6-6 6-6" stroke="white" stroke-opacity=".9" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+    <div class="title">Help Center</div>
+  </header>
 
-    <main class="app-main">
-      <div class="help-list">
-
-        <a class="help-item" href="#">
-          <div class="help-icon-wrap" aria-hidden="true">
-            <!-- internal icon (SVG) -->
-            <svg class="help-icon" viewBox="0 0 24 24" fill="none">
-              <path d="M4 10.2 12 4l8 6.2V20a1.6 1.6 0 0 1-1.6 1.6H5.6A1.6 1.6 0 0 1 4 20v-9.8Z" stroke="white" stroke-width="1.8" stroke-linejoin="round"/>
-              <path d="M9 21v-7.2c0-.9.7-1.6 1.6-1.6h2.8c.9 0 1.6.7 1.6 1.6V21" stroke="white" stroke-width="1.8" stroke-linecap="round"/>
-            </svg>
-          </div>
-          <div>
-            <div class="help-label">Platform Announcements</div>
-            <span class="help-sub">Latest updates & notices</span>
-          </div>
-          <div class="help-dot" title="New"></div>
-          <div class="chev" aria-hidden="true"></div>
-        </a>
-
-        <a class="help-item" href="#">
-          <div class="help-icon-wrap" aria-hidden="true">
-            <svg class="help-icon" viewBox="0 0 24 24" fill="none">
-              <path d="M4.5 6.8A2.3 2.3 0 0 1 6.8 4.5h10.4a2.3 2.3 0 0 1 2.3 2.3v7.2a2.3 2.3 0 0 1-2.3 2.3H10l-3.2 3.2v-3.2H6.8a2.3 2.3 0 0 1-2.3-2.3V6.8Z" stroke="white" stroke-width="1.8" stroke-linejoin="round"/>
-              <path d="M8 9h8M8 12h6" stroke="white" stroke-width="1.8" stroke-linecap="round"/>
-            </svg>
-          </div>
-          <div>
-            <div class="help-label">Site message</div>
-            <span class="help-sub">Messages & notifications</span>
-          </div>
-          <div class="chev" aria-hidden="true"></div>
-        </a>
-
-        <a class="help-item" href="#">
-          <div class="help-icon-wrap" aria-hidden="true">
-            <svg class="help-icon" viewBox="0 0 24 24" fill="none">
-              <path d="M12 21a7.8 7.8 0 0 0 7.8-7.8V11A7.8 7.8 0 0 0 12 3.2 7.8 7.8 0 0 0 4.2 11v2.2A7.8 7.8 0 0 0 12 21Z" stroke="white" stroke-width="1.8"/>
-              <path d="M12 7.4v5.2l3.2 1.8" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </div>
-          <div>
-            <div class="help-label">Push task</div>
-            <span class="help-sub">Scheduled tasks & pushes</span>
-          </div>
-          <div class="chev" aria-hidden="true"></div>
-        </a>
-
-        <a class="help-item" href="#">
-          <div class="help-icon-wrap" aria-hidden="true">
-            <svg class="help-icon" viewBox="0 0 24 24" fill="none">
-              <path d="M7 6.5A5.1 5.1 0 0 1 12 3.7c2.8 0 5 2 5 4.6 0 2.1-1.4 3.2-3 4.2-.9.6-1.6 1.3-1.6 2.6v.3" stroke="white" stroke-width="1.8" stroke-linecap="round"/>
-              <path d="M12 20.5h.01" stroke="white" stroke-width="3" stroke-linecap="round"/>
-              <path d="M4.5 10.3c0-3.5 3.3-6.6 7.5-6.6s7.5 3 7.5 6.6" stroke="white" stroke-width="1.8" opacity=".35"/>
-            </svg>
-          </div>
-          <div>
-            <div class="help-label">Question and Answer</div>
-            <span class="help-sub">FAQ & common issues</span>
-          </div>
-          <div class="chev" aria-hidden="true"></div>
-        </a>
-
+  <main class="wrap">
+    <div class="list">
+      <div class="item" data-target="platform-announcements.html">
+        <img src="assets/notice-1.png" alt="" />
+        <div class="text">Platform Announcements</div>
+        <span class="dot" aria-label="New"></span>
       </div>
-    </main>
-  </div>
 
-  <script src="auth.js"></script>
-  <script src="common-nav.js"></script>
+      <div class="item" data-target="site-message.html">
+        <img src="assets/notice-2.png" alt="" />
+        <div class="text">Site message</div>
+      </div>
+
+      <div class="item" data-target="push-task.html">
+        <img src="assets/notice-4.png" alt="" />
+        <div class="text">Push task</div>
+      </div>
+
+      <div class="item" data-target="qna.html">
+        <img src="assets/notice-3.png" alt="" />
+        <div class="text">Question and Answer</div>
+      </div>
+    </div>
+  </main>
+
+  <script src="help-center.js"></script>
 </body>
 </html>
