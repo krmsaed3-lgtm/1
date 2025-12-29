@@ -35,9 +35,12 @@
   }
 
   function levelRank(lvl) {
-    var map = { V0:0, V1:1, V2:2, V3:3, V4:4, V5:5, V6:6 };
-    return map[(lvl || "").toUpperCase()] ?? 0;
-  }
+  var s = String(lvl || "").trim().toUpperCase();
+  var m = /^V(\d+)$/.exec(s);
+  if (m) return parseInt(m[1], 10) || 0;
+  return 0;
+}
+
 
   function fetchUserState(userId) {
     var url = SB.url + "/rest/v1/user_state?select=current_level,is_locked,locked_reason,is_funded,is_activated&user_id=eq." +
@@ -99,6 +102,16 @@
   function getRunBtn(cardEl) {
     return cardEl.querySelector(".gpu-button-wrap .btn-gradient");
   }
+
+
+function applyCardVisibility() {
+  // Hide only levels below current level; keep current and higher levels visible
+  cards.forEach(function (cardEl) {
+    var lvl = getCardLevel(cardEl);
+    var rnk = levelRank(lvl);
+    cardEl.style.display = (rnk < currentRank) ? "none" : "";
+  });
+}
 
   function showModal(seconds) {
     if (!modal || !countdownEl) return function(){};
@@ -197,25 +210,6 @@ function openConfirmModal() {
 var TZ_CANADA = "America/Toronto";
 var MAX_RUNS = { V1: 2, V2: 3 };
 
-// Only show one package card in UI:
-// - V0: show V1 card (locked) so user understands the first step
-// - V1: show V1 card
-// - V2+: show V2 card (and hide V1)
-// Your backend can support more levels later, but UI is limited to V1/V2 for now.
-function getActiveDisplayLevel() {
-  if (currentRank >= 2) return "V2";
-  return "V1";
-}
-
-function applyLevelVisibility() {
-  var active = getActiveDisplayLevel();
-  cards.forEach(function(cardEl){
-    var lvl = String(getCardLevel(cardEl) || "").toUpperCase();
-    // Hide everything except active (V1 or V2)
-    cardEl.style.display = (lvl === active) ? "" : "none";
-  });
-}
-
 function getOffsetMinutes(date, timeZone) {
   // Returns offset minutes for `timeZone` at `date` (positive east of UTC).
   // Uses Intl timeZoneName: 'shortOffset' when available (e.g., 'GMT-5').
@@ -289,49 +283,44 @@ function setBtnState(btn, enabled, label) {
   btn.style.cursor = enabled ? "" : "not-allowed";
 }
 
-async function refreshRunsUI(userId) {
-  // Updates the active level card + top "Number of times..." card.
+async function refreshDailyUI(userId) {
+  // Updates the top "Number of times..." card and the active level card (V1/V2) using Canada day window
   if (!userId) return;
 
-  var activeLevel = getActiveDisplayLevel();
-  var max = MAX_RUNS[activeLevel] || 0;
-
-  if (locked) {
+  if (locked || currentRank < 1 || currentRank > 2) {
     if (timesCardValueEl) timesCardValueEl.textContent = "0 Times";
-    cards.forEach(function(cardEl){
-      var lvl = String(getCardLevel(cardEl) || "").toUpperCase();
-      if (lvl === activeLevel) {
-        var runTimesEl = getRunTimesEl(cardEl);
-        if (runTimesEl) runTimesEl.textContent = "—";
-        var btn = getRunBtn(cardEl);
-        setBtnState(btn, false, "Run");
-      }
+    cards.forEach(function (cardEl) {
+      var btn = getRunBtn(cardEl);
+      if (btn) setBtnState(btn, false, "Run");
+      var runTimesEl = getRunTimesEl(cardEl);
+      if (runTimesEl) runTimesEl.textContent = "—";
     });
     return;
   }
 
   var runs = await fetchRunsToday(userId);
-  var remaining = max > 0 ? Math.max(0, max - runs) : 0;
+  var max = (currentRank === 1) ? MAX_RUNS.V1 : MAX_RUNS.V2;
+  var remaining = Math.max(0, max - runs);
 
   if (timesCardValueEl) timesCardValueEl.textContent = remaining + " Times";
 
-  cards.forEach(function(cardEl){
+  cards.forEach(function (cardEl) {
     var lvl = String(getCardLevel(cardEl) || "").toUpperCase();
-    if (lvl !== activeLevel) return;
-
     var reqRank = levelRank(lvl);
-    var isUsableLevel = reqRank >= 1 && reqRank <= 3;
-    var unlocked = (!locked) && isUsableLevel && (currentRank >= reqRank);
-
-    var runTimesEl = getRunTimesEl(cardEl);
-    if (runTimesEl) runTimesEl.textContent = runs + "/" + (max || "—");
 
     var btn = getRunBtn(cardEl);
+    var runTimesEl = getRunTimesEl(cardEl);
+
+    if (reqRank !== currentRank) {
+      if (runTimesEl) runTimesEl.textContent = "—";
+      if (btn) btn.dataset.remainingRuns = "0";
+      return;
+    }
+
+    if (runTimesEl) runTimesEl.textContent = runs + "/" + max;
     if (btn) btn.dataset.remainingRuns = String(remaining);
 
-    if (!unlocked) return;
-
-    if (max > 0 && remaining <= 0) {
+    if (remaining <= 0) {
       setBtnState(btn, false, "Come back tomorrow");
     } else {
       setBtnState(btn, true, "Run");
@@ -339,7 +328,6 @@ async function refreshRunsUI(userId) {
   });
 }
 
-  var currentLevel
 
   var currentLevel = "V0";
   var currentRank = 0;
@@ -355,8 +343,8 @@ async function refreshRunsUI(userId) {
       var btn = getRunBtn(cardEl);
       var runTimesEl = getRunTimesEl(cardEl);
 
-      // Only V1–V3 are usable in your backend rules; keep others locked cosmetically.
-      var isUsableLevel = reqRank >= 1 && reqRank <= 3;
+      // Only V1–V2 are usable in your backend rules; keep others locked cosmetically.
+      var isUsableLevel = reqRank >= 1 && reqRank <= 2;
 
       var unlocked = (!locked) && isUsableLevel && (currentRank >= reqRank);
 
@@ -377,16 +365,14 @@ async function refreshRunsUI(userId) {
           return;
         }
 
-        // Daily cap guard (Canada day) for the visible level (V1/V2)
-var lvlUp = String(lvl || "").toUpperCase();
-if (MAX_RUNS[lvlUp]) {
-  var rem = Number((btn && btn.dataset && btn.dataset.remainingRuns) ? btn.dataset.remainingRuns : 0);
-  if (!(rem > 0)) {
-    alert("Today's runs are completed. Come back tomorrow.");
-    return;
-  }
-}
-
+        // V1 daily cap guard (2 runs per Canada day)
+        if (String(lvl).toUpperCase() === "V1") {
+          var rem = Number((btn && btn.dataset && btn.dataset.remainingRuns) ? btn.dataset.remainingRuns : 0);
+          if (!(rem > 0)) {
+            alert("Today's runs are completed. Come back tomorrow.");
+            return;
+          }
+        }
 
 
 openConfirmModal().then(function (ok) {
@@ -411,7 +397,7 @@ openConfirmModal().then(function (ok) {
           }
 
           // Refresh totals (today/total/team) via summary
-          return refreshTopSummary(userId).then(function(){ return refreshRunsUI(userId); });
+          return refreshTopSummary(userId).then(function(){ return refreshDailyUI(userId); });
         }).catch(function (err) {
           var msg = (err && err.message) ? err.message : String(err || "Run failed");
           // Make backend errors readable
@@ -441,10 +427,9 @@ openConfirmModal().then(function (ok) {
       if (levelTagEl) levelTagEl.textContent = "Level:" + currentLevel;
       setText(runRoomValueEl, currentLevel);
 
-      applyLevelVisibility();
-
+      applyCardVisibility();
       bindCards(userId);
-      return refreshTopSummary(userId).then(function(){ return refreshRunsUI(userId); });
+      return refreshTopSummary(userId).then(function(){ return refreshDailyUI(userId); });
     });
   }).catch(function (e) {
     console.error(e);
