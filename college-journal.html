@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport"/>
+<title>College Journal</title>
+
+<style>
+:root{
+  --bg:#05070b;
+  --text:#ffffff;
+  --muted:#d6d6d6;
+  --border:rgba(255,255,255,0.08);
+}
+
+*{
+  box-sizing:border-box;
+  margin:0;
+  padding:0;
+}
+
+body{
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background-color: var(--bg);
+  color: var(--text);
+}
+
+.page{
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+  background-color: var(--bg);
+}
+
+.header{
+  height:56px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-bottom:1px solid var(--border);
+  background-color: var(--bg);
+  position:relative;
+}
+
+.header-title{
+  font-size:16px;
+  font-weight:600;
+}
+
+.back-btn{
+  position:absolute;
+  left:12px;
+  top:50%;
+  transform:translateY(-50%);
+  background:transparent;
+  border:none;
+  color:#fff;
+  font-size:20px;
+  cursor:pointer;
+}
+
+.content{
+  padding:16px;
+  font-size:14px;
+  line-height:1.7;
+}
+
+.card{
+  border:1px solid var(--border);
+  border-radius:14px;
+  padding:14px;
+  background:rgba(255,255,255,0.02);
+}
+
+h3{
+  font-size:16px;
+  margin-bottom:12px;
+  font-weight:600;
+}
+
+h4{
+  font-size:15px;
+  margin-top:16px;
+  margin-bottom:8px;
+  font-weight:600;
+}
+
+p{
+  margin-bottom:10px;
+  color:var(--muted);
+}
+
+ul{
+  padding-left:18px;
+  margin-bottom:12px;
+}
+
+li{
+  margin-bottom:6px;
+  color:var(--muted);
+}
+
+.divider{
+  height:1px;
+  background:var(--border);
+  margin:14px 0;
+}
+</style>
+</head>
+
+<body>
+<div class="page">
+
+  <header class="header">
+    <button class="back-btn" onclick="history.back()">←</button>
+    <div class="header-title">College Journal</div>
+  </header>
+
+  <main class="content">
+    <div class="card">
+
+      <h3>College Journal — A Space for Growth & Insight</h3>
+
+      <p>
+        The College Journal within JOPAI is designed as a structured space where users can explore insights,
+        ideas, and digital concepts related to technology, innovation, and personal development.
+        It acts as a knowledge layer that supports clarity, learning, and long-term thinking.
+      </p>
+
+      <div class="divider"></div>
+
+      <h4>Purpose of the Journal</h4>
+      <p>
+        This section exists to provide thoughtful content that helps users understand how digital systems,
+        automation models, and modern platforms operate. It is not focused on promotion, but on clarity,
+        transparency, and awareness.
+      </p>
+
+      <ul>
+        <li>Explain concepts in a simple and structured way.</li>
+        <li>Share insights related to digital platforms and innovation.</li>
+        <li>Support users in understanding how systems evolve over time.</li>
+      </ul>
+
+      <div class="divider"></div>
+
+      <h4>What You Can Expect</h4>
+      <p>
+        Content published here may include platform updates, general educational articles,
+        system explanations, and reflections on digital growth.  
+        All information is presented in a neutral and informative manner.
+      </p>
+
+      <ul>
+        <li>Clear and easy-to-read explanations</li>
+        <li>Consistent structure and transparency</li>
+        <li>No misleading or exaggerated claims</li>
+      </ul>
+
+      <div class="divider"></div>
+
+      <h4>Our Philosophy</h4>
+      <p>
+        JOPAI believes that long-term trust is built through clarity, consistency, and honest communication.
+        The College Journal reflects this philosophy by offering content that respects users’
+        understanding and decision-making process.
+      </p>
+
+    </div>
+  </main>
+
+</div>
+
+<script src="auth.js"></script>
+<script src="common-nav.js"></script>
+</body>
+</html>

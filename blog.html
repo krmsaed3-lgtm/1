@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<title>JOPAI | Blog</title>
+
+<style>
+:root{
+  --bg:#05070b;
+  --text:#ffffff;
+  --muted:#cfcfcf;
+  --border:rgba(255,255,255,0.08);
+}
+
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+}
+
+body{
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background:var(--bg);
+  color:var(--text);
+}
+
+.page{
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+}
+
+.header{
+  height:56px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-bottom:1px solid var(--border);
+  position:relative;
+}
+
+.header-title{
+  font-size:16px;
+  font-weight:600;
+}
+
+.back-btn{
+  position:absolute;
+  left:12px;
+  top:50%;
+  transform:translateY(-50%);
+  background:none;
+  border:none;
+  color:#fff;
+  font-size:20px;
+  cursor:pointer;
+}
+
+.content{
+  padding:16px;
+}
+
+.card{
+  background:rgba(255,255,255,0.03);
+  border:1px solid var(--border);
+  border-radius:14px;
+  padding:16px;
+  margin-bottom:16px;
+}
+
+h3{
+  font-size:16px;
+  margin-bottom:10px;
+}
+
+p{
+  font-size:14px;
+  line-height:1.7;
+  color:var(--muted);
+  margin-bottom:12px;
+}
+
+.divider{
+  height:1px;
+  background:var(--border);
+  margin:14px 0;
+}
+</style>
+</head>
+
+<body>
+
+<div class="page">
+
+  <div class="header">
+    <button class="back-btn" onclick="history.back()">←</button>
+    <div class="header-title">JOPAI Blog</div>
+  </div>
+
+  <div class="content">
+
+    <div class="card">
+      <h3>Welcome to JOPAI</h3>
+      <p>
+        JOPAI is a modern digital platform focused on innovation, system intelligence,
+        and advanced automation concepts. Our goal is to provide users with a clean,
+        transparent, and engaging digital environment.
+      </p>
+      <p>
+        This blog is where we share updates, insights, platform improvements,
+        and explanations about how our internal systems evolve over time.
+      </p>
+    </div>
+
+    <div class="card">
+      <h3>What You’ll Find Here</h3>
+      <p>
+        Inside this section, we publish carefully prepared content related to:
+      </p>
+      <ul>
+        <li>Platform updates and feature releases</li>
+        <li>System logic and operational insights</li>
+        <li>Technical explanations written in simple language</li>
+        <li>Transparency reports and development notes</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>Our Philosophy</h3>
+      <p>
+        At JOPAI, we believe in clarity, simplicity, and long-term sustainability.
+        Our systems are designed to demonstrate how structured logic,
+        automation, and digital workflows can operate together efficiently.
+      </p>
+      <p>
+        All activities within the platform are part of an internal digital environment
+        and are intended to showcase system behavior rather than represent real-world
+        financial services.
+      </p>
+    </div>
+
+    <div class="card">
+      <h3>Stay Connected</h3>
+      <p>
+        This blog will continue to evolve as JOPAI grows.
+        We encourage users to explore updates regularly and follow the platform’s development journey.
+      </p>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  // Back navigation fallback
+  if (!history.length) {
+    document.querySelector('.back-btn').onclick = function () {
+      window.location.href = 'index.html';
+    };
+  }
+</script>
+
+</body>
+</html>
