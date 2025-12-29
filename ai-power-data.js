@@ -360,6 +360,7 @@ async function refreshDailyUI(userId) {
       if (!btn) return;
 
       btn.addEventListener("click", function () {
+        if (btn.disabled) { return; }
         if (locked) {
           alert(lockReason || "Account is locked.");
           return;
@@ -373,7 +374,6 @@ async function refreshDailyUI(userId) {
         if (String(lvl).toUpperCase() === "V1") {
           var rem = Number((btn && btn.dataset && btn.dataset.remainingRuns) ? btn.dataset.remainingRuns : 0);
           if (!(rem > 0)) {
-            alert("Today's runs are completed. Come back tomorrow.");
             return;
           }
         }
@@ -407,7 +407,13 @@ openConfirmModal().then(function (ok) {
           // Make backend errors readable
           alert(msg);
         }).finally(function () {
-          btn.disabled = false;
+          // Do not re-enable blindly; keep disabled if no remaining runs.
+          if (unlocked) {
+            var rem2 = Number((btn && btn.dataset && btn.dataset.remainingRuns) ? btn.dataset.remainingRuns : 0);
+            btn.disabled = !(rem2 > 0);
+          } else {
+            btn.disabled = false;
+          }
         });
       });
       });
