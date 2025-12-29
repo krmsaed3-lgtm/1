@@ -1,176 +1,195 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport"/>
 <title>About Us</title>
+
 <style>
-    :root{
-      --bg:#05070b;
-      --text:#ffffff;
-      --muted:#d6d6d6;
-      --border:rgba(255,255,255,0.08);
-    }
+:root{
+  --bg:#05070b;
+  --text:#ffffff;
+  --muted:#d6d6d6;
+  --border:rgba(255,255,255,0.08);
+}
 
-    *{
-      box-sizing:border-box;
-      margin:0;
-      padding:0;
-    }
+*{
+  box-sizing:border-box;
+  margin:0;
+  padding:0;
+}
 
-    body{
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background-color: var(--bg);
-      color: var(--text);
-    }
+body{
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background-color: var(--bg);
+  color: var(--text);
+}
 
-    .page{
-      min-height:100vh;
-      display:flex;
-      flex-direction:column;
-      background-color: var(--bg);
-    }
+.page{
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+}
 
-    .header{
-      height:56px;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      border-bottom:1px solid var(--border);
-      background-color: var(--bg);
-    }
+.header{
+  height:56px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-bottom:1px solid var(--border);
+  background-color:var(--bg);
+  position:relative;
+}
 
-    .header-title{
-      font-size:16px;
-      font-weight:600;
-    }
+.header-title{
+  font-size:16px;
+  font-weight:600;
+}
 
-    .content{
-      padding:16px;
-      font-size:14px;
-      line-height:1.7;
-    }
+.back-btn{
+  position:absolute;
+  left:12px;
+  top:50%;
+  transform:translateY(-50%);
+  background:none;
+  border:none;
+  color:#fff;
+  font-size:20px;
+  cursor:pointer;
+}
 
-    .card{
-      border:1px solid var(--border);
-      border-radius:14px;
-      padding:14px;
-      background:rgba(255,255,255,0.02);
-    }
+.content{
+  padding:16px;
+  font-size:14px;
+  line-height:1.7;
+}
 
-    h3{
-      font-size:16px;
-      margin-bottom:12px;
-      font-weight:600;
-    }
+.card{
+  border:1px solid var(--border);
+  border-radius:14px;
+  padding:14px;
+  background:rgba(255,255,255,0.02);
+}
 
-    h4{
-      font-size:15px;
-      margin-top:16px;
-      margin-bottom:8px;
-      font-weight:600;
-    }
+h3{
+  font-size:16px;
+  margin-bottom:12px;
+  font-weight:600;
+}
 
-    p{
-      margin-bottom:10px;
-      color:var(--muted);
-    }
+h4{
+  font-size:15px;
+  margin-top:16px;
+  margin-bottom:8px;
+  font-weight:600;
+}
 
-    ul{
-      padding-left:18px;
-      margin-bottom:12px;
-    }
+p{
+  margin-bottom:10px;
+  color:var(--muted);
+}
 
-    li{
-      margin-bottom:6px;
-      color:var(--muted);
-    }
+ul{
+  padding-left:18px;
+  margin-bottom:12px;
+}
 
-    .divider{
-      height:1px;
-      background:var(--border);
-      margin:14px 0;
-    }
-  
-    .header{
-      position:relative;
-    }
-    .back-btn{
-      position:absolute;
-      left:12px;
-      top:50%;
-      transform:translateY(-50%);
-      background:transparent;
-      border:none;
-      color:#fff;
-      font-size:20px;
-      cursor:pointer;
-    }
-    </style>
+li{
+  margin-bottom:6px;
+  color:var(--muted);
+}
+
+.divider{
+  height:1px;
+  background:var(--border);
+  margin:14px 0;
+}
+</style>
 </head>
+
 <body>
 <div class="page">
-<header class="header"><button aria-label="Back" class="back-btn" type="button">←</button><div class="header-title">About Us</div></header>
-<main class="content">
-<div class="card">
-<h3>A Clear Overview: How Job AI Works and Generates Revenue</h3>
-<h4>About Job AI</h4>
-<p>
-          Job AI is a platform founded two years ago and based in Canada. The core idea behind Job AI
-          is to provide users with a simple and accessible way to earn a stable daily income without complexity.
-        </p>
-<div class="divider"></div>
-<h4>How Does Job AI Work?</h4>
-<p><strong>1. A Simple User Model</strong></p>
-<ul>
-<li>Users can start by depositing a small amount of USDT (such as 10 or 100 USDT).</li>
-<li>After depositing, users activate a simple start button.</li>
-<li>In return, they receive a fixed daily profit without technical complexity.</li>
-</ul>
-<p><strong>2. What Job AI Does Behind the Scenes</strong></p>
-<ul>
-<li>Deposited funds are used to rent powerful cloud servers.</li>
-<li>
-            These servers run various computing tasks, including artificial intelligence (AI),
-            data processing, network verification, node operations, and related services.
-          </li>
-</ul>
-<p><strong>3. How Job AI Generates Profit</strong></p>
-<ul>
-<li>If a user deposits 100 USDT, Job AI invests it in computing activities.</li>
-<li>These activities may generate around 2 USDT per day.</li>
-<li>The user receives 1 USDT as a fixed daily return.</li>
-<li>The remaining amount represents the platform’s profit.</li>
-</ul>
-<p><strong>4. Why Users Trust Job AI</strong></p>
-<ul>
-<li>A proven two-year history of reliable payouts.</li>
-<li>Based in Canada with a transparent operational model.</li>
-<li>Returns are realistic, sustainable, and not exaggerated.</li>
-</ul>
-<div class="divider"></div>
-<h4>Conclusion</h4>
-<p>
-          Job AI follows a clear and simple approach: users invest, Job AI operates real computing
-          infrastructure, and daily profits are shared. This model is built on actual services rather
-          than promises, making it suitable for users seeking stable and reasonable daily income.
-        </p>
+
+  <header class="header">
+    <button class="back-btn" onclick="history.back()">←</button>
+    <div class="header-title">About Us</div>
+  </header>
+
+  <main class="content">
+    <div class="card">
+
+      <h3>About JOPAI</h3>
+      <p>
+        JOPAI is a modern digital platform designed to provide users with a smooth,
+        structured, and reliable experience. Our focus is on clarity, usability,
+        and long-term platform stability.
+      </p>
+
+      <div class="divider"></div>
+
+      <h4>Our Vision</h4>
+      <p>
+        We aim to build a platform that feels simple, intuitive, and trustworthy.
+        JOPAI is designed to help users explore digital systems, understand platform
+        behavior, and interact with structured environments in a comfortable way.
+      </p>
+
+      <p>
+        Every element of JOPAI is carefully crafted to ensure consistency,
+        performance, and a clean user experience across all devices.
+      </p>
+
+      <div class="divider"></div>
+
+      <h4>What Makes JOPAI Different</h4>
+      <ul>
+        <li>Clean and minimal interface focused on usability</li>
+        <li>Optimized experience across mobile and desktop devices</li>
+        <li>Well-structured system logic and flow</li>
+        <li>Designed for clarity, stability, and long-term growth</li>
+      </ul>
+
+      <div class="divider"></div>
+
+      <h4>Transparency & Responsibility</h4>
+      <p>
+        JOPAI is built with transparency in mind. All platform features are designed
+        to operate within clearly defined boundaries, ensuring a consistent and
+        predictable experience for every user.
+      </p>
+
+      <p>
+        The platform does not provide financial services, guarantees, or investment
+        opportunities. All interactions are part of a controlled digital environment.
+      </p>
+
+      <div class="divider"></div>
+
+      <h4>Continuous Improvement</h4>
+      <p>
+        We continuously refine and improve JOPAI to ensure reliability, performance,
+        and user satisfaction. Feedback and innovation are core parts of our growth.
+      </p>
+
+      <p>
+        Our goal is to maintain a trusted digital space that evolves alongside
+        modern technology standards.
+      </p>
+
+      <div class="divider"></div>
+
+      <h4>Contact & Support</h4>
+      <p>
+        If you have questions or feedback, our team is always open to hearing from you.
+        We are committed to maintaining a high-quality experience for all users.
+      </p>
+
+    </div>
+  </main>
 </div>
-</main>
-</div>
+
 <script src="auth.js"></script>
 <script src="common-nav.js"></script>
-<script>
-(function(){
-  var btn = document.querySelector('.back-btn');
-  if(!btn) return;
-  btn.addEventListener('click', function(){
-    if(history.length > 1){
-      history.back();
-    }else{
-      window.location.href = 'index.html';
-    }
-  });
-})();
-</script></body></html>
+
+</body>
+</html>
