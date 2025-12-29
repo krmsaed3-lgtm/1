@@ -403,7 +403,22 @@ openConfirmModal().then(function (ok) {
           // Make backend errors readable
           alert(msg);
         }).finally(function () {
-          btn.disabled = false;
+          // Do NOT blindly re-enable the button here.
+          // refreshDailyUI() already computed remaining runs and will disable the button
+          // when the daily cap is reached. Re-enabling here was allowing extra clicks
+          // (no earnings) after the cap.
+          var lvlUp = String(lvl || "").toUpperCase();
+          var rem = Number((btn && btn.dataset && btn.dataset.remainingRuns) ? btn.dataset.remainingRuns : 0);
+          if (lvlUp === "V1" || lvlUp === "V2") {
+            if (rem > 0) {
+              setBtnState(btn, true, "Run");
+            } else {
+              setBtnState(btn, false, "Come back tomorrow");
+            }
+          } else {
+            // default: allow normal behavior for other levels
+            btn.disabled = false;
+          }
         });
       });
       });
