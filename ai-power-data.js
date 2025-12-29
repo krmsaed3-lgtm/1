@@ -88,7 +88,15 @@
   var doneTextEl = document.getElementById("doneText");
 
 
-  // GPU cards
+  
+  var runRecordBtn = document.getElementById("runRecordBtn");
+  if (runRecordBtn) {
+    runRecordBtn.addEventListener("click", function () {
+      window.location.href = "run-record.html";
+    });
+  }
+
+// GPU cards
   var cards = Array.from(document.querySelectorAll(".gpu-card"));
   function getCardLevel(cardEl) {
     // second column -> first row -> value contains V1/V2/...

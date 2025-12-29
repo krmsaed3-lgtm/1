@@ -1,518 +1,162 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="utf-8" />
   <title>Run record</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
   <style>
-    :root {
-      --bg-main: #0C0B10;
-      --bg-card: #17202D;
-      --bg-card-soft: #11141d;
-      --bg-chip: #233246;
-      --text-main: #FFFFFF;
-      --text-sub: #DBE3F4;
-      --accent: #00D1FF;
-      --accent-strong: #145AF2;
-      --border-soft: #233246;
-      --danger: #ff4d4f;
-      --success: #36d98a;
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body{
+      min-height:100vh;
+      background-color:#05070b;
+      color:#ffffff;
+      font-family:-apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+    }
+    .page{ display:flex; flex-direction:column; min-height:100vh; }
+    .header{
+      height:44px;
+      padding:0 16px;
+      display:flex;
+      align-items:center;
+      border-bottom:1px solid rgba(255,255,255,0.06);
+      flex-shrink:0;
+    }
+    .header-left{ width:40px; display:flex; align-items:center; }
+    .back-btn{ display:inline-flex; align-items:center; justify-content:center; width:24px; height:24px; }
+    .back-icon{ width:10px; height:10px; border-left:2px solid #ffffff; border-bottom:2px solid #ffffff; transform:rotate(45deg); }
+    .header-title{ flex:1; text-align:center; font-size:16px; font-weight:500; }
+    .header-right{ width:40px; }
+
+    .main{ flex:1; padding:10px 10px 18px; overflow-y:auto; }
+
+    .card{
+      border-radius:12px;
+      background-color:#101b20;
+      padding:10px 12px;
+      margin-bottom:10px;
+      border:1px solid rgba(0,209,255,0.10);
+    }
+    .row{ display:flex; justify-content:space-between; align-items:center; gap:10px; }
+    .title{ font-size:12px; color:rgba(255,255,255,0.75); margin-bottom:6px; }
+    .value{ font-size:16px; font-weight:600; color:#00d1ff; }
+    .sub{ font-size:12px; color:rgba(255,255,255,0.65); margin-top:4px; }
+
+    .pillbar{ display:flex; gap:10px; }
+    .pill{
+      flex:1;
+      padding:8px 10px;
+      border-radius:999px;
+      background:rgba(255,255,255,0.06);
+      border:1px solid rgba(255,255,255,0.12);
+      color:rgba(255,255,255,0.85);
+      font-size:12px;
+      text-align:center;
+      user-select:none;
+      -webkit-tap-highlight-color:transparent;
+    }
+    .pill.active{
+      border-color:rgba(0,209,255,0.7);
+      color:#00d1ff;
+      background:rgba(0,209,255,0.10);
     }
 
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      -webkit-tap-highlight-color: transparent;
+    .list{ margin-top:10px; }
+    .item{
+      padding:10px 12px;
+      border-radius:12px;
+      background:#0c141a;
+      border:1px solid rgba(255,255,255,0.08);
+      margin-bottom:10px;
+    }
+    .item-top{ display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; }
+    .badge{
+      font-size:10px;
+      padding:3px 8px;
+      border-radius:999px;
+      border:1px solid rgba(0,209,255,0.55);
+      color:#00d1ff;
+      background:rgba(0,209,255,0.10);
+      white-space:nowrap;
+    }
+    .time{ font-size:12px; color:rgba(255,255,255,0.78); }
+    .meta{ font-size:11px; color:rgba(255,255,255,0.60); display:flex; justify-content:space-between; gap:10px; }
+    .empty{
+      padding:18px 12px;
+      text-align:center;
+      color:rgba(255,255,255,0.65);
+      font-size:12px;
+      border:1px dashed rgba(255,255,255,0.18);
+      border-radius:12px;
+    }
+    .btn-gradient{
+      padding:9px 14px;
+      border-radius:12px;
+      border:none;
+      outline:none;
+      background-image:linear-gradient(90deg,#00d1ff,#46EEAC);
+      color:#05070b;
+      font-size:12px;
+      font-weight:700;
+      width:100%;
+      cursor:pointer;
+      -webkit-tap-highlight-color:transparent;
     }
 
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
-      background: var(--bg-main);
-      color: var(--text-main);
-      min-height: 100vh;
+    .loading{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:10px;
+      color:rgba(255,255,255,0.70);
+      font-size:12px;
     }
-
-    .page {
-      max-width: 480px;
-      margin: 0 auto;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      background: var(--bg-main);
+    .spinner{
+      width:18px; height:18px;
+      border-radius:50%;
+      border:2px solid rgba(0,209,255,0.25);
+      border-top-color:#00d1ff;
+      animation:spin 0.8s linear infinite;
     }
-
-    .header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 12px 16px;
-      background: #000000;
-      border-bottom: 1px solid #111318;
-    }
-
-    .header-left,
-    .header-right {
-      display: flex;
-      align-items: center;
-      min-width: 44px;
-      justify-content: flex-start;
-    }
-
-    .header-right {
-      justify-content: flex-end;
-    }
-
-    .back-btn {
-      width: 28px;
-      height: 28px;
-      border-radius: 999px;
-      border: 1px solid #232633;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: var(--text-sub);
-      text-decoration: none;
-      font-size: 18px;
-    }
-
-    .header-title {
-      font-size: 16px;
-      font-weight: 600;
-      color: var(--text-main);
-      text-align: center;
-    }
-
-    .content {
-      flex: 1;
-      padding: 10px 14px 18px;
-      overflow-y: auto;
-    }
-
-    .summary-card {
-      background: linear-gradient(135deg, #17202D, #101521);
-      border-radius: 14px;
-      padding: 12px 14px;
-      margin-bottom: 14px;
-      border: 1px solid #1e2635;
-    }
-
-    .summary-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 6px;
-    }
-
-    .summary-label {
-      font-size: 11px;
-      color: var(--text-sub);
-      opacity: 0.9;
-    }
-
-    .summary-value {
-      font-size: 14px;
-      font-weight: 600;
-      color: var(--accent);
-    }
-
-    .summary-row:last-child {
-      margin-bottom: 0;
-    }
-
-    .filters {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 10px;
-      overflow-x: auto;
-      padding-bottom: 4px;
-    }
-
-    .chip {
-      padding: 6px 12px;
-      border-radius: 999px;
-      background: var(--bg-chip);
-      border: 1px solid transparent;
-      font-size: 12px;
-      color: var(--text-sub);
-      white-space: nowrap;
-      flex-shrink: 0;
-    }
-
-    .chip.active {
-      border-color: var(--accent);
-      color: var(--accent);
-      background: rgba(0, 209, 255, 0.06);
-    }
-
-    .list-empty {
-      margin-top: 40px;
-      text-align: center;
-      font-size: 12px;
-      color: #6f7a8b;
-    }
-
-    .record-list {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .record-date {
-      margin: 8px 2px 2px;
-      font-size: 11px;
-      color: #8b93a5;
-    }
-
-    .record-card {
-      background: var(--bg-card);
-      border-radius: 12px;
-      padding: 10px 12px;
-      border: 1px solid #11151f;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .record-main {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-    }
-
-    .record-title {
-      font-size: 13px;
-      font-weight: 500;
-    }
-
-    .record-meta {
-      font-size: 11px;
-      color: var(--text-sub);
-    }
-
-    .record-id {
-      opacity: 0.7;
-    }
-
-    .record-status {
-      font-size: 11px;
-    }
-
-    .status-completed {
-      color: var(--success);
-    }
-
-    .status-pending {
-      color: var(--accent);
-    }
-
-    .status-failed {
-      color: var(--danger);
-    }
-
-    .record-amount {
-      text-align: right;
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-      min-width: 90px;
-      margin-left: 8px;
-    }
-
-    .amount-value {
-      font-size: 14px;
-      font-weight: 600;
-    }
-
-    .amount-positive {
-      color: var(--success);
-    }
-
-    .amount-negative {
-      color: var(--danger);
-    }
-
-    .amount-type {
-      font-size: 11px;
-      color: var(--text-sub);
-    }
-
-    @media (min-width: 480px) {
-      .page {
-        border-left: 1px solid #111318;
-        border-right: 1px solid #111318;
-      }
-    }
+    @keyframes spin{ to{ transform:rotate(360deg);} }
   </style>
 </head>
 <body>
   <div class="page">
-    <header class="header">
+    <div class="header">
       <div class="header-left">
-        <a href="javascript:history.back();" class="back-btn">&#x2039;</a>
+        <a class="back-btn" href="javascript:history.back();" aria-label="Back"><span class="back-icon"></span></a>
       </div>
       <div class="header-title">Run record</div>
       <div class="header-right"></div>
-    </header>
+    </div>
 
-    <main class="content">
-      <section class="summary-card">
-        <div class="summary-row">
-          <span class="summary-label">Today's income</span>
-          <span class="summary-value" id="todayIncome">0.00 USDT</span>
+    <div class="main">
+      <div class="card">
+        <div class="title">Records</div>
+        <div class="row">
+          <div>
+            <div class="value" id="countValue">0</div>
+            <div class="sub" id="countSub">0 total</div>
+          </div>
         </div>
-        <div class="summary-row">
-          <span class="summary-label">Total income</span>
-          <span class="summary-value" id="totalIncome">0.00 USDT</span>
+        <div style="height:10px"></div>
+        <div class="pillbar">
+          <div class="pill active" id="tabToday">Today (Canada)</div>
+          <div class="pill" id="tabAll">All</div>
         </div>
-        <div class="summary-row">
-          <span class="summary-label">Total expense</span>
-          <span class="summary-value" id="totalExpense">0.00 USDT</span>
-        </div>
-      </section>
-
-      <div class="filters">
-        <div class="chip active" data-filter="all">All</div>
-        <div class="chip" data-filter="income">Income</div>
-        <div class="chip" data-filter="expense">Expense</div>
-        <div class="chip" data-filter="deposit">Deposit</div>
-        <div class="chip" data-filter="withdraw">Withdraw</div>
-        <div class="chip" data-filter="task">Task reward</div>
-        <div class="chip" data-filter="aiPower">AI Power</div>
       </div>
 
-      <div id="recordContainer"></div>
-    </main>
+      <div class="list" id="list">
+        <div class="loading" id="loading"><div class="spinner"></div>Loading…</div>
+      </div>
+
+      <div style="height:6px"></div>
+      <button class="btn-gradient" id="loadMoreBtn" type="button" style="display:none;">Load more</button>
+    </div>
   </div>
 
-  <script>
-    (function () {
-      const container = document.getElementById("recordContainer");
-      const chips = document.querySelectorAll(".chip");
-      const todayIncomeEl = document.getElementById("todayIncome");
-      const totalIncomeEl = document.getElementById("totalIncome");
-      const totalExpenseEl = document.getElementById("totalExpense");
-
-      // --------- مصدر بيانات AI Power من localStorage ----------
-      // نتوقع أن صفحة AI Power تحفظ بيانات في المفتاح "aiPowerRuns"
-      // مثال عنصر واحد في المصفوفة:
-      // {
-      //   id: "AI20251208001",
-      //   amount: 1.25,
-      //   direction: "+",
-      //   status: "completed",
-      //   time: "2025-12-08 10:12:00",
-      //   note: "AI Power income"
-      // }
-      function loadAiPowerRecords() {
-        try {
-          const raw = window.localStorage.getItem("aiPowerRuns");
-          if (!raw) return [];
-          const arr = JSON.parse(raw);
-          if (!Array.isArray(arr)) return [];
-          return arr.map(function (item, index) {
-            const id = item.id || ("AI-" + (index + 1));
-            const amount = Number(item.amount) || 0;
-            const direction = item.direction === "-" ? "-" : "+";
-            const status = item.status || "completed";
-            const time = item.time || new Date().toISOString().slice(0, 19).replace("T", " ");
-            const note = item.note || "AI Power income";
-
-            return {
-              id: id,
-              type: "aiPower",
-              title: "AI Power",
-              amount: amount,
-              direction: direction,
-              status: status,
-              time: time,
-              note: note
-            };
-          });
-        } catch (e) {
-          return [];
-        }
-      }
-
-      // بيانات تجريبية ثابتة (إيداع، سحب، مهام)
-      const staticRecords = [
-        {
-          id: "RW20251208001",
-          type: "deposit",
-          title: "Deposit",
-          amount: 50.00,
-          direction: "+",
-          status: "completed",
-          time: "2025-12-08 09:12:23",
-          note: "Deposit via TRC20"
-        },
-        {
-          id: "RW20251208002",
-          type: "task",
-          title: "AI computing task reward",
-          amount: 1.80,
-          direction: "+",
-          status: "completed",
-          time: "2025-12-08 09:32:10",
-          note: "Room task finished"
-        },
-        {
-          id: "RW20251207001",
-          type: "withdraw",
-          title: "Withdraw",
-          amount: 20.00,
-          direction: "-",
-          status: "pending",
-          time: "2025-12-07 18:25:47",
-          note: "TRC20 - waiting review"
-        },
-        {
-          id: "RW20251206001",
-          type: "task",
-          title: "Invite reward",
-          amount: 3.50,
-          direction: "+",
-          status: "completed",
-          time: "2025-12-06 16:02:11",
-          note: "New user registered"
-        },
-        {
-          id: "RW20251205001",
-          type: "withdraw",
-          title: "Withdraw",
-          amount: 30.00,
-          direction: "-",
-          status: "completed",
-          time: "2025-12-05 11:44:53",
-          note: "TRC20 withdrawal"
-        }
-      ];
-
-      // جمع بيانات AI Power + البيانات الثابتة
-      function getAllRecords() {
-        const ai = loadAiPowerRecords();
-        // AI Power أولاً ثم السجلات القديمة
-        return ai.concat(staticRecords);
-      }
-
-      function formatAmount(r) {
-        const sign = r.direction === "-" ? "-" : "+";
-        return sign + r.amount.toFixed(2) + " USDT";
-      }
-
-      function groupByDate(list) {
-        const groups = {};
-        list.forEach(function (r) {
-          const date = r.time.split(" ")[0];
-          if (!groups[date]) groups[date] = [];
-          groups[date].push(r);
-        });
-        return groups;
-      }
-
-      function renderList(filter) {
-        const allRecords = getAllRecords();
-        let filtered = allRecords.slice();
-
-        if (filter && filter !== "all") {
-          if (filter === "income") {
-            filtered = filtered.filter(function (r) { return r.direction === "+"; });
-          } else if (filter === "expense") {
-            filtered = filtered.filter(function (r) { return r.direction === "-"; });
-          } else {
-            filtered = filtered.filter(function (r) { return r.type === filter; });
-          }
-        }
-
-        if (!filtered.length) {
-          container.innerHTML = '<div class="list-empty">No records</div>';
-          return;
-        }
-
-        const groups = groupByDate(filtered);
-        const dates = Object.keys(groups).sort(function (a, b) {
-          return a < b ? 1 : -1;
-        });
-
-        var html = '<div class="record-list">';
-        dates.forEach(function (date) {
-          html += '<div class="record-date">' + date + "</div>";
-          groups[date].forEach(function (r) {
-            const amountClass = r.direction === "-" ? "amount-negative" : "amount-positive";
-            var statusClass = "status-pending";
-            if (r.status === "completed") statusClass = "status-completed";
-            else if (r.status === "failed") statusClass = "status-failed";
-
-            html += `
-              <div class="record-card">
-                <div class="record-main">
-                  <div class="record-title">${r.title}</div>
-                  <div class="record-meta">
-                    <span>${r.time.split(" ")[1]}</span>
-                    &nbsp;·&nbsp;
-                    <span class="record-id">${r.id}</span>
-                  </div>
-                  <div class="record-status ${statusClass}">${r.status.charAt(0).toUpperCase() + r.status.slice(1)}</div>
-                </div>
-                <div class="record-amount">
-                  <div class="amount-value ${amountClass}">${formatAmount(r)}</div>
-                  <div class="amount-type">${r.note}</div>
-                </div>
-              </div>
-            `;
-          });
-        });
-        html += "</div>";
-        container.innerHTML = html;
-      }
-
-      function computeSummary() {
-        const allRecords = getAllRecords();
-        const now = new Date();
-        const todayStr = now.toISOString().slice(0, 10);
-
-        var todayIncome = 0;
-        var totalIncome = 0;
-        var totalExpense = 0;
-
-        allRecords.forEach(function (r) {
-          const isToday = r.time.startsWith(todayStr);
-          const signed = r.direction === "-" ? -r.amount : r.amount;
-
-          if (r.direction === "+") totalIncome += r.amount;
-          if (r.direction === "-") totalExpense += r.amount;
-
-          if (isToday && signed > 0) todayIncome += signed;
-        });
-
-        todayIncomeEl.textContent = todayIncome.toFixed(2) + " USDT";
-        totalIncomeEl.textContent = totalIncome.toFixed(2) + " USDT";
-        totalExpenseEl.textContent = totalExpense.toFixed(2) + " USDT";
-      }
-
-      chips.forEach(function (chip) {
-        chip.addEventListener("click", function () {
-          chips.forEach(function (c) { c.classList.remove("active"); });
-          chip.classList.add("active");
-          const filter = chip.getAttribute("data-filter");
-          renderList(filter);
-        });
-      });
-
-      computeSummary();
-      renderList("all");
-
-      // إعادة حساب الملخص كل مرة يمكن أن تعدل فيها بيانات AI Power في localStorage
-      window.addEventListener("storage", function (event) {
-        if (event.key === "aiPowerRuns") {
-          computeSummary();
-          const activeChip = document.querySelector(".chip.active");
-          const filter = activeChip ? activeChip.getAttribute("data-filter") : "all";
-          renderList(filter);
-        }
-      });
-    })();
-  </script>
+  <script src="sb-config.js"></script>
+  <script src="auth.js"></script>
+  <script src="run-record.js"></script>
 </body>
 </html>
