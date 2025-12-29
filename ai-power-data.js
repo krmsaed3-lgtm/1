@@ -84,6 +84,8 @@
 
   var doneModal = document.getElementById("doneModal");
   var doneOkBtn = document.getElementById("doneOkBtn");
+  var doneTitleEl = document.getElementById("doneTitle");
+  var doneTextEl = document.getElementById("doneText");
 
 
   // GPU cards
@@ -159,9 +161,13 @@ function openConfirmModal() {
   });
 }
 
-function showDoneModal() {
+
+function showDoneModal(title, text) {
   if (!doneModal || !doneOkBtn) return;
-  // show
+
+  if (doneTitleEl) doneTitleEl.textContent = title || "Done";
+  if (doneTextEl) doneTextEl.textContent = text || "Completed.";
+
   doneModal.style.display = "flex";
 
   function cleanup() {
@@ -397,11 +403,9 @@ async function refreshDailyUI(userId) {
 
       btn.addEventListener("click", function () {
         if (locked) {
-          alert(lockReason || "Account is locked.");
           return;
         }
         if (!unlocked) {
-          alert("This computing power package is locked. Please upgrade your member level to use it.");
           return;
         }
 
@@ -432,7 +436,15 @@ openConfirmModal().then(function (ok) {
           // Keep "Today's profit" as 0.00 and show a styled completion modal.
           var profEl = getTodayProfitEl(cardEl);
           if (profEl) profEl.textContent = formatUSDT(0);
-          showDoneModal();
+          
+          var remBefore = Number((btn && btn.dataset && btn.dataset.remainingRuns) ? btn.dataset.remainingRuns : 0);
+          var remAfter = Math.max(0, remBefore - 1);
+          var doneMsg = "Completed.";
+          if (remAfter > 0) {
+            doneMsg = "You have " + remAfter + (remAfter === 1 ? " run" : " runs") + " remaining.";
+          }
+          showDoneModal("Done", doneMsg);
+
 
           // Refresh totals (today/total/team) via summary
           return refreshTopSummary(userId).then(function(){ return refreshDailyUI(userId); });
