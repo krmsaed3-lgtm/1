@@ -82,6 +82,10 @@
   var confirmOkBtn = document.getElementById("confirmOkBtn");
   var confirmCancelBtn = document.getElementById("confirmCancelBtn");
 
+  var doneModal = document.getElementById("doneModal");
+  var doneOkBtn = document.getElementById("doneOkBtn");
+
+
   // GPU cards
   var cards = Array.from(document.querySelectorAll(".gpu-card"));
   function getCardLevel(cardEl) {
@@ -155,6 +159,38 @@ function openConfirmModal() {
   });
 }
 
+function showDoneModal() {
+  if (!doneModal || !doneOkBtn) return;
+  // show
+  doneModal.style.display = "flex";
+
+  function cleanup() {
+    doneOkBtn.removeEventListener("click", onOk);
+    doneModal.removeEventListener("click", onBackdrop);
+    document.removeEventListener("keydown", onKey);
+  }
+  function close() {
+    try { doneModal.style.display = "none"; } catch (e) {}
+    cleanup();
+  }
+  function onOk(e) {
+    e.preventDefault();
+    close();
+  }
+  function onBackdrop(e) {
+    if (e.target === doneModal) close();
+  }
+  function onKey(e) {
+    if (e.key === "Escape") close();
+  }
+
+  doneOkBtn.addEventListener("click", onOk);
+  doneModal.addEventListener("click", onBackdrop);
+  document.addEventListener("keydown", onKey);
+}
+
+
+
 
   function runWithCountdown(seconds, onFinish) {
   seconds = seconds || 8;
@@ -191,10 +227,14 @@ function openConfirmModal() {
       setText(topAmountEl, formatUSDT(s.usdt_balance));
       // Remaining times is controlled by per-level logic (e.g., V1 daily cap)
       setText(runRoomValueEl, (currentLevel || "V0"));
-      // Update today's profit on unlocked cards (use today's personal income)
+      // Update today's profit:
+      // - Show today's personal income only on the CURRENT level card.
+      // - Other levels should display 0 to avoid confusion.
       cards.forEach(function (c) {
         var profEl = getTodayProfitEl(c);
-        if (profEl) profEl.textContent = formatUSDT(0);
+        if (!profEl) return;
+        var lvl = getCardLevel(c);
+        profEl.textContent = formatUSDT(lvl === (currentLevel || "V0") ? s.today_personal : 0);
       });
     }).catch(function () {});
   }
@@ -287,25 +327,11 @@ async function refreshDailyUI(userId) {
   // Updates the top "Number of times..." card and the active level card (V1/V2) using Canada day window
   if (!userId) return;
 
-  // V0 or locked: nothing can run
-  if (locked || currentRank < 1) {
+  if (locked || currentRank < 1 || currentRank > 2) {
     if (timesCardValueEl) timesCardValueEl.textContent = "0 Times";
     cards.forEach(function (cardEl) {
       var btn = getRunBtn(cardEl);
-      if (btn) setBtnState(btn, false, (btn.textContent || "Run after unlocking"));
-      var runTimesEl = getRunTimesEl(cardEl);
-      if (runTimesEl) runTimesEl.textContent = "—";
-    });
-    return;
-  }
-
-  // V3+ is intentionally non-earning in your rules:
-  // show 0 Times, keep cards visible, and make buttons inert (no popups).
-  if (currentRank > 2) {
-    if (timesCardValueEl) timesCardValueEl.textContent = "0 Times";
-    cards.forEach(function (cardEl) {
-      var btn = getRunBtn(cardEl);
-      if (btn) setBtnState(btn, false, "Run after unlocking");
+      if (btn) setBtnState(btn, false, "Run");
       var runTimesEl = getRunTimesEl(cardEl);
       if (runTimesEl) runTimesEl.textContent = "—";
     });
@@ -370,13 +396,20 @@ async function refreshDailyUI(userId) {
       if (!btn) return;
 
       btn.addEventListener("click", function () {
-        if (locked) { return; }
-        if (!unlocked) { return; }
+        if (locked) {
+          alert(lockReason || "Account is locked.");
+          return;
+        }
+        if (!unlocked) {
+          alert("This computing power package is locked. Please upgrade your member level to use it.");
+          return;
+        }
 
         // V1 daily cap guard (2 runs per Canada day)
         if (String(lvl).toUpperCase() === "V1") {
           var rem = Number((btn && btn.dataset && btn.dataset.remainingRuns) ? btn.dataset.remainingRuns : 0);
           if (!(rem > 0)) {
+            return;
             return;
           }
         }
@@ -395,21 +428,20 @@ openConfirmModal().then(function (ok) {
 
           // Update UI quickly
           if (newBal != null) setText(topAmountEl, formatUSDT(newBal));
-          if (earned != null) {
-            var profEl = getTodayProfitEl(cardEl);
-            if (profEl) profEl.textContent = formatUSDT(0);
-            } else {
-            }
+          // Do not reveal per-run profit in UI.
+          // Keep "Today's profit" as 0.00 and show a styled completion modal.
+          var profEl = getTodayProfitEl(cardEl);
+          if (profEl) profEl.textContent = formatUSDT(0);
+          showDoneModal();
 
           // Refresh totals (today/total/team) via summary
           return refreshTopSummary(userId).then(function(){ return refreshDailyUI(userId); });
         }).catch(function (err) {
           var msg = (err && err.message) ? err.message : String(err || "Run failed");
           // Make backend errors readable
-          /* silent */
-          }).finally(function () {
-          // Let refreshDailyUI decide enabled/disabled state
-          refreshDailyUI(userId);
+          alert(msg);
+        }).finally(function () {
+          btn.disabled = false;
         });
       });
       });
@@ -419,6 +451,7 @@ openConfirmModal().then(function (ok) {
   // Init
   getUserId().then(function (userId) {
     if (!userId) {
+      alert("Please login first.");
       window.location.href = "login.html";
       return;
     }
