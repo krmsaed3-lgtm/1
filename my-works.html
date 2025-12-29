@@ -56,6 +56,8 @@
     }
 
     .back-btn img {
+      transform: rotate(180deg);
+
       width: 18px;
       height: 18px;
       display: block;
@@ -129,9 +131,9 @@
 <body>
 <div class="app">
 <header class="top-bar">
-<div class="back-btn">
+<button aria-label="Back" class="back-btn" type="button">
 <img alt="Back" src="images/back-icon-D2ne3Npi.png"/>
-</div>
+</button>
 <div class="title">My Works</div>
 </header>
 <main>
@@ -146,6 +148,22 @@
 </section>
 </main>
 </div>
-<script src="common-nav.js"></script>
+<script>
+(function () {
+  'use strict';
+  var backBtn = document.querySelector('.back-btn');
+  if (!backBtn) return;
+
+  backBtn.addEventListener('click', function (e) {
+    e.preventDefault();
+    // Go back if possible, otherwise fallback to home/root
+    if (window.history && history.length > 1) {
+      history.back();
+    } else {
+      window.location.href = 'index.html';
+    }
+  });
+})();
+</script><script src="common-nav.js"></script>
 </body>
 </html>
