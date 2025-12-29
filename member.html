@@ -339,12 +339,13 @@
       margin-right: 8px;
     }
   
-    .vip-locked.unlocked {
-      background: rgba(0, 0, 0, 0.25);
-      color: rgba(255, 255, 255, 0.9);
+    .vip-locked.unlocked{
+      background: rgba(0,0,0,.22);
+      color: rgba(255,255,255,.92);
+      border: 1px solid rgba(255,255,255,.18);
     }
-    .vip-locked.unlocked::before {
-      content: "\1F513"; /* open lock */
+    .vip-locked.unlocked::before{
+      content:"\1F513";
     }
 
   </style>
@@ -966,20 +967,19 @@
 
 
 <script>
-  (function () {
-    var a = document.getElementById('backBtn');
-    if (!a) return;
-    a.addEventListener('click', function (e) {
-      e.preventDefault();
-      var ref = (document.referrer || '').toLowerCase();
-      if (window.history.length > 1 && ref.indexOf('my-assets.html') === -1) {
-        window.history.back();
-        return;
-      }
-      // Fallback destination (edit if your home page differs)
-      window.location.href = 'index.html';
-    });
-  })();
+(function(){
+  var b = document.getElementById('backBtn');
+  if(!b) return;
+  b.addEventListener('click', function(e){
+    e.preventDefault();
+    var ref = (document.referrer || '').toLowerCase();
+    if (window.history.length > 1 && ref.indexOf('my-assets.html') === -1) {
+      window.history.back();
+      return;
+    }
+    window.location.href = 'member.html';
+  });
+})();
 </script>
 
 </body>

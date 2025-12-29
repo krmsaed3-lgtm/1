@@ -140,38 +140,7 @@
     return typeof lvl === "string" && lvl ? lvl : null;
   }
 
-  
-  function levelToNumber(lvl) {
-    var m = String(lvl || "").trim().match(/^V(\d+)$/i);
-    return m ? Number(m[1]) : null;
-  }
-
-  function updateLocks(currentLevel) {
-    var curN = levelToNumber(currentLevel);
-    if (curN == null) return;
-
-    var sections = document.querySelectorAll(".vip-section");
-    sections.forEach(function (sec) {
-      var lvl = sec.getAttribute("data-level");
-      var n = levelToNumber(lvl);
-      if (n == null) return;
-
-      var badge = sec.querySelector(".vip-locked");
-      if (!badge) return;
-
-      var unlocked = n <= curN;
-      if (unlocked) {
-        badge.classList.add("unlocked");
-        badge.textContent = "Unlocked";
-      } else {
-        badge.classList.remove("unlocked");
-        badge.textContent = "Locked at this Level";
-      }
-    });
-  }
-
-
-// ---------- DOMAIN LOGIC ----------
+  // ---------- DOMAIN LOGIC ----------
   function isEffectiveRow(r) {
     if (!r) return false;
     if (r.is_effective === true) return true;
@@ -232,12 +201,41 @@
     if (fill) {
       const balP = rules.minBalance > 0 ? Math.min(1, balance / rules.minBalance) : 1;
       const usrP = rules.minUsers > 0 ? Math.min(1, effectiveUsersGen1 / rules.minUsers) : 1;
-      const p = Math.max(balP, usrP);
+      const p = Math.min(balP, usrP);
       fill.style.width = Math.round(p * 100) + "%";
     }
   }
 
-  // ---------- MAIN ----------
+  
+  function levelToNumber(lvl){
+    var m = String(lvl || "").trim().match(/^V(\d+)$/i);
+    return m ? Number(m[1]) : null;
+  }
+
+  function updateLocks(currentLevel){
+    var curN = levelToNumber(currentLevel);
+    if (curN == null) return;
+    document.querySelectorAll(".vip-section").forEach(function(sec){
+      var lvl = sec.getAttribute("data-level");
+      var n = levelToNumber(lvl);
+      if (n == null) return;
+
+      var badge = sec.querySelector(".vip-locked");
+      if (!badge) return;
+
+      var unlocked = (n <= curN);
+      if (unlocked){
+        badge.classList.add("unlocked");
+        badge.textContent = "Unlocked";
+      } else {
+        badge.classList.remove("unlocked");
+        badge.textContent = "Locked at this Level";
+      }
+    });
+  }
+
+
+// ---------- MAIN ----------
   async function loadMemberData() {
     const userId = await getCurrentUserId();
     if (!userId) return;
@@ -253,13 +251,13 @@
     const gen1 = Array.isArray(team) ? team.filter(r => r.depth === 1) : [];
     const effectiveUsersGen1 = gen1.filter(isEffectiveRow).length;
 
-    // Update lock badges
-    updateLocks(lvl);
-
     // Update top bar
     const lvl = currentLevel || "V0";
     const next = nextLevelFromCurrent(lvl);
     updateTopBar(lvl, next);
+
+    // Update lock badges by current level
+    updateLocks(lvl);
 
     // Update each section
     const sections = document.querySelectorAll(".vip-section");
