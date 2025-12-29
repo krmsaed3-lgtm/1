@@ -98,7 +98,6 @@
   var modeLabelEl = document.getElementById("modeLabel");
   var lastUpdatedEl = document.getElementById("lastUpdated");
   var refreshBtn = document.getElementById("refreshBtn");
-  var refreshTopBtn = document.getElementById("refreshTopBtn");
   var exportBtn = document.getElementById("exportBtn");
 
 
@@ -246,7 +245,6 @@
   }
 
   if (refreshBtn) refreshBtn.addEventListener("click", function () { hardRefresh(); });
-  if (refreshTopBtn) refreshTopBtn.addEventListener("click", function () { hardRefresh(); });
   if (exportBtn) exportBtn.addEventListener("click", function () { /* reserved */ });
 
   // Init
