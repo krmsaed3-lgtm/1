@@ -191,62 +191,14 @@ function openConfirmModal() {
       setText(topAmountEl, formatUSDT(s.usdt_balance));
       // Remaining times is controlled by per-level logic (e.g., V1 daily cap)
       setText(runRoomValueEl, (currentLevel || "V0"));
-      // Update today's profit:
-      // - show today's personal income ONLY on the user's current level card
-      // - other cards show 0 to avoid duplicating the same value across all levels
+      // Update today's profit on unlocked cards (use today's personal income)
       cards.forEach(function (c) {
         var profEl = getTodayProfitEl(c);
-        if (!profEl) return;
-        var lvl = String(getCardLevel(c) || "V0").toUpperCase();
-        var cur = String(currentLevel || "V0").toUpperCase();
-        profEl.textContent = formatUSDT(lvl === cur ? (s.today_personal || 0) : 0);
-      });
-        if (profEl) profEl.textContent = formatUSDT(s.today_personal);
+        if (profEl) profEl.textContent = formatUSDT(0);
       });
     }).catch(function () {});
   }
 
-
-
-  // ---------------------------
-  // Small in-page toast (no browser alert)
-  function showToast(message) {
-    try {
-      if (!message) return;
-      var existing = document.getElementById("aiPowerToast");
-      if (!existing) {
-        existing = document.createElement("div");
-        existing.id = "aiPowerToast";
-        existing.style.position = "fixed";
-        existing.style.left = "50%";
-        existing.style.bottom = "90px";
-        existing.style.transform = "translateX(-50%)";
-        existing.style.maxWidth = "86%";
-        existing.style.padding = "10px 14px";
-        existing.style.borderRadius = "14px";
-        existing.style.background = "rgba(16, 27, 32, 0.98)";
-        existing.style.border = "1px solid rgba(0, 209, 255, 0.18)";
-        existing.style.boxShadow = "0 18px 40px rgba(0,0,0,0.55)";
-        existing.style.color = "rgba(255,255,255,0.92)";
-        existing.style.fontSize = "12px";
-        existing.style.lineHeight = "1.35";
-        existing.style.textAlign = "center";
-        existing.style.zIndex = "2000";
-        existing.style.opacity = "0";
-        existing.style.transition = "opacity 180ms ease";
-        document.body.appendChild(existing);
-      }
-      existing.textContent = message;
-      existing.style.display = "block";
-      // fade in
-      requestAnimationFrame(function(){ existing.style.opacity = "1"; });
-      clearTimeout(existing._t);
-      existing._t = setTimeout(function () {
-        existing.style.opacity = "0";
-        setTimeout(function(){ try { existing.style.display = "none"; } catch(e){} }, 220);
-      }, 1700);
-    } catch (e) {}
-  }
 
 // ---------------------------
 // V1 daily cap (Canada time)
@@ -335,11 +287,25 @@ async function refreshDailyUI(userId) {
   // Updates the top "Number of times..." card and the active level card (V1/V2) using Canada day window
   if (!userId) return;
 
-  if (locked || currentRank < 1 || currentRank > 2) {
+  // V0 or locked: nothing can run
+  if (locked || currentRank < 1) {
     if (timesCardValueEl) timesCardValueEl.textContent = "0 Times";
     cards.forEach(function (cardEl) {
       var btn = getRunBtn(cardEl);
-      if (btn) setBtnState(btn, false, "Run");
+      if (btn) setBtnState(btn, false, (btn.textContent || "Run after unlocking"));
+      var runTimesEl = getRunTimesEl(cardEl);
+      if (runTimesEl) runTimesEl.textContent = "—";
+    });
+    return;
+  }
+
+  // V3+ is intentionally non-earning in your rules:
+  // show 0 Times, keep cards visible, and make buttons inert (no popups).
+  if (currentRank > 2) {
+    if (timesCardValueEl) timesCardValueEl.textContent = "0 Times";
+    cards.forEach(function (cardEl) {
+      var btn = getRunBtn(cardEl);
+      if (btn) setBtnState(btn, false, "Run after unlocking");
       var runTimesEl = getRunTimesEl(cardEl);
       if (runTimesEl) runTimesEl.textContent = "—";
     });
@@ -404,21 +370,14 @@ async function refreshDailyUI(userId) {
       if (!btn) return;
 
       btn.addEventListener("click", function () {
-        if (btn.disabled) return;
-        if (locked) {
-          showToast(lockReason || "Account is locked.");
-          return;
-        }
-        if (!unlocked) {
-          showToast("This computing power package is locked. Please upgrade your member level to use it.");
-          return;
-        }
+        if (locked) { return; }
+        if (!unlocked) { return; }
 
         // V1 daily cap guard (2 runs per Canada day)
         if (String(lvl).toUpperCase() === "V1") {
           var rem = Number((btn && btn.dataset && btn.dataset.remainingRuns) ? btn.dataset.remainingRuns : 0);
           if (!(rem > 0)) {
-            return; // silent when no remaining runs
+            return;
           }
         }
 
@@ -438,20 +397,19 @@ openConfirmModal().then(function (ok) {
           if (newBal != null) setText(topAmountEl, formatUSDT(newBal));
           if (earned != null) {
             var profEl = getTodayProfitEl(cardEl);
-            if (profEl) { /* keep profit display driven by summary only */ }
-            showToast("Run completed.");
-          } else {
-            showToast("Run completed.");
-          }
+            if (profEl) profEl.textContent = formatUSDT(0);
+            } else {
+            }
 
           // Refresh totals (today/total/team) via summary
           return refreshTopSummary(userId).then(function(){ return refreshDailyUI(userId); });
         }).catch(function (err) {
           var msg = (err && err.message) ? err.message : String(err || "Run failed");
           // Make backend errors readable
-          showToast(msg);
-        }).finally(function () {
-          // Do not force-enable the button; UI state is controlled by refreshDailyUI()
+          /* silent */
+          }).finally(function () {
+          // Let refreshDailyUI decide enabled/disabled state
+          refreshDailyUI(userId);
         });
       });
       });
@@ -461,7 +419,6 @@ openConfirmModal().then(function (ok) {
   // Init
   getUserId().then(function (userId) {
     if (!userId) {
-      alert("Please login first.");
       window.location.href = "login.html";
       return;
     }
