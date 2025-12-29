@@ -191,10 +191,14 @@ function openConfirmModal() {
       setText(topAmountEl, formatUSDT(s.usdt_balance));
       // Remaining times is controlled by per-level logic (e.g., V1 daily cap)
       setText(runRoomValueEl, (currentLevel || "V0"));
-      // Update today's profit on unlocked cards (use today's personal income)
+      // Update today's profit:
+      // - Show today's personal income only on the CURRENT level card.
+      // - Other levels should display 0 to avoid confusion.
       cards.forEach(function (c) {
         var profEl = getTodayProfitEl(c);
-        if (profEl) profEl.textContent = formatUSDT(s.today_personal);
+        if (!profEl) return;
+        var lvl = getCardLevel(c);
+        profEl.textContent = formatUSDT(lvl === (currentLevel || "V0") ? s.today_personal : 0);
       });
     }).catch(function () {});
   }
@@ -403,22 +407,7 @@ openConfirmModal().then(function (ok) {
           // Make backend errors readable
           alert(msg);
         }).finally(function () {
-          // Do NOT blindly re-enable the button here.
-          // refreshDailyUI() already computed remaining runs and will disable the button
-          // when the daily cap is reached. Re-enabling here was allowing extra clicks
-          // (no earnings) after the cap.
-          var lvlUp = String(lvl || "").toUpperCase();
-          var rem = Number((btn && btn.dataset && btn.dataset.remainingRuns) ? btn.dataset.remainingRuns : 0);
-          if (lvlUp === "V1" || lvlUp === "V2") {
-            if (rem > 0) {
-              setBtnState(btn, true, "Run");
-            } else {
-              setBtnState(btn, false, "Come back tomorrow");
-            }
-          } else {
-            // default: allow normal behavior for other levels
-            btn.disabled = false;
-          }
+          btn.disabled = false;
         });
       });
       });
