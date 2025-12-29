@@ -35,20 +35,24 @@
 
   <main class="wrap">
     <input id="qSearch" type="search" placeholder="Search questions" autocomplete="off" />
-    <div class="hint">Tip: connect this page to your FAQ table later (jopai_faq).</div>
+    <div class="hint">General information. No account data is required.</div>
 
     <div class="card" id="faqList">
       <details>
         <summary><span class="q">How does registration work?</span><span class="chev">›</span></summary>
-        <div class="a">Sign up with your phone number and an invitation code. Your account is created securely and linked to your inviter.</div>
+        <div class="a">Sign up with your phone number and an invitation code. Your invitation code is used to build your referral relationship.</div>
       </details>
       <details>
-        <summary><span class="q">How does IPower work?</span><span class="chev">›</span></summary>
-        <div class="a">You can complete one IPower action per day. Earnings are calculated automatically and credited to your wallet.</div>
+        <summary><span class="q">How does daily earning work?</span><span class="chev">›</span></summary>
+        <div class="a">Daily earning is based on platform rules and is processed automatically. Only one daily action is allowed within each 24-hour cycle.</div>
       </details>
       <details>
-        <summary><span class="q">What is the difference between balance and reserved?</span><span class="chev">›</span></summary>
-        <div class="a">Available balance can be used immediately. Reserved balance is temporarily locked during review or processing.</div>
+        <summary><span class="q">What is the difference between available and reserved balance?</span><span class="chev">›</span></summary>
+        <div class="a">Available balance can be used immediately. Reserved balance is temporarily locked during review or processing steps.</div>
+      </details>
+      <details>
+        <summary><span class="q">How do referrals work?</span><span class="chev">›</span></summary>
+        <div class="a">Referral rewards can be calculated up to multiple levels according to published rates. Rewards are recorded automatically.</div>
       </details>
     </div>
   </main>
@@ -57,13 +61,12 @@
     (function(){
       const backBtn=document.getElementById('backBtn');
       if(backBtn){backBtn.addEventListener('click',()=>{ if(history.length>1) history.back(); });}
-
       const search=document.getElementById('qSearch');
       const items=[...document.querySelectorAll('#faqList details')];
       search.addEventListener('input',()=>{
         const q=(search.value||'').toLowerCase().trim();
         items.forEach(d=>{
-          const text=d.querySelector('.q')?.textContent?.toLowerCase()||'';
+          const text=(d.querySelector('.q')?.textContent||'').toLowerCase();
           d.style.display = (!q || text.includes(q)) ? '' : 'none';
         });
       });

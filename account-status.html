@@ -16,8 +16,10 @@
     .row:first-child{border-top:0;padding-top:0}
     .k{color:rgba(255,255,255,.72);font-size:13px}
     .v{font-weight:600}
-    .note{color:rgba(255,255,255,.72);font-size:13px;line-height:1.45;margin-top:8px}
+    .note{color:rgba(255,255,255,.72);font-size:13px;line-height:1.5;margin-top:10px}
     .pill{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.10);font-size:12px}
+    ul{margin:10px 0 0 18px;color:rgba(255,255,255,.80);line-height:1.55}
+    li{margin:6px 0}
   </style>
 </head>
 <body>
@@ -32,19 +34,32 @@
 
   <main class="wrap">
     <div class="card">
-      <div class="pill">Status: <strong id="accStatus">Active</strong></div>
-      <div class="row"><div class="k">Current Level</div><div class="v" id="accLevel">V0</div></div>
-      <div class="row"><div class="k">Locked</div><div class="v" id="accLocked">No</div></div>
-      <div class="row"><div class="k">Reason</div><div class="v" id="accReason">—</div></div>
-      <div class="note">This page is display-only. You can connect it later to your user_state data (current_level, is_locked, locked_reason).</div>
+      <div class="pill">Account Status (General)</div>
+
+      <div class="row"><div class="k">Active</div><div class="v">Normal access</div></div>
+      <div class="row"><div class="k">Locked</div><div class="v">Temporarily restricted</div></div>
+      <div class="row"><div class="k">Restricted</div><div class="v">Limited features</div></div>
+
+      <div class="note">
+        Possible reasons for restrictions:
+        <ul>
+          <li>Security review or unusual activity detection</li>
+          <li>Incomplete required steps (activation or funding rules)</li>
+          <li>Risk control checks for withdrawals</li>
+          <li>Violation of platform rules</li>
+        </ul>
+      </div>
     </div>
 
     <div class="card">
-      <div style="font-weight:600;margin-bottom:8px">Limits</div>
-      <div class="row"><div class="k">Daily IPower</div><div class="v">1 action / 24h</div></div>
-      <div class="row"><div class="k">Referral Depth</div><div class="v">Up to 3 levels</div></div>
-      <div class="row"><div class="k">Withdraw Status Flow</div><div class="v">Review → Approved → Paid</div></div>
-      <div class="note">Adjust these labels any time to match your platform rules.</div>
+      <div style="font-weight:600;margin-bottom:8px">Limits (General)</div>
+      <div class="row"><div class="k">Daily action</div><div class="v">1 action / 24h</div></div>
+      <div class="row"><div class="k">Referral depth</div><div class="v">Up to 3 levels</div></div>
+      <div class="row"><div class="k">Withdraw status</div><div class="v">Review → Approved → Paid</div></div>
+
+      <div class="note">
+        These are general descriptions for users. Actual limits and eligibility may depend on your current rules and security checks.
+      </div>
     </div>
   </main>
 
