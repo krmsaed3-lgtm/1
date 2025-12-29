@@ -67,6 +67,8 @@
     items.forEach(function (r) {
       var el = document.createElement('div');
       el.className = 'item';
+      el.dataset.status = (r.status || '').toString();
+      el.dataset.type = 'limited';
 
       var createdAt = (r.created_at || '').toString().replace('T', ' ').slice(0, 19);
       var amount = Number(r.amount || 0).toFixed(2) + ' USDT';
@@ -126,7 +128,13 @@
     }
 
     var items = Array.isArray(res.data) ? res.data : [];
-    updateSummary(items);
+    // Show only eligible records in UI (hide skipped_limit and any other non-reward statuses)
+items = items.filter(function (x) {
+  var st = (x && x.status || '').toString();
+  return st === 'claimable' || st === 'claimed';
+});
+
+updateSummary(items);
     render(items);
   }
 
