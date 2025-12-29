@@ -49,10 +49,14 @@
     .hero-img{
       width:100%;
       height:110px;
-      background-image:url('images/run-record-banner.jpg');
-      background-size:cover;
-      background-position:center;
       opacity:0.95;
+    }
+    .hero-img img{
+      width:100%;
+      height:100%;
+      display:block;
+      object-fit:cover;
+      object-position:center;
     }
     .hero-overlay{
       position:absolute; inset:0;
@@ -225,7 +229,10 @@
       <div class="header-title">Run records</div>
       <div class="header-right">
         <button class="icon-btn" id="refreshTopBtn" type="button" aria-label="Refresh">
-          <span class="icon-ellipsis" aria-hidden="true"><span class="icon-dot"></span><span class="icon-dot"></span><span class="icon-dot"></span></span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M20 12a8 8 0 1 1-2.34-5.66" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <path d="M20 4v6h-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
         </button>
       </div>
     </div>
@@ -233,7 +240,7 @@
     <div class="main">
 
       <div class="hero">
-        <div class="hero-img"></div>
+        <div class="hero-img"><img src="images/run-record-banner.jpg" alt=""/></div>
         <div class="hero-overlay"></div>
         <div class="hero-content">
           <div>
@@ -289,6 +296,6 @@
 
   <script src="sb-config.js"></script>
   <script src="auth.js"></script>
-  <script src="run-record.js"></script>
+  <script src="run-record.final.js"></script>
 </body>
 </html>
