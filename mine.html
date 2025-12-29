@@ -303,7 +303,22 @@
         max-width: 480px;
       }
     }
-  </style>
+  
+/* --- JOPAI V3 Lock Modal (isolated) --- */
+.jopai-modal{position:fixed;inset:0;display:none;z-index:9999}
+.jopai-modal.is-open{display:block}
+.jopai-modal__backdrop{position:absolute;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(6px)}
+.jopai-modal__card{position:relative;width:min(92vw,360px);margin:18vh auto 0;background:rgba(18,18,22,.92);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:16px;color:#fff;box-shadow:0 18px 55px rgba(0,0,0,.45);transform:translateY(10px);animation:jopaiPop .18s ease-out forwards}
+@keyframes jopaiPop{to{transform:translateY(0)}}
+.jopai-modal__header{display:flex;gap:12px;align-items:flex-start}
+.jopai-modal__icon{width:42px;height:42px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.08);border-radius:12px;font-size:18px;flex-shrink:0}
+.jopai-modal__title{font-weight:700;font-size:14.5px}
+.jopai-modal__subtitle{margin-top:4px;font-size:12.5px;color:rgba(255,255,255,.72)}
+.jopai-modal__actions{display:flex;gap:10px;margin-top:14px}
+.jopai-btn{flex:1;border:0;border-radius:12px;padding:11px 12px;font-weight:600;font-size:13px;cursor:pointer}
+.jopai-btn--ghost{background:rgba(255,255,255,.08);color:#fff}
+.jopai-btn--primary{background:linear-gradient(135deg, rgba(0,210,255,.95), rgba(0,120,255,.95));color:#071018}
+</style>
 </head>
 <body>
 <div class="page">
@@ -318,7 +333,6 @@
 <div class="profile-info">
 <div class="profile-phone" id="mine-phone"></div>
 <div class="profile-id" id="mine-id">ID: -</div>
-
 </div>
 <div class="profile-arrow">›</div>
 </section>
@@ -458,15 +472,6 @@
 <div class="section-item">
 <div class="section-left">
 <div class="section-icon">
-<img alt="Online customer service" src="images/icon-17-CMs7hPtH.png"/>
-</div>
-<span class="section-label">Online customer service</span>
-</div>
-<div class="section-arrow">›</div>
-</div>
-<div class="section-item">
-<div class="section-left">
-<div class="section-icon">
 <img alt="APP download" src="images/icon-10-DeYOj72H.png"/>
 </div>
 <span class="section-label">APP download</span>
@@ -501,8 +506,50 @@
 </div>
 </nav>
 </div>
+
+<!-- V3 Lock Modal -->
+<div aria-hidden="true" class="jopai-modal" id="v3LockModal">
+<div class="jopai-modal__backdrop" data-close-v3=""></div>
+<div aria-labelledby="v3LockTitle" aria-modal="true" class="jopai-modal__card" role="dialog">
+<div class="jopai-modal__header">
+<div class="jopai-modal__icon">🔒</div>
+<div>
+<div class="jopai-modal__title" id="v3LockTitle">Locked until Level V3</div>
+<div class="jopai-modal__subtitle">Room task will unlock when you reach Level V3.</div>
+</div>
+</div>
+<div class="jopai-modal__actions">
+<button class="jopai-btn jopai-btn--ghost" data-close-v3="" type="button">OK</button>
+<button class="jopai-btn jopai-btn--primary" data-go-levels="" type="button">View Levels</button>
+</div>
+</div>
+</div>
 <script>
     (function() {
+
+      // V3 lock modal (Room task)
+      function openV3Modal() {
+        var m = document.getElementById('v3LockModal');
+        if (m) m.classList.add('is-open');
+      }
+      function closeV3Modal() {
+        var m = document.getElementById('v3LockModal');
+        if (m) m.classList.remove('is-open');
+      }
+      // Close handlers
+      document.addEventListener('click', function (e) {
+        if (e.target && e.target.hasAttribute('data-close-v3')) closeV3Modal();
+      });
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') closeV3Modal();
+      });
+      // Optional: go to levels page (change if you have a specific page)
+      document.addEventListener('click', function (e) {
+        if (e.target && e.target.hasAttribute('data-go-levels')) {
+          window.location.href = 'ai-power.html';
+        }
+      });
+
       var profileCard = document.querySelector('.profile-card');
       if (profileCard) {
         profileCard.addEventListener('click', function () {
@@ -517,7 +564,7 @@
         'Task Center': 'task-center.html',
         'My Works': 'my-works.html',
         'Tool': 'tool.html',
-        'Run record': 'bills.html',
+        'Run record': 'run-record.html',
         'Content': 'content.html'
       };
 
@@ -529,6 +576,10 @@
         var target = shortcutMap[text];
         if (target) {
           item.addEventListener('click', function () {
+            if (text === 'Room task') {
+              openV3Modal();
+              return;
+            }
             window.location.href = target;
           });
         }
@@ -548,9 +599,7 @@
         'Help Center': 'help-center.html',
         'About Us': 'about-us.html',
         'Theme': 'theme.html',
-        'Switch language': 'choose-language.html',
-        'Online customer service': 'help-center.html'
-      };
+        'Switch language': 'choose-language.html',      };
 
       var sectionItems = document.querySelectorAll('.section-item');
       sectionItems.forEach(function (item) {
@@ -569,6 +618,10 @@
         var target = sectionMap[text];
         if (target) {
           item.addEventListener('click', function () {
+            if (text === 'Room task') {
+              openV3Modal();
+              return;
+            }
             window.location.href = target;
           });
         }
