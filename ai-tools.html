@@ -5,72 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>AI Tools - JOPAI</title>
   <link rel="stylesheet" href="assets/css/ai-tools.css"/>
-
-  <!-- Bottom navigation (shared) -->
-  <style>
-    /* Keep space for bottom nav */
-    body{ padding-bottom: 96px; }
-
-    /* Bottom navigation (copied from mine for consistent mobile slider) */
-    .bottom-nav {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      height: 78px;
-      background: rgba(9, 12, 18, 0.95);
-      backdrop-filter: blur(14px);
-      -webkit-backdrop-filter: blur(14px);
-      border-top: 1px solid rgba(255, 255, 255, 0.06);
-      display: flex;
-      align-items: center;
-      justify-content: space-around;
-      z-index: 9999;
-      padding-bottom: env(safe-area-inset-bottom);
-    }
-
-    .bottom-nav .nav-item {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      min-width: 64px;
-      text-decoration: none;
-      color: rgba(255, 255, 255, 0.7);
-      font-size: 12px;
-      user-select: none;
-      -webkit-tap-highlight-color: transparent;
-    }
-
-    .bottom-nav .nav-item svg {
-      width: 26px;
-      height: 26px;
-      opacity: 0.9;
-    }
-
-    .bottom-nav .nav-item.active {
-      color: #18c1ff;
-    }
-
-    .bottom-nav .nav-item.active svg path,
-    .bottom-nav .nav-item.active svg circle {
-      stroke: #18c1ff;
-    }
-
-    .bottom-nav .nav-item.active .nav-dot {
-      background: linear-gradient(90deg, #18c1ff, #22e1a5);
-      box-shadow: 0 0 12px rgba(24, 193, 255, 0.35);
-    }
-
-    .nav-dot {
-      width: 7px;
-      height: 7px;
-      border-radius: 999px;
-      background: transparent;
-      margin-top: -4px;
-    }
-  </style>
 </head>
 <body>
   <main class="wrap">
@@ -126,52 +60,6 @@
 
   <script src="assets/js/ai-tools.js"></script>
 
-  <!-- Bottom mobile slider -->
-  <nav class="bottom-nav" aria-label="Bottom navigation">
-    <a class="nav-item active" href="ai-tools.html">
-      <svg viewBox="0 0 24 24" fill="none">
-        <path d="M4 7.5C4 6.12 5.12 5 6.5 5h11C18.88 5 20 6.12 20 7.5v9c0 1.38-1.12 2.5-2.5 2.5h-11C5.12 19 4 17.88 4 16.5v-9Z" stroke="currentColor" stroke-width="1.7"/>
-        <path d="M8 9.5h8M8 12h8M8 14.5h5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
-      </svg>
-      <span>AI-Tools</span>
-      <span class="nav-dot"></span>
-    </a>
-
-    <a class="nav-item" href="ai-chat.html">
-      <svg viewBox="0 0 24 24" fill="none">
-        <path d="M20 12c0 3.87-3.58 7-8 7-1.1 0-2.15-.16-3.1-.45L4 20l1.1-3.1A6.3 6.3 0 0 1 4 12c0-3.87 3.58-7 8-7s8 3.13 8 7Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
-        <path d="M8 12h.01M12 12h.01M16 12h.01" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
-      </svg>
-      <span>AI Chat</span>
-      <span class="nav-dot"></span>
-    </a>
-
-    <a class="nav-item" href="ai-power.html">
-      <svg viewBox="0 0 24 24" fill="none">
-        <path d="M12 2v7" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
-        <path d="M6.2 5.2A9 9 0 1 0 17.8 5.2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
-      </svg>
-      <span>AI Power</span>
-      <span class="nav-dot"></span>
-    </a>
-
-    <a class="nav-item" href="assets.html">
-      <svg viewBox="0 0 24 24" fill="none">
-        <path d="M7 7.5C7 6.12 8.12 5 9.5 5h5C15.88 5 17 6.12 17 7.5v9c0 1.38-1.12 2.5-2.5 2.5h-5C8.12 19 7 17.88 7 16.5v-9Z" stroke="currentColor" stroke-width="1.7"/>
-        <path d="M9 9h6M9 12h6M9 15h4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
-      </svg>
-      <span>Assets</span>
-      <span class="nav-dot"></span>
-    </a>
-
-    <a class="nav-item" href="mine.html">
-      <svg viewBox="0 0 24 24" fill="none">
-        <path d="M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4Z" stroke="currentColor" stroke-width="1.7"/>
-        <path d="M20 20a8 8 0 0 0-16 0" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
-      </svg>
-      <span>Mine</span>
-      <span class="nav-dot"></span>
-    </a>
-  </nav>
+<script src="bottomnav-fix.js"></script>
 </body>
 </html>
