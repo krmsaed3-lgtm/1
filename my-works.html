@@ -103,6 +103,83 @@
       gap: 14px;
     }
 
+    .works-wrap {
+      margin-top: 26px;
+      padding: 0 16px 16px;
+    }
+
+    .works-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .work-item {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 18px;
+      padding: 14px 14px;
+      backdrop-filter: blur(10px);
+    }
+
+    .work-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .work-title {
+      font-weight: 700;
+      letter-spacing: 0.2px;
+      font-size: 16px;
+      line-height: 1.15;
+    }
+
+    .work-meta {
+      margin-top: 6px;
+      color: rgba(255, 255, 255, 0.65);
+      font-size: 12px;
+    }
+
+    .work-pill {
+      flex: 0 0 auto;
+      font-size: 12px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: rgba(255, 255, 255, 0.82);
+    }
+
+    .work-actions {
+      margin-top: 12px;
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+
+    .work-btn {
+      cursor: pointer;
+      border: none;
+      outline: none;
+      border-radius: 999px;
+      padding: 10px 14px;
+      background: rgba(255, 255, 255, 0.08);
+      color: rgba(255, 255, 255, 0.92);
+      font-weight: 700;
+      font-size: 13px;
+    }
+
+    .work-btn:hover {
+      background: rgba(255, 255, 255, 0.12);
+    }
+
+    .work-btn.primary {
+      background-image: linear-gradient(90deg, #18c1ff, #22e1a5);
+      color: #071018;
+    }
+
     .empty-state img {
       width: 150px;
       height: auto;
@@ -142,27 +219,150 @@
 <div class="tab">AI Chat<br/>Conversation<br/>Record</div>
 <div class="tab">AI Drawing Record</div>
 </section>
-<section class="empty-state">
-<img alt="No Data" src="images/data-null-C37GHZMZ.png"/>
-<div class="empty-text">No More Data<br/>Available</div>
+<section id="worksWrap" class="works-wrap" style="display:none;">
+  <div id="worksList" class="works-list"></div>
+</section>
+
+<section id="emptyState" class="empty-state">
+  <img alt="No Data" src="images/data-null-C37GHZMZ.png"/>
+  <div id="emptyText" class="empty-text">No More Data<br/>Available</div>
 </section>
 </main>
 </div>
 <script>
 (function () {
   'use strict';
-  var backBtn = document.querySelector('.back-btn');
-  if (!backBtn) return;
 
-  backBtn.addEventListener('click', function (e) {
-    e.preventDefault();
-    // Go back if possible, otherwise fallback to home/root
-    if (window.history && history.length > 1) {
-      history.back();
-    } else {
-      window.location.href = 'index.html';
+  var STORAGE_WORKS = 'jopai_ai_tools_works_v1';
+
+  var backBtn = document.querySelector('.back-btn');
+  var tabEls = Array.prototype.slice.call(document.querySelectorAll('.tab'));
+  var worksWrap = document.getElementById('worksWrap');
+  var worksList = document.getElementById('worksList');
+  var emptyState = document.getElementById('emptyState');
+  var emptyText = document.getElementById('emptyText');
+
+  function safeJsonParse(str, fallback) {
+    try {
+      var v = JSON.parse(str);
+      return v == null ? fallback : v;
+    } catch (e) {
+      return fallback;
     }
+  }
+
+  function getWorks() {
+    var raw = localStorage.getItem(STORAGE_WORKS);
+    var arr = safeJsonParse(raw, []);
+    if (!Array.isArray(arr)) return [];
+    return arr;
+  }
+
+  function formatTime(ts) {
+    if (!ts) return '';
+    var d = new Date(ts);
+    if (isNaN(d.getTime())) return '';
+    var yyyy = d.getFullYear();
+    var mm = String(d.getMonth() + 1).padStart(2, '0');
+    var dd = String(d.getDate()).padStart(2, '0');
+    var hh = String(d.getHours()).padStart(2, '0');
+    var mi = String(d.getMinutes()).padStart(2, '0');
+    return yyyy + '-' + mm + '-' + dd + '  ' + hh + ':' + mi;
+  }
+
+  function clearNode(el) {
+    while (el.firstChild) el.removeChild(el.firstChild);
+  }
+
+  function setEmpty(messageHtml) {
+    worksWrap.style.display = 'none';
+    emptyState.style.display = 'flex';
+    if (messageHtml) emptyText.innerHTML = messageHtml;
+  }
+
+  function setListVisible() {
+    emptyState.style.display = 'none';
+    worksWrap.style.display = 'block';
+  }
+
+  function renderAiToolsWorks() {
+    var works = getWorks();
+    if (!works.length) {
+      setEmpty('No saved tools yet<br/>Tap "Save ☆" on any tool to add it here.');
+      return;
+    }
+
+    setListVisible();
+    clearNode(worksList);
+
+    works
+      .slice()
+      .sort(function (a, b) {
+        return (b.ts || 0) - (a.ts || 0);
+      })
+      .forEach(function (w) {
+        var item = document.createElement('div');
+        item.className = 'work-item';
+
+        var top = document.createElement('div');
+        top.className = 'work-top';
+
+        var name = document.createElement('div');
+        name.className = 'work-name';
+        name.textContent = w.name || 'Tool';
+
+        var time = document.createElement('div');
+        time.className = 'work-time';
+        time.textContent = formatTime(w.ts);
+
+        top.appendChild(name);
+        top.appendChild(time);
+
+        var meta = document.createElement('div');
+        meta.className = 'work-meta';
+        meta.textContent = (w.category ? w.category + ' • ' : '') + (w.action || 'Run');
+
+        item.appendChild(top);
+        item.appendChild(meta);
+
+        worksList.appendChild(item);
+      });
+  }
+
+  function renderPlaceholder(title) {
+    setEmpty('No More Data<br/>Available');
+  }
+
+  function setActiveTab(idx) {
+    tabEls.forEach(function (t, i) {
+      if (i === idx) t.classList.add('active');
+      else t.classList.remove('active');
+    });
+
+    // 0: AI Tools Works, 1: AI Chat, 2: AI Drawing
+    if (idx === 0) renderAiToolsWorks();
+    else renderPlaceholder(idx);
+  }
+
+  if (backBtn) {
+    backBtn.addEventListener('click', function (e) {
+      e.preventDefault();
+      if (window.history && history.length > 1) {
+        history.back();
+      } else {
+        window.location.href = 'index.html';
+      }
+    });
+  }
+
+  tabEls.forEach(function (t, idx) {
+    t.addEventListener('click', function () {
+      setActiveTab(idx);
+    });
   });
+
+  // Initial
+  setActiveTab(0);
 })();
 </script><script src="common-nav.js"></script>
 </body>
