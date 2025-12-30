@@ -1,5 +1,5 @@
 :root{
-  --bg:#070A12;
+  --bg:#000;
   --panel:#0F1726;
   --panel2:#0B1322;
   --text:#EAF1FF;
@@ -7,8 +7,9 @@
   --muted2:rgba(234,241,255,.46);
   --line:rgba(255,255,255,.10);
   --shadow:0 14px 44px rgba(0,0,0,.45);
-  --c1:#00E5FF;
-  --c2:#7C4DFF;
+  /* Accent gradient (match reference) */
+  --c1:#18c1ff;
+  --c2:#22e1a5;
   --r:18px;
 }
 *{box-sizing:border-box}
@@ -18,60 +19,8 @@ body{
   margin:0;
   font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
   color:var(--text);
-  background:
-    radial-gradient(900px 520px at 50% -20%, rgba(0,229,255,.14), transparent 60%),
-    radial-gradient(760px 480px at 100% 10%, rgba(124,77,255,.12), transparent 55%),
-    var(--bg);
+  background: var(--bg);
 }
-
-/* Top bar */
-.topbar{
-  position:sticky;
-  top:0;
-  z-index:60;
-  padding:10px 12px;
-  backdrop-filter: blur(10px);
-  background:rgba(7,10,18,.76);
-  border-bottom:1px solid rgba(255,255,255,.06);
-  display:flex;
-  align-items:center;
-  gap:12px;
-}
-
-.brand{
-  display:flex;
-  align-items:center;
-  gap:10px;
-  min-width:180px;
-}
-.logo{width:34px;height:34px}
-.brandname{font-weight:900;letter-spacing:.4px;line-height:1.1}
-.brandtag{font-size:12px;color:var(--muted2);margin-top:2px}
-
-.tabs{
-  flex:1;
-  display:flex;
-  justify-content:center;
-}
-.tab{
-  border:1px solid rgba(255,255,255,.12);
-  background:rgba(15,23,38,.55);
-  color:var(--muted);
-  padding:10px 18px;
-  border-radius:999px;
-  font-weight:800;
-  cursor:pointer;
-  user-select:none;
-}
-.tab + .tab{margin-left:10px}
-.tab.is-active{
-  color:var(--text);
-  border-color:rgba(0,229,255,.26);
-  background:linear-gradient(135deg, rgba(0,229,255,.16), rgba(124,77,255,.12));
-}
-.tab:disabled{opacity:.45;cursor:not-allowed}
-
-.topicons{display:flex;gap:10px;align-items:center}
 .iconbtn{
   width:40px;height:40px;
   border-radius:14px;
@@ -134,8 +83,8 @@ body{
   padding:12px 12px;
   border-radius:16px;
   background:rgba(15,23,38,.60);
-  border:1px solid rgba(0,229,255,.26);
-  box-shadow:0 0 0 2px rgba(0,229,255,.06);
+  border:1px solid rgba(24,193,255,.26);
+  box-shadow:0 0 0 2px rgba(24,193,255,.06);
 }
 .searchBox input{
   flex:1;
@@ -156,8 +105,8 @@ body{
   cursor:pointer;
 }
 .searchBtn.isPrimary{
-  border-color:rgba(0,229,255,.30);
-  background:linear-gradient(135deg, rgba(0,229,255,.22), rgba(124,77,255,.18));
+  border-color:rgba(24,193,255,.30);
+  background-image: linear-gradient(90deg, var(--c1), var(--c2));
 }
 
 .seg{
@@ -206,8 +155,8 @@ body{
 }
 .chip.isActive{
   color:var(--text);
-  border-color:rgba(0,229,255,.28);
-  background:linear-gradient(135deg, rgba(0,229,255,.16), rgba(124,77,255,.12));
+  border-color:rgba(24,193,255,.28);
+  background-image: linear-gradient(90deg, rgba(24,193,255,.18), rgba(34,225,165,.14));
 }
 
 /* Category sections */
@@ -226,8 +175,8 @@ body{
 }
 .sectionTitle .dot{
   width:10px;height:10px;border-radius:50%;
-  background:linear-gradient(135deg,var(--c1),var(--c2));
-  box-shadow:0 0 0 3px rgba(0,229,255,.08);
+  background-image: linear-gradient(90deg,var(--c1),var(--c2));
+  box-shadow:0 0 0 3px rgba(24,193,255,.08);
 }
 
 .cards{
@@ -298,8 +247,8 @@ body{
   display:flex;
   align-items:center;
   gap:8px;
-  border:1px solid rgba(0,229,255,.24);
-  background:linear-gradient(135deg, rgba(0,229,255,.20), rgba(124,77,255,.16));
+  border:1px solid rgba(24,193,255,.24);
+  background-image: linear-gradient(90deg, var(--c1), var(--c2));
   color:var(--text);
   font-weight:1000;
   padding:10px 14px;
@@ -399,8 +348,8 @@ textarea{min-height:120px;resize:vertical}
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .actionsRow{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
 .primary{
-  border:1px solid rgba(0,229,255,.28);
-  background:linear-gradient(135deg, rgba(0,229,255,.22), rgba(124,77,255,.18));
+  border:1px solid rgba(24,193,255,.28);
+  background-image: linear-gradient(90deg, var(--c1), var(--c2));
   color:var(--text);
 }
 .output{
@@ -412,6 +361,115 @@ textarea{min-height:120px;resize:vertical}
   white-space:pre-wrap;
   color:rgba(234,241,255,.90);
 }
+
+/* ===== Layout fixes requested (match reference) ===== */
+.sectionHead{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:14px;
+  margin:18px 0 10px;
+}
+
+.sectionTitle{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  font-size:18px;
+  font-weight:1000;
+  color:rgba(234,241,255,.92);
+  margin:0;
+}
+
+.sectionDot{
+  width:10px;
+  height:10px;
+  border-radius:50%;
+  background-image: linear-gradient(90deg, var(--c1), var(--c2));
+  box-shadow:0 0 0 3px rgba(24,193,255,.08);
+  flex:0 0 auto;
+}
+
+.seg{
+  margin-left:auto;
+  padding:6px;
+}
+
+.segBtn.isActive{
+  background-image: linear-gradient(90deg, rgba(24,193,255,.20), rgba(34,225,165,.16));
+  border:1px solid rgba(255,255,255,.10);
+}
+
+/* Card + buttons (JS markup) */
+.card{
+  background:rgba(15,23,38,.70);
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:var(--r);
+  padding:14px;
+  box-shadow:var(--shadow);
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+
+.cardTop{
+  display:flex;
+  gap:12px;
+  align-items:flex-start;
+}
+
+.cardTitleWrap{flex:1;min-width:0}
+.cardTitle{margin:2px 0 6px;font-size:16px;font-weight:1000;letter-spacing:.2px}
+.cardDesc{margin:0;color:var(--muted);font-size:12.5px;line-height:1.35;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+
+.cardIcon{
+  width:50px;
+  height:50px;
+  border-radius:18px;
+  display:grid;
+  place-items:center;
+  border:1px solid rgba(255,255,255,.10);
+  background:rgba(255,255,255,.06);
+  font-size:22px;
+  flex:0 0 auto;
+}
+
+.cardBottom{
+  display:flex;
+  justify-content:flex-end;
+  gap:10px;
+}
+
+.saveBtn,
+.runBtn{
+  border-radius:999px;
+  padding:10px 14px;
+  font-weight:900;
+  font-size:13px;
+  cursor:pointer;
+}
+
+.saveBtn{
+  border:1px solid rgba(255,255,255,.14);
+  background:rgba(255,255,255,.06);
+  color:rgba(234,241,255,.92);
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+}
+
+.saveBtn .star{font-size:14px;opacity:.9}
+.saveBtn.isSaved{border-color:rgba(24,193,255,.30)}
+.saveBtn.isSaved .star{content:'★'}
+
+.runBtn{
+  border:1px solid rgba(24,193,255,.28);
+  background-image: linear-gradient(90deg, var(--c1), var(--c2));
+  color:rgba(10,14,24,.92);
+}
+
+.runBtn:active{transform:translateY(1px)}
+
 
 @media (max-width:700px){
   .brand{min-width:150px}

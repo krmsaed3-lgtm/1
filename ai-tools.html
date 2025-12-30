@@ -7,34 +7,10 @@
   <link rel="stylesheet" href="assets/css/ai-tools.css"/>
 </head>
 <body>
-  <header class="topbar">
-    <div class="brand">
-      <img src="assets/images/logo.svg" alt="Logo" class="logo"/>
-      <div>
-        <div class="brandname">JOPAI</div>
-        <div class="brandtag">AI Tools</div>
-      </div>
-    </div>
-
-    <nav class="tabs" aria-label="AI Tools Tabs">
-      <button class="tab is-active" data-tab="tools">AI-Tools</button>
-      <button class="tab" data-tab="drawing" disabled title="Coming soon">AI Drawing</button>
-    </nav>
-
-    <div class="topicons">
-      <button class="iconbtn" id="openWorks" title="Site message">
-        <span class="ic">✉️</span>
-      </button>
-      <button class="iconbtn" id="openHelp" title="Support">
-        <span class="ic">🎧</span>
-      </button>
-    </div>
-  </header>
-
   <main class="wrap">
     <section class="hero">
       <h1 class="heroTitle"><span class="heroBrand">JOPAI</span> AI Tools</h1>
-      <p class="heroSub">A curated set of offline tools — fast, clean, and mobile-first.</p>
+      <p class="heroSub">A curated set of tools — fast, clean, and mobile-first.</p>
 
       <div class="searchRow" role="search">
         <div class="searchBox">
@@ -43,10 +19,6 @@
           <button id="doSearch" class="searchBtn isPrimary" aria-label="Search" title="Search">🔍</button>
         </div>
 
-        <div class="seg" role="tablist" aria-label="Filter">
-          <button id="filterAll" class="segBtn isActive" type="button" role="tab" aria-selected="true">All</button>
-          <button id="filterSaved" class="segBtn" type="button" role="tab" aria-selected="false">Save</button>
-        </div>
       </div>
 
       <div class="chipRow" id="chips" aria-label="Categories"></div>
@@ -55,7 +27,7 @@
     <section class="list" id="grid" aria-live="polite"></section>
 
     <footer class="foot">
-      <div class="footNote">All tools run locally inside your browser — no external APIs.</div>
+      <div class="footNote">All tools run locally inside your browser.</div>
     </footer>
   </main>
 
@@ -72,7 +44,7 @@
     <div class="sheetbody" id="sheetBody"></div>
   </div>
 
-  <!-- My Works Drawer -->
+  <!-- My Works Drawer (hidden for now; will be linked later from My Works / Tool) -->
   <div class="drawer" id="drawer" hidden>
     <div class="drawerhead">
       <div class="drawertitle">My Works (History)</div>

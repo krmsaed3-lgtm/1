@@ -189,8 +189,10 @@
   const chips = $('chips');
   const search = $('search');
   const clearSearch = $('clearSearch');
-  const filterAll = $('filterAll');
-  const filterSaved = $('filterSaved');
+  // Saved/All toggle is mounted near the first section header (like the reference UI)
+  let segEl = null;
+  let filterAll = null;
+  let filterSaved = null;
 
   // sheet
   const backdrop = $('backdrop');
@@ -207,6 +209,44 @@
   const worksList = $('worksList');
   const clearWorks = $('clearWorks');
   const openHelp = $('openHelp');
+
+  function mountSeg(){
+    if (segEl) return;
+    segEl = el('div','seg');
+    segEl.setAttribute('role','tablist');
+    segEl.setAttribute('aria-label','Filter');
+
+    filterAll = el('button','segBtn isActive','All');
+    filterAll.type = 'button';
+    filterAll.setAttribute('role','tab');
+    filterAll.setAttribute('aria-selected','true');
+
+    filterSaved = el('button','segBtn','Save');
+    filterSaved.type = 'button';
+    filterSaved.setAttribute('role','tab');
+    filterSaved.setAttribute('aria-selected','false');
+
+    filterAll.addEventListener('click', () => {
+      showSavedOnly = false;
+      filterAll.classList.add('isActive');
+      filterSaved.classList.remove('isActive');
+      filterAll.setAttribute('aria-selected','true');
+      filterSaved.setAttribute('aria-selected','false');
+      render();
+    });
+
+    filterSaved.addEventListener('click', () => {
+      showSavedOnly = true;
+      filterSaved.classList.add('isActive');
+      filterAll.classList.remove('isActive');
+      filterSaved.setAttribute('aria-selected','true');
+      filterAll.setAttribute('aria-selected','false');
+      render();
+    });
+
+    segEl.appendChild(filterAll);
+    segEl.appendChild(filterSaved);
+  }
 
   function normalize(str){
     return (str||'').toString().toLowerCase().trim();
@@ -278,15 +318,18 @@
     const saveBtn = el('button','saveBtn');
     saveBtn.type = 'button';
     saveBtn.title = 'Save';
-    saveBtn.innerHTML = `<span class="star">☆</span><span class="saveText">Save</span>`;
+    const renderSaveState = () => {
+      const isSavedNow = savedSet.has(t.id);
+      saveBtn.classList.toggle('isSaved', isSavedNow);
+      saveBtn.innerHTML = `<span class="star">${isSavedNow ? '★' : '☆'}</span><span class="saveText">Save</span>`;
+    };
 
-    const isSaved = savedSet.has(t.id);
-    if (isSaved) saveBtn.classList.add('isSaved');
+    renderSaveState();
 
     saveBtn.addEventListener('click', (e) => {
       e.stopPropagation();
       toggleSave(t.id);
-      saveBtn.classList.toggle('isSaved', savedSet.has(t.id));
+      renderSaveState();
       if (showSavedOnly) render();
     });
 
@@ -308,6 +351,7 @@
   }
 
   function render(){
+    mountSeg();
     const q = normalize(search.value);
 
     let filtered = tools.filter(t => toolMatches(t, q));
@@ -349,12 +393,19 @@
       return;
     }
 
-    orderedKeys.forEach((key) => {
+    // Move the All/Save toggle to the first visible section header (requested layout)
+    if (segEl && segEl.parentElement) segEl.parentElement.removeChild(segEl);
+
+    orderedKeys.forEach((key, idx) => {
       const sec = el('div','section');
       const head = el('div','sectionHead');
       const h = el('div','sectionTitle');
       h.innerHTML = `<span class="sectionDot"></span><span class="sectionText">${escapeHtml(key)}</span>`;
       head.appendChild(h);
+
+      if (idx === 0 && segEl) {
+        head.appendChild(segEl);
+      }
       sec.appendChild(head);
 
       const cards = el('div','cards');
@@ -824,6 +875,7 @@
   }
 
   function init(){
+    mountSeg();
     renderChips();
     render();
 
@@ -846,12 +898,12 @@
       }
     });
 
-    openWorks.addEventListener('click', openDrawer);
-    closeDrawer.addEventListener('click', closeDrawerFn);
-    clearWorks.addEventListener('click', ()=>{ works = []; saveWorks(works); renderWorks(); toast('Cleared'); });
+    if (openWorks) openWorks.addEventListener('click', openDrawer);
+    if (closeDrawer) closeDrawer.addEventListener('click', closeDrawerFn);
+    if (clearWorks) clearWorks.addEventListener('click', ()=>{ works = []; saveWorks(works); renderWorks(); toast('Cleared'); });
 
-    openHelp.addEventListener('click', ()=>{
-      openSheet('Help & Tips','This page is offline. Tools generate templates inside your browser.');
+    if (openHelp) openHelp.addEventListener('click', ()=>{
+      openSheet('Help & Tips','Tools generate templates inside your browser.');
       const b = el('div','toolWrap');
       b.innerHTML = `
         <div class="helpBlock">
