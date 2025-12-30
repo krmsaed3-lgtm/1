@@ -1,45 +1,61 @@
 > yazan:
 (function () {
-  const avatarImg = document.getElementById("account-avatar");
-  if (!avatarImg) return;
+  const img = document.getElementById("account-avatar");
+  if (!img) return;
 
-  // ===== Replace <img> with canvas =====
-  const canvas = document.createElement("canvas");
-  const size = 80;
-  canvas.width = size;
-  canvas.height = size;
-  canvas.style.width = "40px";
-  canvas.style.height = "40px";
-  canvas.style.display = "block";
+  const avatar = img.closest(".avatar");
+  const wrapper = img.closest(".avatar-wrapper");
 
-  // Keep the same avatar container styling (border-radius, overflow, etc.)
-  const parent = avatarImg.parentElement;
-  avatarImg.replaceWith(canvas);
+  if (!avatar || !wrapper) return;
 
-  const ctx = canvas.getContext("2d");
-  let t = 0;
+  // Make containers ready for overlays
+  avatar.style.position = "relative";
+  avatar.style.overflow = "hidden";
 
-  // ===== Greeting bubble (welcome message) =====
-  function showWelcomeBubble(text) {
-    // Find a good anchor: the wrapper that contains avatar + chevron
-    const wrapper =
-      (parent && parent.closest(".avatar-wrapper")) ||
-      (canvas && canvas.closest(".avatar-wrapper")) ||
-      parent;
+  // Smooth subtle pulse on the image (pro look)
+  img.style.transformOrigin = "50% 50%";
+  img.style.willChange = "transform, filter";
+  img.style.transition = "filter 220ms ease";
 
-    if (!wrapper) return;
+  // Glow ring overlay
+  const ring = document.createElement("div");
+  ring.style.position = "absolute";
+  ring.style.inset = "0";
+  ring.style.borderRadius = "50%";
+  ring.style.boxShadow = "0 0 0 1px rgba(0,209,255,0.35), 0 0 18px rgba(0,209,255,0.18)";
+  ring.style.pointerEvents = "none";
+  ring.style.opacity = "0.9";
+  avatar.appendChild(ring);
 
-    // Make wrapper a positioning context
+  // Waving hand overlay
+  const hand = document.createElement("div");
+  hand.textContent = "👋";
+  hand.style.position = "absolute";
+  hand.style.right = "-6px";
+  hand.style.top = "-8px";
+  hand.style.width = "28px";
+  hand.style.height = "28px";
+  hand.style.display = "flex";
+  hand.style.alignItems = "center";
+  hand.style.justifyContent = "center";
+  hand.style.fontSize = "18px";
+  hand.style.filter = "drop-shadow(0 6px 10px rgba(0,0,0,0.35))";
+  hand.style.transformOrigin = "40% 70%";
+  hand.style.opacity = "0";
+  hand.style.pointerEvents = "none";
+  avatar.appendChild(hand);
+
+  // Welcome bubble
+  function showBubble(text) {
     wrapper.style.position = wrapper.style.position || "relative";
 
     const bubble = document.createElement("div");
     bubble.textContent = text;
 
-    // Inline styles to avoid touching your CSS files
     bubble.style.position = "absolute";
     bubble.style.right = "52px";
     bubble.style.top = "50%";
-    bubble.style.transform = "translateY(-50%)";
+    bubble.style.transform = "translateY(-50%) translateX(6px)";
     bubble.style.padding = "8px 10px";
     bubble.style.borderRadius = "12px";
     bubble.style.fontSize = "12px";
@@ -56,7 +72,6 @@
     bubble.style.pointerEvents = "none";
     bubble.style.transition = "opacity 220ms ease, transform 220ms ease";
 
-    // Little tail
     const tail = document.createElement("div");
     tail.style.position = "absolute";
     tail.style.right = "-6px";
@@ -71,130 +86,55 @@
 
     wrapper.appendChild(bubble);
 
-    // Animate in
     requestAnimationFrame(() => {
       bubble.style.opacity = "1";
-      bubble.style.transform = "translateY(-50%) translateX(-2px)";
+      bubble.style.transform = "translateY(-50%) translateX(0px)";
     });
 
-    // Auto-hide
     setTimeout(() => {
       bubble.style.opacity = "0";
-      bubble.style.transform = "translateY(-50%) translateX(0px)";
+      bubble.style.transform = "translateY(-50%) translateX(6px)";
       setTimeout(() => bubble.remove(), 260);
     }, 2200);
   }
 
-  // ===== Wave animation state =====
-  const waveDurationFrames = 140; // ~2.3s at 60fps
-  let waveFrame = 0;
+  // Pulse loop (very subtle)
+  let t = 0;
+  function pulse() {
+    t++;
+    const s = 1 + Math.sin(t * 0.06) * 0.012; // subtle scale
+    img.style.transform = scale(${s});
+    ring.style.boxShadow =
+      0 0 0 1px rgba(0,209,255,0.35), 0 0 ${14 + Math.abs(Math.sin(t * 0.05)) * 10}px rgba(0,209,255,0.18);
+    requestAnimationFrame(pulse);
+  }
+  pulse();
 
-  // ===== Draw AI face + wave =====
-  function drawFace() {
-    ctx.clearRect(0, 0, size, size);
-
-    // Base circle background
-    ctx.beginPath();
-    ctx.arc(size / 2, size / 2, size / 2 - 2, 0, Math.PI * 2);
-    ctx.fillStyle = "#0b1322";
-    ctx.fill();
-
-    // Subtle breathing glow
-    const glow = 0.35 + 0.25 * Math.sin(t * 0.05);
-    ctx.strokeStyle = rgba(0,209,255,${glow});
-    ctx.lineWidth = 2;
-    ctx.stroke();
-
-    // Inner vignette
-    const grad = ctx.createRadialGradient(40, 36, 8, 40, 40, 40);
-    grad.addColorStop(0, "rgba(0,209,255,0.08)");
-    grad.addColorStop(1, "rgba(0,0,0,0)");
-    ctx.fillStyle = grad;
-    ctx.beginPath();
-    ctx.arc(size / 2, size / 2, size / 2 - 4, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Blink logic
-    const blink = Math.abs(Math.sin(t * 0.08)) < 0.09;
-
-    // Eyes
-    ctx.fillStyle = "#00d1ff";
-    if (!blink) {
-      ctx.beginPath();
-      ctx.arc(30, 34, 3, 0, Math.PI * 2);
-      ctx.arc(50, 34, 3, 0, Math.PI * 2);
-      ctx.fill();
-    } else {
-      ctx.fillRect(27, 34, 6, 1);
-      ctx.fillRect(47, 34, 6, 1);
-    }
-
-    // Mouth (slight smile)
-    ctx.
+  // Wave animation (one-shot)
+  function waveOnce() {
+    hand.style.opacity = "1";
+    let i = 0;
+    const frames = 90; // ~1.5s
+    function step() {
+      i++;
+      const wobble = Math.sin(i * 0.4) * 22; // degrees
+      hand.style.transform = rotate(${wobble}deg);
+      if (i < frames) requestAnimationFrame(step);
+      else {
+        hand.style.opacity = "0";
+        hand.style.
 
 > yazan:
-strokeStyle = "rgba(0,209,255,0.95)";
-    ctx.lineWidth = 1.6;
-    ctx.beginPath();
-    ctx.arc(40, 46, 6, 0, Math.PI);
-    ctx.stroke();
-
-    // ===== Wave hand (appears for a short time) =====
-    if (waveFrame < waveDurationFrames) {
-      // Wave easing + angle
-      const p = waveFrame / waveDurationFrames;
-      const fade = p < 0.2 ? p / 0.2 : p > 0.85 ? (1 - p) / 0.15 : 1;
-      const wobble = Math.sin(waveFrame * 0.35) * 0.55; // waving motion
-      const angle = -0.4 + wobble;
-
-      ctx.save();
-      ctx.globalAlpha = Math.max(0, Math.min(1, fade));
-
-      // Position hand near top-right of face
-      ctx.translate(57, 34);
-      ctx.rotate(angle);
-
-      // Arm
-      ctx.strokeStyle = "rgba(0,209,255,0.85)";
-      ctx.lineWidth = 2;
-      ctx.lineCap = "round";
-      ctx.beginPath();
-      ctx.moveTo(-6, 10);
-      ctx.lineTo(6, 2);
-      ctx.stroke();
-
-      // Hand (simple rounded shape)
-      ctx.fillStyle = "rgba(0,209,255,0.9)";
-      ctx.beginPath();
-      ctx.arc(10, 0, 5, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Fingers hint
-      ctx.strokeStyle = "rgba(11,19,34,0.7)";
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      ctx.moveTo(10, -4);
-      ctx.lineTo(10, 4);
-      ctx.stroke();
-
-      ctx.restore();
-
-      waveFrame++;
+transform = "rotate(0deg)";
+      }
     }
+    step();
   }
 
-  function animate() {
-    t++;
-    drawFace();
-    requestAnimationFrame(animate);
-  }
-
-  // Start
-  animate();
-
-  // Welcome + wave trigger (once)
+  // Trigger welcome + wave after load
   setTimeout(() => {
-    waveFrame = 0; // restart wave
-    showWelcomeBubble("Welcome 👋 Your account details are ready.");
-  }, 350);
+    waveOnce();
+    showBubble("Welcome 👋 Your account is ready.");
+  }, 400);
+
 })();
