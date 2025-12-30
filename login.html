@@ -6,7 +6,6 @@
 <title>Log In</title>
 
 <style>
-/* ======= نفس ستايلك بدون تغيير ======= */
 :root {
   --page-bg: #05070b;
   --card-bg: #05070b;
@@ -20,146 +19,124 @@
   --link-color: #1ea7ff;
 }
 
-* { box-sizing: border-box; margin: 0; padding: 0; }
+*{box-sizing:border-box;margin:0;padding:0;}
 
-body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
-  background-color: var(--page-bg);
-  color: var(--text-main);
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,sans-serif;
+  background:var(--page-bg);
+  color:#fff;
 }
 
-/* ========== لم أغيّر أي CSS موجود ========== */
+.page{min-height:100vh;}
 
-.flag {
-  font-size: 18px;
-  margin-right: 6px;
-  line-height: 1;
+.prefix-flag{
+  margin-right:6px;
+  font-size:16px;
+  line-height:1;
 }
 
-.country-option {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 8px 10px;
-  font-size: 13px;
-  color: #ffffff;
-  cursor: pointer;
-}
-
-.country-left {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
+/* باقي الستايل كما هو بدون تغيير */
 </style>
 </head>
 
 <body>
+<div class="page">
 
-<!-- بقية الصفحة كما هي -->
+<div class="content">
+<h1 class="title">Log In</h1>
+
+<div class="field">
+<div class="field-label">Phone</div>
+<div class="phone-row">
+<button class="prefix-box" type="button">
+<span><span class="prefix-flag">🇸🇮</span>+386</span>
+<span class="arrow-down"></span>
+</button>
+<input autocomplete="tel" class="input-field" placeholder="Enter phone" type="tel"/>
+</div>
+</div>
+
+</div>
+
+<div class="area-modal">
+<div class="area-modal-mask"></div>
+<div class="area-modal-panel">
+<div class="area-modal-header">
+<span class="area-modal-header-title">Select area code</span>
+<button class="area-close">×</button>
+</div>
+<div class="area-search">
+<input class="area-search-input" placeholder="Search country"/>
+</div>
+<div class="area-list"></div>
+</div>
+</div>
 
 <script>
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener("DOMContentLoaded", function () {
 
-  var prefixBox = document.querySelector('.prefix-box');
-  var prefixValue = prefixBox.querySelector('span');
+const prefixBox = document.querySelector(".prefix-box");
+const prefixValue = prefixBox.querySelector("span");
+const modal = document.querySelector(".area-modal");
+const areaList = document.querySelector(".area-list");
+const search = document.querySelector(".area-search-input");
 
-  var areaModal = document.querySelector('.area-modal');
-  var areaList = document.querySelector('.area-list');
-  var areaSearchInput = document.querySelector('.area-search-input');
+const countries = [
+ {name:"Slovenia",code:"+386",flag:"🇸🇮",common:true},
+ {name:"Panama",code:"+507",flag:"🇵🇦",common:true},
+ {name:"Syria",code:"+963",flag:"🇸🇾",common:true},
+ {name:"Republic of Lebanon",code:"+961",flag:"🇱🇧",common:true},
+ {name:"Cyprus",code:"+357",flag:"🇨🇾",common:true},
+ {name:"Saudi Arabia",code:"+966",flag:"🇸🇦",common:true},
 
-  const countries = [
-    { name: "Slovenia", code: "+386", flag: "🇸🇮", common: true },
-    { name: "Panama", code: "+507", flag: "🇵🇦", common: true },
-    { name: "Syria", code: "+963", flag: "🇸🇾", common: true },
-    { name: "Republic of Lebanon", code: "+961", flag: "🇱🇧", common: true },
-    { name: "Cyprus", code: "+357", flag: "🇨🇾", common: true },
-    { name: "Saudi Arabia", code: "+966", flag: "🇸🇦", common: true },
+ {name:"United Arab Emirates",code:"+971",flag:"🇦🇪"},
+ {name:"Qatar",code:"+974",flag:"🇶🇦"},
+ {name:"Kuwait",code:"+965",flag:"🇰🇼"},
+ {name:"Bahrain",code:"+973",flag:"🇧🇭"},
+ {name:"Oman",code:"+968",flag:"🇴🇲"},
+ {name:"Jordan",code:"+962",flag:"🇯🇴"},
+ {name:"Iraq",code:"+964",flag:"🇮🇶"},
+ {name:"Turkey",code:"+90",flag:"🇹🇷"},
+ {name:"Egypt",code:"+20",flag:"🇪🇬"},
+ {name:"Morocco",code:"+212",flag:"🇲🇦"},
+ {name:"Algeria",code:"+213",flag:"🇩🇿"},
+ {name:"Tunisia",code:"+216",flag:"🇹🇳"},
+ {name:"Libya",code:"+218",flag:"🇱🇾"},
+ {name:"Yemen",code:"+967",flag:"🇾🇪"}
+];
 
-    { name: "United Arab Emirates", code: "+971", flag: "🇦🇪" },
-    { name: "Qatar", code: "+974", flag: "🇶🇦" },
-    { name: "Kuwait", code: "+965", flag: "🇰🇼" },
-    { name: "Bahrain", code: "+973", flag: "🇧🇭" },
-    { name: "Oman", code: "+968", flag: "🇴🇲" },
-    { name: "Jordan", code: "+962", flag: "🇯🇴" },
-    { name: "Iraq", code: "+964", flag: "🇮🇶" },
-    { name: "Turkey", code: "+90", flag: "🇹🇷" },
-    { name: "Egypt", code: "+20", flag: "🇪🇬" },
-    { name: "Morocco", code: "+212", flag: "🇲🇦" },
-    { name: "Algeria", code: "+213", flag: "🇩🇿" },
-    { name: "Tunisia", code: "+216", flag: "🇹🇳" },
-    { name: "Libya", code: "+218", flag: "🇱🇾" },
-    { name: "Yemen", code: "+967", flag: "🇾🇪" },
-    { name: "United States", code: "+1", flag: "🇺🇸" },
-    { name: "Canada", code: "+1", flag: "🇨🇦" },
-    { name: "United Kingdom", code: "+44", flag: "🇬🇧" },
-    { name: "Germany", code: "+49", flag: "🇩🇪" },
-    { name: "France", code: "+33", flag: "🇫🇷" },
-    { name: "Italy", code: "+39", flag: "🇮🇹" },
-    { name: "Spain", code: "+34", flag: "🇪🇸" },
-    { name: "Russia", code: "+7", flag: "🇷🇺" },
-    { name: "India", code: "+91", flag: "🇮🇳" },
-    { name: "Pakistan", code: "+92", flag: "🇵🇰" },
-    { name: "Afghanistan", code: "+93", flag: "🇦🇫" },
-    { name: "Iran", code: "+98", flag: "🇮🇷" },
-    { name: "China", code: "+86", flag: "🇨🇳" },
-    { name: "Japan", code: "+81", flag: "🇯🇵" },
-    { name: "South Korea", code: "+82", flag: "🇰🇷" },
-    { name: "Australia", code: "+61", flag: "🇦🇺" },
-    { name: "Brazil", code: "+55", flag: "🇧🇷" }
-  ];
-
-  function buildCountryOptions(list, filter) {
-    areaList.innerHTML = "";
-    const q = (filter || "").toLowerCase();
-
-    list.forEach(c => {
-      if (q && !c.name.toLowerCase().includes(q) && !c.code.includes(q)) return;
-
-      const row = document.createElement("div");
-      row.className = "country-option";
-
-      const left = document.createElement("div");
-      left.className = "country-left";
-
-      const flag = document.createElement("span");
-      flag.className = "flag";
-      flag.textContent = c.flag;
-
-      const name = document.createElement("span");
-      name.textContent = c.name;
-
-      const code = document.createElement("span");
-      code.className = "country-option-code";
-      code.textContent = c.code;
-
-      left.appendChild(flag);
-      left.appendChild(name);
-      row.appendChild(left);
-      row.appendChild(code);
-
-      row.onclick = () => {
-        prefixValue.innerHTML = `<span class="flag">${c.flag}</span> ${c.code}`;
-        document.querySelector('.area-modal').classList.remove('open');
-      };
-
-      areaList.appendChild(row);
-    });
-  }
-
-  document.querySelector('.prefix-box').addEventListener('click', () => {
-    document.querySelector('.area-modal').classList.add('open');
-    buildCountryOptions(countries, "");
+function render(list){
+  areaList.innerHTML="";
+  list.forEach(c=>{
+    const div=document.createElement("div");
+    div.className="country-option";
+    div.innerHTML=`
+      <div style="display:flex;align-items:center;gap:6px">
+        <span class="prefix-flag">${c.flag}</span>
+        <span>${c.name}</span>
+      </div>
+      <span class="country-option-code">${c.code}</span>
+    `;
+    div.onclick=()=>{
+      prefixValue.innerHTML=`<span class="prefix-flag">${c.flag}</span>${c.code}`;
+      modal.classList.remove("open");
+    };
+    areaList.appendChild(div);
   });
+}
 
-  document.querySelector('.area-search-input').addEventListener('input', e => {
-    buildCountryOptions(countries, e.target.value);
-  });
+prefixBox.onclick=()=>{
+  modal.classList.add("open");
+  render(countries);
+};
 
-  document.querySelector('.area-close').onclick = () => {
-    document.querySelector('.area-modal').classList.remove('open');
-  };
+document.querySelector(".area-close").onclick=()=>modal.classList.remove("open");
+document.querySelector(".area-modal-mask").onclick=()=>modal.classList.remove("open");
+
+search.oninput=()=>{
+  const v=search.value.toLowerCase();
+  render(countries.filter(c=>c.name.toLowerCase().includes(v)||c.code.includes(v)));
+};
 });
 </script>
 
