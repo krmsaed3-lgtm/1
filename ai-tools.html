@@ -148,12 +148,31 @@
 <span>Mine</span>
 </div>
 </nav>
+    
     <!-- Bottom navigation handler (kept local so the nav always works even if common-nav.js is missing) -->
     <script>
       (function () {
+        var MAP = {
+          tools: 'ai-tools.html',
+          chat: 'ai-chat.html',
+          power: 'ai-power.html',
+          assets: 'my-assets.html',
+          mine: 'mine.html'
+        };
+
+        function resolveTarget(item) {
+          var t = item.getAttribute('data-target');
+          if (t) return t;
+
+          // infer from class name
+          for (var key in MAP) {
+            if (item.classList.contains(key)) return MAP[key];
+          }
+          return null;
+        }
+
         function go(target) {
           if (!target) return;
-          // Normalize simple paths (avoid double slashes)
           window.location.href = target;
         }
 
@@ -161,7 +180,6 @@
           var nav = document.querySelector('.bottom-nav');
           if (!nav) return;
 
-          // Make sure the nav is always tappable above the page content
           nav.style.zIndex = '9999';
           nav.style.pointerEvents = 'auto';
 
@@ -169,13 +187,20 @@
           items.forEach(function (item) {
             item.style.cursor = 'pointer';
             item.style.pointerEvents = 'auto';
+
             var handler = function (e) {
+              // don't break normal scroll, but keep tap reliable
               e.preventDefault();
               e.stopPropagation();
-              go(item.getAttribute('data-target'));
+
+              // active state
+              items.forEach(function (x) { x.classList.remove('active'); });
+              item.classList.add('active');
+
+              go(resolveTarget(item));
             };
+
             item.addEventListener('click', handler);
-            // iOS sometimes prefers touchend for fast taps
             item.addEventListener('touchend', handler, { passive: false });
           });
         }
@@ -187,5 +212,6 @@
         }
       })();
     </script>
+
 </body>
 </html>
