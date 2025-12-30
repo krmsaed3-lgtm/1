@@ -75,6 +75,14 @@ body{
   flex-wrap:wrap;
 }
 
+.viewBar{
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  min-width:160px;
+}
+.viewBar:empty{display:none;}
+
 .searchBox{
   flex:1;
   min-width:240px;
@@ -84,8 +92,8 @@ body{
   padding:12px 12px;
   border-radius:16px;
   border:1px solid transparent;
-  background: linear-gradient(rgba(10,15,20,.72), rgba(10,15,20,.72)) padding-box, var(--grad) border-box;
-  box-shadow:0 0 0 2px rgba(24,193,255,.06);
+  /* dark fill + gradient border (no bright fill) */
+  background: linear-gradient(rgba(0,0,0,.35), rgba(0,0,0,.35)) padding-box, var(--grad) border-box;
 }
 .searchBox input{
   flex:1;

@@ -188,7 +188,7 @@
   const grid = $('grid');
   const chips = $('chips');
   const search = $('search');
-  const topToggle = $('topToggle');
+  const viewBar = $('viewBar');
   // Saved/All toggle is mounted near the first section header (like the reference UI)
   let segEl = null;
   let filterAll = null;
@@ -247,8 +247,8 @@
     segEl.appendChild(filterAll);
     segEl.appendChild(filterSaved);
 
-    // Mount segmented toggle near search (always visible)
-    if (topToggle && !topToggle.contains(segEl)) topToggle.appendChild(segEl);
+    // Default mount (will be moved next to the first section title when sections exist)
+    if (viewBar && !viewBar.contains(segEl)) viewBar.appendChild(segEl);
   }
 
   function normalize(str){
@@ -398,12 +398,16 @@
         }
         return `<div class="emptyTitle">No tools found</div><div class="emptySub">Try another keyword or category.</div>`;
       })();
-grid.appendChild(empty);
+
+      // Keep the All/Save toggle visible even when there are no results
+      if (segEl && viewBar && !viewBar.contains(segEl)) {
+        if (segEl.parentElement) segEl.parentElement.removeChild(segEl);
+        viewBar.appendChild(segEl);
+      }
+
+      grid.appendChild(empty);
       return;
     }
-
-    // Move the All/Save toggle to the first visible section header (requested layout)
-    if (segEl && segEl.parentElement) segEl.parentElement.removeChild(segEl);
 
     orderedKeys.forEach((key, idx) => {
       const sec = el('div','section');
@@ -411,7 +415,13 @@ grid.appendChild(empty);
       const h = el('div','sectionTitle');
       h.innerHTML = `<span class="sectionDot"></span><span class="sectionText">${escapeHtml(key)}</span>`;
       head.appendChild(h);
-      // segmented toggle is mounted at the top (near search)
+
+      // Put the All/Save toggle on the first section row (to match the reference UI)
+      if (idx === 0 && segEl) {
+        if (segEl.parentElement) segEl.parentElement.removeChild(segEl);
+        head.appendChild(segEl);
+      }
+
 sec.appendChild(head);
 
       const cards = el('div','cards');
