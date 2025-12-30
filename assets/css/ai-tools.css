@@ -90,7 +90,7 @@ body{
   gap:8px;
   padding:12px 12px;
   border-radius:16px;
-  border:1px solid transparent;
+  border:2px solid transparent;
   /* border gradient only (no colored fill inside) */
   background: var(--panel) padding-box, var(--grad) border-box;
 }
@@ -120,7 +120,7 @@ body{
 .seg{
   display:flex;
   align-items:center;
-  border:1px solid transparent;
+  border:2px solid transparent;
   background:rgba(15,23,38,.55);
   border-radius:999px;
   padding:6px;
@@ -195,7 +195,7 @@ body{
 }
 .card{
   background:rgba(15,23,38,.68);
-  border:1px solid transparent;
+  border:2px solid transparent;
   border-radius:var(--r);
   padding:14px 14px 12px;
   box-shadow:var(--shadow);
@@ -413,7 +413,7 @@ textarea{min-height:120px;resize:vertical}
 
 /* Card + buttons (JS markup) */
 .card{
-  border:1px solid transparent;
+  border:2px solid transparent;
   border-radius:var(--r);
   padding:14px;
   box-shadow:var(--shadow);
