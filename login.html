@@ -5,138 +5,98 @@
 <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport"/>
 <title>Log In</title>
 
+<!-- intl-tel-input -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/intl-tel-input@18.2.1/build/css/intlTelInput.css"/>
+
 <style>
 :root {
-  --page-bg: #05070b;
-  --card-bg: #05070b;
-  --field-bg: #17202d;
-  --prefix-bg: #0e131b;
-  --border-color: #343b48;
-  --text-main: #ffffff;
-  --text-muted: #7b8593;
-  --primary-gradient-start: #27C6FF;
-  --primary-gradient-end: #46EEAC;
-  --link-color: #1ea7ff;
+  --page-bg:#05070b;
+  --field-bg:#17202d;
+  --border-color:#343b48;
+  --text-main:#fff;
 }
 
-*{box-sizing:border-box;margin:0;padding:0;}
-
-body{
-  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,sans-serif;
-  background:var(--page-bg);
-  color:#fff;
+/* لا نلمس التصميم */
+body {
+  margin:0;
+  font-family: system-ui, -apple-system;
+  background: var(--page-bg);
+  color: var(--text-main);
 }
 
-.page{min-height:100vh;}
-
-.prefix-flag{
-  margin-right:6px;
-  font-size:16px;
-  line-height:1;
+.page {
+  min-height:100vh;
+  padding:16px;
 }
 
-/* باقي الستايل كما هو بدون تغيير */
+/* نخفي زر الدولة القديم بدون كسر التصميم */
+.prefix-box {
+  display:none !important;
+}
+
+/* نخلي input يركب تمام */
+.iti {
+  width: 100%;
+}
+.iti__flag-container {
+  left: 10px;
+}
+.iti input {
+  padding-left: 58px !important;
+  height: 48px;
+  background: var(--field-bg);
+  border: 1px solid var(--border-color);
+  color: white;
+  border-radius: 8px;
+}
 </style>
 </head>
 
 <body>
+
 <div class="page">
 
-<div class="content">
-<h1 class="title">Log In</h1>
+  <h2>Log In</h2>
 
-<div class="field">
-<div class="field-label">Phone</div>
-<div class="phone-row">
-<button class="prefix-box" type="button">
-<span><span class="prefix-flag">🇸🇮</span>+386</span>
-<span class="arrow-down"></span>
-</button>
-<input autocomplete="tel" class="input-field" placeholder="Enter phone" type="tel"/>
-</div>
-</div>
+  <div class="field">
+    <div class="field-label">Phone</div>
+
+    <div class="phone-row">
+      <!-- نتركه موجود بس مخفي -->
+      <button class="prefix-box"></button>
+
+      <input
+        id="phone"
+        type="tel"
+        class="input-field"
+        placeholder="Enter phone"
+      />
+    </div>
+  </div>
 
 </div>
 
-<div class="area-modal">
-<div class="area-modal-mask"></div>
-<div class="area-modal-panel">
-<div class="area-modal-header">
-<span class="area-modal-header-title">Select area code</span>
-<button class="area-close">×</button>
-</div>
-<div class="area-search">
-<input class="area-search-input" placeholder="Search country"/>
-</div>
-<div class="area-list"></div>
-</div>
-</div>
+<!-- مكتبة الدول -->
+<script src="https://cdn.jsdelivr.net/npm/intl-tel-input@18.2.1/build/js/intlTelInput.min.js"></script>
 
 <script>
 document.addEventListener("DOMContentLoaded", function () {
 
-const prefixBox = document.querySelector(".prefix-box");
-const prefixValue = prefixBox.querySelector("span");
-const modal = document.querySelector(".area-modal");
-const areaList = document.querySelector(".area-list");
-const search = document.querySelector(".area-search-input");
+  const input = document.querySelector("#phone");
 
-const countries = [
- {name:"Slovenia",code:"+386",flag:"🇸🇮",common:true},
- {name:"Panama",code:"+507",flag:"🇵🇦",common:true},
- {name:"Syria",code:"+963",flag:"🇸🇾",common:true},
- {name:"Republic of Lebanon",code:"+961",flag:"🇱🇧",common:true},
- {name:"Cyprus",code:"+357",flag:"🇨🇾",common:true},
- {name:"Saudi Arabia",code:"+966",flag:"🇸🇦",common:true},
-
- {name:"United Arab Emirates",code:"+971",flag:"🇦🇪"},
- {name:"Qatar",code:"+974",flag:"🇶🇦"},
- {name:"Kuwait",code:"+965",flag:"🇰🇼"},
- {name:"Bahrain",code:"+973",flag:"🇧🇭"},
- {name:"Oman",code:"+968",flag:"🇴🇲"},
- {name:"Jordan",code:"+962",flag:"🇯🇴"},
- {name:"Iraq",code:"+964",flag:"🇮🇶"},
- {name:"Turkey",code:"+90",flag:"🇹🇷"},
- {name:"Egypt",code:"+20",flag:"🇪🇬"},
- {name:"Morocco",code:"+212",flag:"🇲🇦"},
- {name:"Algeria",code:"+213",flag:"🇩🇿"},
- {name:"Tunisia",code:"+216",flag:"🇹🇳"},
- {name:"Libya",code:"+218",flag:"🇱🇾"},
- {name:"Yemen",code:"+967",flag:"🇾🇪"}
-];
-
-function render(list){
-  areaList.innerHTML="";
-  list.forEach(c=>{
-    const div=document.createElement("div");
-    div.className="country-option";
-    div.innerHTML=`
-      <div style="display:flex;align-items:center;gap:6px">
-        <span class="prefix-flag">${c.flag}</span>
-        <span>${c.name}</span>
-      </div>
-      <span class="country-option-code">${c.code}</span>
-    `;
-    div.onclick=()=>{
-      prefixValue.innerHTML=`<span class="prefix-flag">${c.flag}</span>${c.code}`;
-      modal.classList.remove("open");
-    };
-    areaList.appendChild(div);
+  const iti = window.intlTelInput(input, {
+    initialCountry: "sa",
+    separateDialCode: true,
+    preferredCountries: ["sa", "ae", "kw", "qa", "eg", "jo", "lb"],
+    utilsScript:
+      "https://cdn.jsdelivr.net/npm/intl-tel-input@18.2.1/build/js/utils.js"
   });
-}
 
-prefixBox.onclick=()=>{
-  modal.classList.add("open");
-  render(countries);
-};
+  // لو بدك الرقم كامل
+  window.getFullPhone = function () {
+    return iti.getNumber();
+  };
 
-document.querySelector(".area-close").onclick=()=>modal.classList.remove("open");
-document.querySelector(".area-modal-mask").onclick=()=>modal.classList.remove("open");
-
-search.oninput=()=>{
-  const v=search.value.toLowerCase();
-  render(countries.filter(c=>c.name.toLowerCase().includes(v)||c.code.includes(v)));
-};
 });
 </script>
 
