@@ -1,4 +1,4 @@
-/* ai-robot-avatar.js - Lottie Avatar Mount (external lottie-web) */
+/* ai-robot-avatar.js - Lottie Avatar Mount (robust path resolution) */
 (function(){
   'use strict';
 
@@ -21,6 +21,17 @@
     document.head.appendChild(s);
   }
 
+  function getJsonUrl(){
+    // Prefer resolving relative to where THIS script is loaded from.
+    var scriptEl = document.querySelector('script[src*="ai-robot-avatar.js"]');
+    try{
+      var base = scriptEl ? scriptEl.src : window.location.href;
+      return new URL('ai-robot-avatar.json', base).href;
+    }catch(e){
+      return 'ai-robot-avatar.json';
+    }
+  }
+
   function mount(imgId){
     var img=document.getElementById(imgId);
     if(!img) return;
@@ -30,7 +41,6 @@
     ensureStyle();
     if(avatar.querySelector('.ai-robot-lottie')) return;
 
-    // keep existing avatar logic but hide visual
     img.style.opacity='0';
 
     var host=document.createElement('div');
@@ -39,21 +49,20 @@
 
     function start(){
       if(!window.lottie) return;
-      // destroy previous if any
+      var jsonUrl = getJsonUrl();
+
       try{ if(host.__anim){ host.__anim.destroy(); } }catch(e){}
       host.__anim = window.lottie.loadAnimation({
         container: host,
         renderer: 'svg',
         loop: true,
         autoplay: true,
-        path: 'ai-robot-avatar.json'
+        path: jsonUrl
       });
     }
 
-    // if lottie already loaded
     if(window.lottie){ start(); return; }
 
-    // else wait a bit (script tag should load it)
     var tries=0;
     var t=setInterval(function(){
       tries++;
