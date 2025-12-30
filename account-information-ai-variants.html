@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>Account Information</title>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
+<style>
+    :root {
+      --page-bg: #0C0B10;
+      --card-bg: #17202D;
+      --card-inner-bg: #050812;
+      --text-primary: #ffffff;
+      --text-secondary: rgba(255, 255, 255, 0.55);
+      --accent: #00d1ff;
+      --border-subtle: #233246;
+      --row-divider: #151b26;
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--page-bg);
+      color: var(--text-primary);
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
+    }
+
+    .app {
+      min-height: 100vh;
+      max-width: 480px;
+      margin: 0 auto;
+      background-color: var(--page-bg);
+    }
+
+    .app-header {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      padding: 0 12px;
+      background: #000000;
+    }
+
+    .back-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.12);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-decoration: none;
+      margin-right: 8px;
+      background: rgba(11, 12, 16, 0.95);
+    }
+
+    .back-arrow {
+      width: 10px;
+      height: 10px;
+      border-left: 2px solid #ffffff;
+      border-bottom: 2px solid #ffffff;
+      transform: rotate(45deg);
+    }
+
+    .app-header-title {
+      flex: 1;
+      text-align: center;
+      margin-right: 40px;
+      font-size: 15px;
+      font-weight: 500;
+    }
+
+    .app-main {
+      padding: 16px 12px 24px;
+    }
+
+    .content {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .card {
+      background-color: var(--card-bg);
+      border-radius: 16px;
+      padding: 10px 14px;
+      border: 1px solid var(--border-subtle);
+    }
+
+    .row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 0;
+    }
+
+    .row + .row {
+      border-top: 1px solid var(--row-divider);
+    }
+
+    .label {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .value {
+      font-size: 13px;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .value-link {
+      font-size: 13px;
+      color: var(--text-primary);
+      border-bottom: 0.5px solid var(--text-primary);
+      padding-bottom: 1px;
+    }
+
+    .value-accent {
+      color: var(--accent);
+    }
+
+    .avatar-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      overflow: hidden;
+      border: 1px solid #333a4c;
+      background-color: var(--card-inner-bg);
+    }
+
+    .avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .chevron {
+      width: 6px;
+      height: 6px;
+      border-right: 1px solid var(--text-secondary);
+      border-bottom: 1px solid var(--text-secondary);
+      transform: rotate(-45deg);
+      margin-left: 2px;
+    }
+
+    .copy-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .copy-icon {
+      width: 14px;
+      height: 14px;
+      border-radius: 3px;
+      border: 1px solid var(--text-secondary);
+      position: relative;
+      cursor: pointer;
+    }
+
+    .copy-icon::before,
+    .copy-icon::after {
+      content: "";
+      position: absolute;
+      border: 1px solid var(--text-secondary);
+      border-radius: 2px;
+    }
+
+    .copy-icon::before {
+      width: 8px;
+      height: 6px;
+      left: 3px;
+      top: 3px;
+      border-top: 1px solid transparent;
+      border-left: 1px solid transparent;
+    }
+
+    .copy-icon::after {
+      width: 8px;
+      height: 6px;
+      left: 1px;
+      top: 1px;
+      border-bottom: 1px solid transparent;
+      border-right: 1px solid transparent;
+    }
+
+    .toast-message {
+      position: fixed;
+      left: 50%;
+      top: 110px;
+      transform: translate(-50%, -10px);
+      padding: 8px 14px;
+      border-radius: 999px;
+      background: rgba(0, 0, 0, 0.82);
+      color: #ffffff;
+      font-size: 12px;
+      line-height: 1.4;
+      max-width: 80%;
+      text-align: center;
+      z-index: 200;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.18s ease-out, transform 0.18s ease-out;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      overflow: hidden;
+    }
+
+    .toast-message.toast-visible {
+      opacity: 1;
+      transform: translate(-50%, 0);
+    }
+
+    @media (min-width: 481px) {
+      body {
+        display: flex;
+        justify-content: center;
+        background-color: #000;
+      }
+      .app {
+        margin-top: 12px;
+        border-radius: 20px;
+        border: 1px solid #171924;
+        overflow: hidden;
+      }
+    }
+  
+/* === AI Avatar Variants (auto) === */
+.avatar.ai { position: relative; isolation: isolate; }
+.avatar.ai::before{
+  content:"";
+  position:absolute;
+  inset:-2px;
+  border-radius:50%;
+  border:1px solid rgba(0,209,255,0.30);
+  box-shadow: 0 0 0 1px rgba(0,209,255,0.22), 0 0 16px rgba(0,209,255,0.16);
+  pointer-events:none;
+  z-index:3;
+}
+.avatar.ai.frame-1::before{ border-color: rgba(120, 80, 255, 0.35); box-shadow: 0 0 0 1px rgba(120,80,255,0.22), 0 0 18px rgba(120,80,255,0.18); }
+.avatar.ai.frame-2::before{ border-color: rgba(0, 255, 170, 0.35); box-shadow: 0 0 0 1px rgba(0,255,170,0.22), 0 0 18px rgba(0,255,170,0.18); }
+.avatar.ai.frame-3::before{ border-style: dashed; border-color: rgba(255, 170, 0, 0.35); box-shadow: 0 0 0 1px rgba(255,170,0,0.18), 0 0 18px rgba(255,170,0,0.14); }
+.avatar.ai.frame-4::before{ border-width: 2px; border-color: rgba(255, 80, 120, 0.32); box-shadow: 0 0 0 1px rgba(255,80,120,0.18), 0 0 18px rgba(255,80,120,0.14); }
+
+@keyframes aiPulse { 0%,100% { transform: scale(1); opacity: .7; } 50% { transform: scale(1.05); opacity: .35; } }
+.avatar.ai.pulse::after{
+  content:"";
+  position:absolute;
+  inset:-6px;
+  border-radius:50%;
+  border:1px solid rgba(0,209,255,0.20);
+  box-shadow: 0 0 22px rgba(0,209,255,0.10);
+  animation: aiPulse 2.6s ease-in-out infinite;
+  pointer-events:none;
+  z-index:2;
+}
+
+.avatar.ai.hue-0 img{ filter:none; }
+.avatar.ai.hue-1 img{ filter:hue-rotate(35deg) saturate(1.15) contrast(1.08); }
+.avatar.ai.hue-2 img{ filter:hue-rotate(110deg) saturate(1.15) contrast(1.08); }
+.avatar.ai.hue-3 img{ filter:hue-rotate(185deg) saturate(1.15) contrast(1.08); }
+.avatar.ai.hue-4 img{ filter:hue-rotate(250deg) saturate(1.15) contrast(1.08); }
+
+.ai-badge{
+  position:absolute;
+  right:-3px; bottom:-3px;
+  width:16px; height:16px;
+  border-radius:999px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:9px;
+  font-weight:700;
+  color:#0b0c10;
+  background: rgba(0,209,255,0.92);
+  border:1px solid rgba(0,0,0,0.35);
+  box-shadow: 0 6px 14px rgba(0,0,0,0.35);
+  z-index:4;
+  pointer-events:none;
+}
+
+</style>
+</head>
+<body>
+<div class="app">
+<header class="app-header">
+<a class="back-btn" href="javascript:history.back()">
+<div class="back-arrow"></div>
+</a>
+<div class="app-header-title">Account Information</div>
+</header>
+<main class="app-main">
+<section class="content">
+<!-- Card 1 -->
+<section class="card">
+<div class="row">
+<div class="label">Profile Picture</div>
+<div class="avatar-wrapper">
+<div class="avatar" id="ai-avatar">
+<img alt="Avatar" id="account-avatar" src="images/account-avatar.png"/>
+</div>
+<div class="chevron"></div>
+</div>
+</div>
+<div class="row">
+<div class="label">ID</div>
+<div class="value copy-wrapper">
+<span id="user-id">90440407</span>
+<div class="copy-icon" id="copy-id"></div>
+</div>
+</div>
+<div class="row">
+<div class="label">Phone</div>
+<div class="value">
+<span class="value-link account-phone-value">70758137</span>
+</div>
+</div>
+</section>
+</section>
+</main>
+</div>
+<div class="toast-message" id="toast"></div>
+<!-- Load Supabase configuration -->
+<script src="sb-config.js"></script>
+<!-- Authentication helpers -->
+<script src="auth.js"></script>
+<!-- User profile helpers -->
+<script src="sb-user.js"></script><script src="avatar.js"></script>
+<!-- AI avatar variants (face + frame) -->
+<script src="ai-avatar-variants.js"></script>
+<!-- Enforce login redirects -->
+<script src="common-nav.js"></script>
+<script>
+    
+    // Load dynamic account data from demoCurrentUser + DemoWallet (if available)
+    (function () {
+  function safeText(v, fallback) {
+    if (v === null || v === undefined) return fallback;
+    var t = String(v).trim();
+    return t ? t : fallback;
+  }
+
+  function formatDateTime(iso, fallback) {
+    try {
+      if (!iso) return fallback;
+      var d = new Date(iso);
+      if (!isFinite(d.getTime())) return fallback;
+      var pad = function (n) { return (n < 10 ? "0" : "") + n; };
+      return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()) + " " +
+             pad(d.getHours()) + ":" + pad(d.getMinutes()) + ":" + pad(d.getSeconds());
+    } catch (e) { return fallback; }
+  }
+
+  async function paintFromSupabase() {
+    try {
+      if (!window.SBUser || typeof window.SBUser.getCurrentProfile !== "function") return;
+
+      var profile = await window.SBUser.getCurrentProfile();
+        if (window.UserAvatar && typeof window.UserAvatar.apply === 'function') {
+          window.UserAvatar.apply(profile);
+        }
+      if (window.AIAvatar && typeof window.AIAvatar.apply === 'function') {
+        window.AIAvatar.apply(profile);
+      }
+      if (!profile) return;
+
+      var idEl = document.getElementById("user-id");
+      if (idEl) idEl.textContent = safeText(profile.publicId || profile.id, "-");
+
+      var phoneEl = document.querySelector(".account-phone-value");
+      if (phoneEl) phoneEl.textContent = safeText(profile.phone, "-");
+} catch (e) {
+      try { console.error(e); } catch (_) {}
+    }
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", paintFromSupabase);
+  } else {
+    paintFromSupabase();
+  }
+})();
+;
+;
+;
+// Copy ID with toast
+    (function () {
+      var copyBtn = document.getElementById('copy-id');
+      var idSpan = document.getElementById('user-id');
+      var toastEl = document.getElementById('toast');
+
+      function showToast(message) {
+        if (!toastEl) return;
+        toastEl.textContent = message;
+        toastEl.classList.add('toast-visible');
+        window.clearTimeout(showToast._timer);
+        showToast._timer = window.setTimeout(function () {
+          toastEl.classList.remove('toast-visible');
+        }, 1600);
+      }
+
+      if (copyBtn && idSpan && navigator.clipboard) {
+        copyBtn.addEventListener('click', function () {
+          var text = idSpan.textContent || '';
+          navigator.clipboard.writeText(text).then(function () {
+            showToast('ID copied');
+          }).catch(function () {
+            showToast('Unable to copy ID');
+          });
+        });
+      } else if (copyBtn && idSpan) {
+        copyBtn.addEventListener('click', function () {
+          var range = document.createRange();
+          range.selectNodeContents(idSpan);
+          var selection = window.getSelection();
+          selection.removeAllRanges();
+          selection.addRange(range);
+          try {
+            var ok = document.execCommand('copy');
+            showToast(ok ? 'ID copied' : 'Unable to copy ID');
+          } catch (e) {
+            showToast('Unable to copy ID');
+          }
+          selection.removeAllRanges();
+        });
+      }
+    })();</script>
+</body>
+</html>
