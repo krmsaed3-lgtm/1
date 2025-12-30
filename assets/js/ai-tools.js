@@ -188,7 +188,7 @@
   const grid = $('grid');
   const chips = $('chips');
   const search = $('search');
-  const segDock = $('segDock');
+  const viewBar = $('viewBar');
   // Saved/All toggle is mounted near the first section header (like the reference UI)
   let segEl = null;
   let filterAll = null;
@@ -247,8 +247,8 @@
     segEl.appendChild(filterAll);
     segEl.appendChild(filterSaved);
 
-    // Always mount in the dedicated dock so it never disappears
-    if (segDock && !segDock.contains(segEl)) segDock.appendChild(segEl);
+    // Default mount (will be moved next to the first section title when sections exist)
+    if (viewBar && !viewBar.contains(segEl)) viewBar.appendChild(segEl);
   }
 
   function normalize(str){
@@ -399,6 +399,12 @@
         return `<div class="emptyTitle">No tools found</div><div class="emptySub">Try another keyword or category.</div>`;
       })();
 
+      // Keep the All/Save toggle visible even when there are no results
+      if (segEl && viewBar && !viewBar.contains(segEl)) {
+        if (segEl.parentElement) segEl.parentElement.removeChild(segEl);
+        viewBar.appendChild(segEl);
+      }
+
       grid.appendChild(empty);
       return;
     }
@@ -410,7 +416,11 @@
       h.innerHTML = `<span class="sectionDot"></span><span class="sectionText">${escapeHtml(key)}</span>`;
       head.appendChild(h);
 
-      // (All/Save toggle stays docked above, never moved)
+      // Put the All/Save toggle on the first section row (to match the reference UI)
+      if (idx === 0 && segEl) {
+        if (segEl.parentElement) segEl.parentElement.removeChild(segEl);
+        head.appendChild(segEl);
+      }
 
 sec.appendChild(head);
 

@@ -75,14 +75,16 @@ body{
   flex-wrap:wrap;
 }
 
-/* All/Save dock (must remain visible) */
-.segDock{
-  margin-top:10px;
+.viewBar{
   display:flex;
+  align-items:center;
   justify-content:flex-end;
+  min-width:160px;
 }
+.viewBar:empty{display:none;}
 
 .searchBox{
+  /* dark fill + gradient border (no bright fill) */
   flex:1;
   min-width:240px;
   display:flex;
@@ -91,8 +93,7 @@ body{
   padding:12px 12px;
   border-radius:16px;
   border:2px solid transparent;
-  /* border gradient only (no colored fill inside) */
-  background: var(--panel) padding-box, var(--grad) border-box;
+  background:linear-gradient(#000, #000) padding-box, var(--grad) border-box;
 }
 .searchBox input{
   flex:1;
@@ -121,11 +122,10 @@ body{
   display:flex;
   align-items:center;
   border:2px solid transparent;
-  background:rgba(15,23,38,.55);
   border-radius:999px;
   padding:6px;
   gap:6px;
-  background: linear-gradient(rgba(15,23,38,.68), rgba(15,23,38,.68)) padding-box, var(--grad) border-box;
+  background:linear-gradient(rgba(15,23,38,.68), rgba(15,23,38,.68)) padding-box, var(--grad) border-box;
 }
 .segBtn{
   border:0;
@@ -194,7 +194,6 @@ body{
   gap:12px;
 }
 .card{
-  background:rgba(15,23,38,.68);
   border:2px solid transparent;
   border-radius:var(--r);
   padding:14px 14px 12px;
@@ -202,7 +201,7 @@ body{
   min-height:150px;
   display:flex;
   gap:12px;
-  background: linear-gradient(rgba(15,23,38,.68), rgba(15,23,38,.68)) padding-box, var(--grad) border-box;
+  background:linear-gradient(rgba(15,23,38,.68), rgba(15,23,38,.68)) padding-box, var(--grad) border-box;
 }
 .iconCircle{
   width:54px;height:54px;
@@ -413,15 +412,14 @@ textarea{min-height:120px;resize:vertical}
 
 /* Card + buttons (JS markup) */
 .card{
-  border:2px solid transparent;
+  background:rgba(15,23,38,.70);
+  border:1px solid rgba(255,255,255,.12);
   border-radius:var(--r);
   padding:14px;
   box-shadow:var(--shadow);
   display:flex;
   flex-direction:column;
   gap:10px;
-  /* subtle dark fill + gradient stroke */
-  background: rgba(15,23,38,.70) padding-box, var(--grad) border-box;
 }
 
 .cardTop{
@@ -514,3 +512,7 @@ textarea{min-height:120px;resize:vertical}
   border:1px solid transparent;
   background: linear-gradient(rgba(15,23,38,.68), rgba(15,23,38,.68)) padding-box, var(--grad) border-box;
 }
+
+
+.segDock{width:100%; display:flex; justify-content:center; margin-top:10px;}
+#segDock{width:100%; max-width:560px;}
