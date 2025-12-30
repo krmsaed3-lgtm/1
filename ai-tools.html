@@ -59,16 +59,5 @@
   </div>
 
   <script src="assets/js/ai-tools.js"></script>
-
-<script>
-document.addEventListener("DOMContentLoaded", () => {
-  document.querySelectorAll(".card[data-tool]").forEach(card => {
-    const id = card.dataset.tool;
-    const state = localStorage.getItem("tool_"+id);
-    if (state === "off") card.style.display = "none";
-  });
-});
-</script>
-
 </body>
 </html>

@@ -4,6 +4,7 @@
 
   const STORAGE_SAVED = 'jopai_ai_tools_saved_v1';
   const STORAGE_WORKS = 'jopai_ai_tools_works_v1';
+  const STORAGE_ENABLED = 'jopai_ai_tools_enabled_v1';
 
   // 15 tools - offline, template-based
   const tools = [
@@ -302,6 +303,7 @@
 
   function createCard(t){
     const card = el('article','card');
+    card.setAttribute('data-tool', t.id);
 
     const top = el('div','cardTop');
     const titleWrap = el('div','cardTitleWrap');
@@ -351,11 +353,39 @@
     return card;
   }
 
+  
+  function loadEnabledSet(){
+    try{
+      const raw = localStorage.getItem(STORAGE_ENABLED);
+      if (!raw) return new Set(tools.map(t=>t.id)); // default all enabled
+      const arr = JSON.parse(raw);
+      if (!Array.isArray(arr)) return new Set(tools.map(t=>t.id));
+      const s = new Set(arr.filter(Boolean));
+      // if empty (user turned all off), keep empty
+      return s;
+    }catch(e){
+      return new Set(tools.map(t=>t.id));
+    }
+  }
+
+  let enabledSet = loadEnabledSet();
+
+  // keep in sync if Tool page updates in another tab
+  window.addEventListener('storage', (ev) => {
+    if (ev.key === STORAGE_ENABLED) {
+      enabledSet = loadEnabledSet();
+      render();
+    }
+  });
+
   function render(){
     mountSeg();
     const q = normalize(search.value);
 
     let filtered = tools.filter(t => toolMatches(t, q));
+
+    // Only show tools enabled from Tool page
+    filtered = filtered.filter(t => enabledSet.has(t.id));
 
     if (activeCategory !== 'all') {
       // map UI category to tool fields
