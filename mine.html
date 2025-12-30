@@ -439,6 +439,13 @@
   .ai-robot-stage.is-pulse .ai-robot{ animation:none !important; }
 }
 
+
+
+/* ===== AI Robot Avatar (Simple, Safe) - FIX ===== */
+.ai-robot-stage{ z-index: 5 !important; }
+.ai-robot-stage .ai-robot{ z-index: 6 !important; }
+.avatar{ z-index: 1; }
+
 </style>
 </head>
 <body>
@@ -1067,11 +1074,17 @@
   var stage = robot ? robot.closest('.ai-robot-stage') : null;
   if(!robot || !stage) return;
 
+  robot.addEventListener('error', function(){ console.log('[AI Robot] image failed:', robot.src); });
+  console.log('[AI Robot] baseURI:', document.baseURI);
+
+
+  function u(p){ return new URL(p, document.baseURI).href; }
+
   var frames = [
-    'images/robots/robot_wave.png',
-    'images/robots/robot_point_right.png',
-    'images/robots/robot_wink.png',
-    'images/robots/robot_wave.png'
+    u('images/robots/robot_wave.png'),
+    u('images/robots/robot_point_right.png'),
+    u('images/robots/robot_wink.png'),
+    u('images/robots/robot_wave.png')
   ];
 
   var idx = 0;
