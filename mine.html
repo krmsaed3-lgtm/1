@@ -303,150 +303,7 @@
         max-width: 480px;
       }
     }
-  
-    /* Modal (Room task lock) */
-    .jt-modal{
-      position: fixed;
-      inset: 0;
-      display: none;
-      z-index: 9999;
-    }
-    .jt-modal.is-open{ display:block; }
-    .jt-modal__backdrop{
-      position:absolute;
-      inset:0;
-      background: rgba(0,0,0,0.55);
-      backdrop-filter: blur(6px);
-      -webkit-backdrop-filter: blur(6px);
-    }
-    .jt-modal__panel{
-      position: absolute;
-      left: 50%;
-      top: 52%;
-      transform: translate(-50%, -50%);
-      width: min(92vw, 420px);
-      border-radius: 16px;
-      background: #0f1420;
-      border: 1px solid rgba(255,255,255,0.08);
-      box-shadow: 0 20px 60px rgba(0,0,0,0.55);
-      overflow: hidden;
-    }
-    .jt-modal__header{
-      display:flex;
-      gap:12px;
-      padding: 16px 16px 10px 16px;
-      align-items:center;
-      border-bottom: 1px solid rgba(255,255,255,0.06);
-      background: linear-gradient(180deg, rgba(0,228,192,0.10), rgba(0,0,0,0));
-    }
-    .jt-modal__icon{
-      width: 40px;
-      height: 40px;
-      border-radius: 999px;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      background: rgba(0,228,192,0.14);
-      color: var(--accent);
-      font-size: 18px;
-      flex-shrink:0;
-    }
-    .jt-modal__title{
-      font-size: 15px;
-      font-weight: 600;
-      color: #ffffff;
-      line-height: 1.2;
-    }
-    .jt-modal__subtitle{
-      margin-top: 2px;
-      font-size: 12px;
-      color: rgba(255,255,255,0.68);
-    }
-    .jt-modal__body{
-      padding: 12px 16px 16px 16px;
-    }
-    .jt-modal__text{
-      font-size: 13px;
-      color: rgba(255,255,255,0.78);
-      line-height: 1.55;
-    }
-    .jt-modal__actions{
-      padding: 0 16px 16px 16px;
-      display:flex;
-      gap: 10px;
-    }
-    .jt-btn{
-      flex:1;
-      border: none;
-      border-radius: 12px;
-      padding: 12px 10px;
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
-    }
-    .jt-btn.primary{
-      background: rgba(0,228,192,0.18);
-      color: #eafffb;
-      border: 1px solid rgba(0,228,192,0.35);
-    }
-    .jt-btn.ghost{
-      background: rgba(255,255,255,0.06);
-      color: rgba(255,255,255,0.85);
-      border: 1px solid rgba(255,255,255,0.10);
-    }
-
-  
-
-/* ===== AI Robot Avatar (Simple, Safe) ===== */
-.avatar{
-  position: relative;
-  overflow: hidden !important; /* keep robot inside the circle */
-  border-radius: 999px;
-}
-.avatar img{
-  opacity: 0 !important; /* keep for avatar.js but hide visually */
-  pointer-events: none;
-}
-
-.ai-robot-stage{
-  position:absolute;
-  inset:0;
-  border-radius: 999px;
-  overflow:hidden;
-  pointer-events:none;
-}
-
-.ai-robot-stage .ai-robot{
-  width:100%;
-  height:100%;
-  display:block;
-  object-fit: cover;
-  transform: scale(1.08);
-  filter: drop-shadow(0 10px 16px rgba(0,0,0,0.35));
-}
-
-/* subtle pulse */
-.ai-robot-stage.is-pulse .ai-robot{
-  animation: aiRobotPulse 700ms ease-in-out both;
-}
-@keyframes aiRobotPulse{
-  0%{ transform: scale(1.06); }
-  50%{ transform: scale(1.12); }
-  100%{ transform: scale(1.08); }
-}
-
-@media (prefers-reduced-motion: reduce){
-  .ai-robot-stage.is-pulse .ai-robot{ animation:none !important; }
-}
-
-
-
-/* ===== AI Robot Avatar (Simple, Safe) - FIX ===== */
-.ai-robot-stage{ z-index: 5 !important; }
-.ai-robot-stage .ai-robot{ z-index: 6 !important; }
-.avatar{ z-index: 1; }
-
-</style>
+  </style>
 </head>
 <body>
 <div class="page">
@@ -457,11 +314,6 @@
 <section class="profile-card">
 <div class="avatar">
 <img alt="Avatar" id="mine-avatar" src="images/ec72cc3f0db8049d48f6fbcea83f4437.png"/>
-
-<div class="ai-robot-stage" aria-hidden="true">
-  <img class="ai-robot" id="aiRobotMine" src="images/robots/robot_wave.png" alt="AI Robot">
-</div>
-
 </div>
 <div class="profile-info">
 <div class="profile-phone" id="mine-phone"></div>
@@ -625,30 +477,6 @@
 <div class="logout-wrap">
 <button class="logout-btn" type="button">Log Out</button>
 </div>
-
-<!-- Room task lock modal -->
-<div id="roomTaskModal" class="jt-modal" aria-hidden="true">
-  <div class="jt-modal__backdrop" data-jt-close></div>
-  <div class="jt-modal__panel" role="dialog" aria-modal="true" aria-labelledby="jtRoomTitle">
-    <div class="jt-modal__header">
-      <div class="jt-modal__icon">🔒</div>
-      <div>
-        <div id="jtRoomTitle" class="jt-modal__title">Locked</div>
-        <div class="jt-modal__subtitle">Available at Level V3</div>
-      </div>
-    </div>
-    <div class="jt-modal__body">
-      <p class="jt-modal__text">
-        Room task is currently unavailable. Reach <b>Level V3</b> to unlock access.
-      </p>
-    </div>
-    <div class="jt-modal__actions">
-      <button type="button" class="jt-btn ghost" data-jt-close>Not now</button>
-      <button type="button" class="jt-btn primary" data-jt-close>OK</button>
-    </div>
-  </div>
-</div>
-
 </main>
 <nav class="bottom-nav">
 <div class="bottom-item tools">
@@ -689,89 +517,9 @@
         'Task Center': 'task-center.html',
         'My Works': 'my-works.html',
         'Tool': 'tool.html',
-        'Run record': 'run-record.html',
+        'Run record': 'bills.html',
         'Content': 'content.html'
       };
-
-      
-      function tryParseJson(v){ try { return JSON.parse(v); } catch(e){ return null; } }
-
-      function getCachedProfile(){
-        // Try common keys first; then scan all keys for a profile-like object.
-        var keys = [
-          'sb_user_profile_v1','sb_profile_v1','user_profile','profile','currentUserProfile',
-          'exa_user_profile','exarai_profile','sb-user','sbUser'
-        ];
-        for (var i=0;i<keys.length;i++){
-          var raw = localStorage.getItem(keys[i]);
-          if(!raw) continue;
-          var obj = tryParseJson(raw);
-          if(obj && (obj.phone || obj.publicId || obj.id || obj.level || obj.vipLevel || obj.vip_level)) return obj;
-        }
-        for (var j=0;j<localStorage.length;j++){
-          var k = localStorage.key(j);
-          if(!k) continue;
-          var r = localStorage.getItem(k);
-          if(!r || r.length > 8000) continue;
-          var o = tryParseJson(r);
-          if(o && typeof o === 'object' && (o.phone || o.publicId || o.id || o.level || o.vipLevel || o.vip_level)) return o;
-        }
-        return null;
-      }
-
-      function extractLevelNumber(v){
-        if(v === null || v === undefined) return null;
-        if(typeof v === 'number' && isFinite(v)) return v;
-        var t = String(v).trim();
-        if(!t) return null;
-        var m = t.match(/v\s*(\d+)/i);
-        if(m) return parseInt(m[1],10);
-        var n = t.match(/^(\d+)$/);
-        if(n) return parseInt(n[1],10);
-        return null;
-      }
-
-      function getUserLevelNumber(){
-        // Prefer window.SBUser profile if present, otherwise cached profile or simple keys.
-        var profile = null;
-        try { profile = getCachedProfile(); } catch(e){ profile = null; }
-        var candidates = [];
-        if(profile){
-          candidates.push(profile.level, profile.vipLevel, profile.vip_level, profile.user_level, profile.userLevel);
-        }
-        candidates.push(localStorage.getItem('user_level'));
-        candidates.push(localStorage.getItem('vip_level'));
-        candidates.push(localStorage.getItem('level'));
-        for(var i=0;i<candidates.length;i++){
-          var lv = extractLevelNumber(candidates[i]);
-          if(lv !== null && !isNaN(lv)) return lv;
-        }
-        return 0;
-      }
-
-      function openRoomLockModal(){
-        var modal = document.getElementById('roomTaskModal');
-        if(!modal) return;
-        modal.classList.add('is-open');
-        modal.setAttribute('aria-hidden','false');
-        document.body.style.overflow = 'hidden';
-      }
-
-      function closeRoomLockModal(){
-        var modal = document.getElementById('roomTaskModal');
-        if(!modal) return;
-        modal.classList.remove('is-open');
-        modal.setAttribute('aria-hidden','true');
-        document.body.style.overflow = '';
-      }
-
-      // Close modal handlers
-      document.addEventListener('click', function(ev){
-        var t = ev.target;
-        if(t && t.getAttribute && t.getAttribute('data-jt-close') !== null){
-          closeRoomLockModal();
-        }
-      });
 
       var shortcuts = document.querySelectorAll('.shortcut-item');
       shortcuts.forEach(function (item) {
@@ -779,20 +527,12 @@
         if (!label) return;
         var text = label.textContent.trim();
         var target = shortcutMap[text];
-        if (!target) return;
-
-        item.addEventListener('click', function () {
-          if (text === 'Room task') {
-            var lv = getUserLevelNumber();
-            if (lv < 3) {
-              openRoomLockModal();
-              return;
-            }
-          }
-          window.location.href = target;
-        });
+        if (target) {
+          item.addEventListener('click', function () {
+            window.location.href = target;
+          });
+        }
       });
-
 
       var inviteBtn = document.querySelector('.invite-banner .invite-go');
       if (inviteBtn) {
@@ -918,13 +658,11 @@
   function formatPhone(raw){
     var t = safeText(raw);
     if(!t) return '';
-    // Keep digits only (removes labels like 'Call', spaces, +, etc.)
-    var digits = t.replace(/[^\d]/g,'');
-    if(!digits) return '';
-    if(digits.length > 8){
+    var digits = t.replace(/\s+/g,'').replace(/^\+/,'');
+    if(digits.length > 8 && /^\d+$/.test(digits)){
       return digits.slice(0,3)+' '+digits.slice(3);
     }
-    return digits;
+    return t;
   }
 
   function paint(profile){
@@ -961,13 +699,13 @@
       function formatPhone(raw, fallback) {
         var t = safeText(raw, "");
         if (!t) return fallback || "";
-        // Keep digits only (removes labels like 'Call', spaces, +, etc.)
-        var digits = t.replace(/[^\d]/g, "");
-        if (!digits) return fallback || "";
-        if (digits.length > 8) {
+        // Remove spaces and leading +
+        var digits = t.replace(/\s+/g, "").replace(/^\+/, "");
+        // If looks like a country code + local number, add a space after first 3 digits
+        if (digits.length > 8 && /^\d+$/.test(digits)) {
           return digits.slice(0, 3) + " " + digits.slice(3);
         }
-        return digits;
+        return t;
       }
 
       async function paintFromSupabase() {
@@ -1003,136 +741,6 @@
       }
     })();
   </script>
-
-<style id="jt-modal-dark-fix">
-/* ===== FORCE DARK MODAL + GRADIENT BUTTON ===== */
-#roomTaskModal .jt-modal__panel{
-  background-color:#000 !important;
-  background-image:none !important;
-}
-#roomTaskModal .jt-modal__title,
-#roomTaskModal .jt-modal__subtitle,
-#roomTaskModal .jt-modal__text{
-  color:#ffffff !important;
-}
-#roomTaskModal .jt-modal__subtitle{opacity:.7}
-
-#roomTaskModal .jt-modal__ok{
-  background-image: linear-gradient(90deg, #18c1ff, #22e1a5) !important;
-  background-color: transparent !important;
-  color:#001a14 !important;
-  border:none !important;
-}
-
-#roomTaskModal .jt-modal__cancel{
-  background: transparent !important;
-  color:#cfd6dd !important;
-  border:1px solid rgba(255,255,255,.25) !important;
-}
-</style>
-
-
-<style id="jt-modal-gradient-final">
-/* ===== MODAL GRADIENT FINAL ===== */
-#roomTaskModal .jt-modal__panel{
-  background-image: linear-gradient(90deg, #18c1ff, #22e1a5) !important;
-  background-color: transparent !important;
-  border: none !important;
-}
-#roomTaskModal .jt-modal__header{
-  background: transparent !important;
-  border-bottom: 1px solid rgba(255,255,255,0.25);
-}
-#roomTaskModal .jt-modal__icon{
-  background: rgba(0,0,0,0.25) !important;
-  color:#ffffff !important;
-}
-#roomTaskModal .jt-modal__title,
-#roomTaskModal .jt-modal__subtitle,
-#roomTaskModal .jt-modal__text{
-  color:#ffffff !important;
-}
-#roomTaskModal .jt-btn.primary{
-  background-image: linear-gradient(90deg, #18c1ff, #22e1a5) !important;
-  color:#00332a !important;
-  border:none !important;
-}
-#roomTaskModal .jt-btn.ghost{
-  background: rgba(0,0,0,0.35) !important;
-  color:#ffffff !important;
-  border:1px solid rgba(255,255,255,0.4) !important;
-}
-</style>
-
-
-<script>
-/* AI Robot Avatar Controller (Mine) */
-(function(){
-  'use strict';
-
-  var robot = document.getElementById('aiRobotMine');
-  var stage = robot ? robot.closest('.ai-robot-stage') : null;
-  if(!robot || !stage) return;
-
-  robot.addEventListener('error', function(){ console.log('[AI Robot] image failed:', robot.src); });
-  console.log('[AI Robot] baseURI:', document.baseURI);
-
-
-  function u(p){ return new URL(p, document.baseURI).href; }
-
-  var frames = [
-    u('images/robots/robot_wave.png'),
-    u('images/robots/robot_point_right.png'),
-    u('images/robots/robot_wink.png'),
-    u('images/robots/robot_wave.png')
-  ];
-
-  var idx = 0;
-
-  function showNext(){
-    idx = (idx + 1) % frames.length;
-    robot.setAttribute('src', frames[idx]);
-
-    stage.classList.remove('is-pulse');
-    void stage.offsetWidth;
-    stage.classList.add('is-pulse');
-  }
-
-  // start after page settles
-  window.setTimeout(function(){
-    stage.classList.add('is-pulse');
-    window.setInterval(showNext, 2200);
-  }, 1200);
-
-  // stop cycling after a short sequence, then repeat gently
-  function runSequence(){
-    var step = 0;
-    var seq = window.setInterval(function(){
-      showNext();
-      step++;
-      if(step >= 3){
-        window.clearInterval(seq);
-      }
-    }, 2200);
-  }
-
-  // Replace the fast loop with gentle repeats
-  window.setTimeout(function(){
-    // Cancel the initial interval by reloading logic:
-    // Instead: show a short sequence now, then repeat every 26s.
-    idx = 0;
-    robot.setAttribute('src', frames[0]);
-    stage.classList.add('is-pulse');
-    runSequence();
-    window.setInterval(function(){
-      idx = 0;
-      robot.setAttribute('src', frames[0]);
-      stage.classList.add('is-pulse');
-      runSequence();
-    }, 26000);
-  }, 1300);
-})();
-</script>
-
+<script src="ai-robot-avatar.js"></script>
 </body>
 </html>

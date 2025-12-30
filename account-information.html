@@ -242,58 +242,7 @@
         overflow: hidden;
       }
     }
-  
-
-/* ===== AI Robot Avatar (Simple, Safe) ===== */
-.avatar{
-  position: relative;
-  overflow: hidden !important; /* keep robot inside the circle */
-  border-radius: 999px;
-}
-.avatar img{
-  opacity: 0 !important; /* keep for avatar.js but hide visually */
-  pointer-events: none;
-}
-
-.ai-robot-stage{
-  position:absolute;
-  inset:0;
-  border-radius: 999px;
-  overflow:hidden;
-  pointer-events:none;
-}
-
-.ai-robot-stage .ai-robot{
-  width:100%;
-  height:100%;
-  display:block;
-  object-fit: cover;
-  transform: scale(1.08);
-  filter: drop-shadow(0 10px 16px rgba(0,0,0,0.35));
-}
-
-/* subtle pulse */
-.ai-robot-stage.is-pulse .ai-robot{
-  animation: aiRobotPulse 700ms ease-in-out both;
-}
-@keyframes aiRobotPulse{
-  0%{ transform: scale(1.06); }
-  50%{ transform: scale(1.12); }
-  100%{ transform: scale(1.08); }
-}
-
-@media (prefers-reduced-motion: reduce){
-  .ai-robot-stage.is-pulse .ai-robot{ animation:none !important; }
-}
-
-
-
-/* ===== AI Robot Avatar (Simple, Safe) - FIX ===== */
-.ai-robot-stage{ z-index: 5 !important; }
-.ai-robot-stage .ai-robot{ z-index: 6 !important; }
-.avatar{ z-index: 1; }
-
-</style>
+  </style>
 </head>
 <body>
 <div class="app">
@@ -312,11 +261,6 @@
 <div class="avatar-wrapper">
 <div class="avatar">
 <img alt="Avatar" id="account-avatar" src="images/account-avatar.png"/>
-
-<div class="ai-robot-stage" aria-hidden="true">
-  <img class="ai-robot" id="aiRobotAccount" src="images/robots/robot_wave.png" alt="AI Robot">
-</div>
-
 </div>
 <div class="chevron"></div>
 </div>
@@ -439,51 +383,6 @@
         });
       }
     })();</script>
-
-<script>
-/* AI Robot Avatar Controller (Account Information) */
-(function(){
-  'use strict';
-
-  var robot = document.getElementById('aiRobotAccount');
-  var stage = robot ? robot.closest('.ai-robot-stage') : null;
-  if(!robot || !stage) return;
-
-  robot.addEventListener('error', function(){ console.log('[AI Robot] image failed:', robot.src); });
-  console.log('[AI Robot] baseURI:', document.baseURI);
-
-
-  function u(p){ return new URL(p, document.baseURI).href; }
-
-  var frames = [
-    u('images/robots/robot_wave.png'),
-    u('images/robots/robot_wink.png'),
-    u('images/robots/robot_wave.png')
-  ];
-
-  var idx = 0;
-
-  function step(){
-    idx = (idx + 1) % frames.length;
-    robot.setAttribute('src', frames[idx]);
-
-    stage.classList.remove('is-pulse');
-    void stage.offsetWidth;
-    stage.classList.add('is-pulse');
-  }
-
-  function run(){
-    idx = 0;
-    robot.setAttribute('src', frames[0]);
-    stage.classList.add('is-pulse');
-    window.setTimeout(step, 1600);
-    window.setTimeout(step, 3200);
-  }
-
-  window.setTimeout(run, 1100);
-  window.setInterval(run, 28000);
-})();
-</script>
-
+<script src="ai-robot-avatar.js"></script>
 </body>
 </html>
