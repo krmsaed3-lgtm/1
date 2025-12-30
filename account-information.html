@@ -268,14 +268,14 @@
 <div class="row">
 <div class="label">ID</div>
 <div class="value copy-wrapper">
-<span id="user-id">90440407</span>
+<span id="user-id">-</span>
 <div class="copy-icon" id="copy-id"></div>
 </div>
 </div>
 <div class="row">
 <div class="label">Phone</div>
 <div class="value">
-<span class="value-link account-phone-value">70758137</span>
+<span class="value-link account-phone-value">-</span>
 </div>
 </div>
 </section>
@@ -283,6 +283,7 @@
 </main>
 </div>
 <div class="toast-message" id="toast"></div>
+<script src="profile-avatar-shared.js"></script>
 <!-- Load Supabase configuration -->
 <script src="sb-config.js"></script>
 <!-- Authentication helpers -->
@@ -317,6 +318,7 @@
       if (!window.SBUser || typeof window.SBUser.getCurrentProfile !== "function") return;
 
       var profile = await window.SBUser.getCurrentProfile();
+      if (window.ProfileAvatar && profile) { try { window.ProfileAvatar.cacheProfile(profile); window.ProfileAvatar.applyAll(profile); } catch(e){} }
         if (window.UserAvatar && typeof window.UserAvatar.apply === 'function') {
           window.UserAvatar.apply(profile);
         }
