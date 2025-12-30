@@ -148,6 +148,44 @@
 <span>Mine</span>
 </div>
 </nav>
-<script src="common-nav.js"></script>
+    <!-- Bottom navigation handler (kept local so the nav always works even if common-nav.js is missing) -->
+    <script>
+      (function () {
+        function go(target) {
+          if (!target) return;
+          // Normalize simple paths (avoid double slashes)
+          window.location.href = target;
+        }
+
+        function bindBottomNav() {
+          var nav = document.querySelector('.bottom-nav');
+          if (!nav) return;
+
+          // Make sure the nav is always tappable above the page content
+          nav.style.zIndex = '9999';
+          nav.style.pointerEvents = 'auto';
+
+          var items = nav.querySelectorAll('.bottom-item');
+          items.forEach(function (item) {
+            item.style.cursor = 'pointer';
+            item.style.pointerEvents = 'auto';
+            var handler = function (e) {
+              e.preventDefault();
+              e.stopPropagation();
+              go(item.getAttribute('data-target'));
+            };
+            item.addEventListener('click', handler);
+            // iOS sometimes prefers touchend for fast taps
+            item.addEventListener('touchend', handler, { passive: false });
+          });
+        }
+
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', bindBottomNav);
+        } else {
+          bindBottomNav();
+        }
+      })();
+    </script>
 </body>
 </html>
