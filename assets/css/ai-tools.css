@@ -75,13 +75,12 @@ body{
   flex-wrap:wrap;
 }
 
-.viewBar{
+/* All/Save dock (must remain visible) */
+.segDock{
+  margin-top:10px;
   display:flex;
-  align-items:center;
   justify-content:flex-end;
-  min-width:160px;
 }
-.viewBar:empty{display:none;}
 
 .searchBox{
   flex:1;
@@ -92,8 +91,8 @@ body{
   padding:12px 12px;
   border-radius:16px;
   border:1px solid transparent;
-  /* dark fill + gradient border (no bright fill) */
-  background: linear-gradient(rgba(0,0,0,.35), rgba(0,0,0,.35)) padding-box, var(--grad) border-box;
+  /* border gradient only (no colored fill inside) */
+  background: var(--panel) padding-box, var(--grad) border-box;
 }
 .searchBox input{
   flex:1;
@@ -414,14 +413,15 @@ textarea{min-height:120px;resize:vertical}
 
 /* Card + buttons (JS markup) */
 .card{
-  background:rgba(15,23,38,.70);
-  border:1px solid rgba(255,255,255,.12);
+  border:1px solid transparent;
   border-radius:var(--r);
   padding:14px;
   box-shadow:var(--shadow);
   display:flex;
   flex-direction:column;
   gap:10px;
+  /* subtle dark fill + gradient stroke */
+  background: rgba(15,23,38,.70) padding-box, var(--grad) border-box;
 }
 
 .cardTop{

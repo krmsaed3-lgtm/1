@@ -18,10 +18,14 @@
           <input id="search" type="search" placeholder="Search tool names like: translate, email, summary…" autocomplete="off"/>
           <button id="doSearch" class="searchBtn isPrimary" aria-label="Search" title="Search">🔍</button>
         </div>
-        <div id="viewBar" class="viewBar" aria-label="View"></div>
       </div>
 
       <div class="chipRow" id="chips" aria-label="Categories"></div>
+
+      <!-- All / Save switch (must always be visible and never disappear) -->
+      <div class="segDock" aria-label="Saved filter">
+        <div id="segDock"></div>
+      </div>
     </section>
 
     <section class="list" id="grid" aria-live="polite"></section>
