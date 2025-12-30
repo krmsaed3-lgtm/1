@@ -400,34 +400,33 @@
 .pending{ opacity:0; }
 .pending.ready{ opacity:1; transition: opacity .18s ease-out; }
 
-
-/* === AI Avatar (animated GIF) + Many Variants === */
+/* === AI Avatar (animated GIF) + Many Variants (Safari-safe) === */
 .avatar.ai{
   position:relative;
   isolation:isolate;
-  --ai-h: 190;         /* hue (0..360) */
-  --ai-s: 95%;
-  --ai-l: 55%;
-  --ai-ring: hsl(var(--ai-h) var(--ai-s) var(--ai-l));
-  --ai-ring2: hsl(calc(var(--ai-h) + 28) var(--ai-s) 62%);
+  --ai-h: 190;
+  --ai-ring: hsla(var(--ai-h), 95%, 55%, 0.35);
+  --ai-ring-weak: hsla(var(--ai-h), 95%, 55%, 0.22);
+  --ai-ring-glow: hsla(var(--ai-h), 95%, 55%, 0.16);
 }
 .avatar.ai::before{
   content:"";
   position:absolute;
   inset:-2px;
   border-radius:50%;
-  border:1px solid color-mix(in oklab, var(--ai-ring) 38%, transparent);
-  box-shadow: 0 0 0 1px color-mix(in oklab, var(--ai-ring) 28%, transparent),
-              0 0 18px color-mix(in oklab, var(--ai-ring) 22%, transparent);
+  border:1px solid var(--ai-ring);
+  box-shadow:
+    0 0 0 1px var(--ai-ring-weak),
+    0 0 16px var(--ai-ring-glow);
   pointer-events:none;
   z-index:3;
 }
 .avatar.ai.frame-dash::before{ border-style:dashed; }
 .avatar.ai.frame-double::before{
   box-shadow:
-    0 0 0 1px color-mix(in oklab, var(--ai-ring) 28%, transparent),
-    0 0 0 3px color-mix(in oklab, var(--ai-ring2) 20%, transparent),
-    0 0 18px color-mix(in oklab, var(--ai-ring) 22%, transparent);
+    0 0 0 1px var(--ai-ring-weak),
+    0 0 0 3px hsla(calc(var(--ai-h) + 28), 95%, 60%, 0.16),
+    0 0 16px var(--ai-ring-glow);
 }
 @keyframes aiPulse { 0%,100%{transform:scale(1); opacity:.75} 50%{transform:scale(1.06); opacity:.35} }
 .avatar.ai.pulse::after{
@@ -435,13 +434,12 @@
   position:absolute;
   inset:-7px;
   border-radius:50%;
-  border:1px solid color-mix(in oklab, var(--ai-ring) 20%, transparent);
-  box-shadow:0 0 24px color-mix(in oklab, var(--ai-ring) 14%, transparent);
+  border:1px solid hsla(var(--ai-h), 95%, 55%, 0.20);
+  box-shadow:0 0 22px hsla(var(--ai-h), 95%, 55%, 0.10);
   animation: aiPulse 2.6s ease-in-out infinite;
   pointer-events:none;
   z-index:2;
 }
-/* Keep GIF vivid */
 .avatar.ai img{ filter:saturate(1.08) contrast(1.08); }
 
 </style>
@@ -454,11 +452,11 @@
 <main class="content">
 <section class="profile-card">
 <div class="avatar ai" id="mine-ai-avatar">
-<img alt="Avatar" id="mine-avatar" src="images/ec72cc3f0db8049d48f6fbcea83f4437.png"/>
+<img alt="Avatar" id="mine-avatar" src="https://media1.tenor.com/m/VUx8HrR_T8AAAAAd/fandroid-wink.gif"/>
 </div>
 <div class="profile-info">
 <div class="profile-phone" id="mine-phone" class="pending"></div>
-<div class="profile-id" id="mine-id" class="pending"></div>
+<div class="profile-id" id="mine-id" class="pending">ID: -</div>
 
 </div>
 <div class="profile-arrow">›</div>
@@ -873,7 +871,7 @@
 <script src="auth.js"></script>
 <!-- User profile helpers -->
 <script src="sb-user.js"></script><script src="avatar.js"></script>
-<script src="profile-shared-v2.js"></script>
+<script src="profile-shared-v3.js"></script>
 <!-- Enforce login redirects -->
 <script src="common-nav.js"></script>
 <script>
@@ -1023,11 +1021,6 @@
   color:#cfd6dd !important;
   border:1px solid rgba(255,255,255,.25) !important;
 }
-
-/* === Prevent placeholder flash === */
-.pending{ opacity:0; }
-.pending.ready{ opacity:1; transition: opacity .18s ease-out; }
-
 </style>
 
 
@@ -1061,11 +1054,6 @@
   color:#ffffff !important;
   border:1px solid rgba(255,255,255,0.4) !important;
 }
-
-/* === Prevent placeholder flash === */
-.pending{ opacity:0; }
-.pending.ready{ opacity:1; transition: opacity .18s ease-out; }
-
 </style>
 
 </body>
