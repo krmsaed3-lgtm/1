@@ -188,6 +188,7 @@
   const grid = $('grid');
   const chips = $('chips');
   const search = $('search');
+  const topToggle = $('topToggle');
   // Saved/All toggle is mounted near the first section header (like the reference UI)
   let segEl = null;
   let filterAll = null;
@@ -245,6 +246,9 @@
 
     segEl.appendChild(filterAll);
     segEl.appendChild(filterSaved);
+
+    // Mount segmented toggle near search (always visible)
+    if (topToggle && !topToggle.contains(segEl)) topToggle.appendChild(segEl);
   }
 
   function normalize(str){
@@ -407,11 +411,8 @@ grid.appendChild(empty);
       const h = el('div','sectionTitle');
       h.innerHTML = `<span class="sectionDot"></span><span class="sectionText">${escapeHtml(key)}</span>`;
       head.appendChild(h);
-
-      if (idx === 0 && segEl) {
-        head.appendChild(segEl);
-      }
-      sec.appendChild(head);
+      // segmented toggle is mounted at the top (near search)
+sec.appendChild(head);
 
       const cards = el('div','cards');
       groups.get(key).forEach(t => cards.appendChild(createCard(t)));

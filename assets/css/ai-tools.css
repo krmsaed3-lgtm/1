@@ -10,6 +10,7 @@
   /* Accent gradient (match reference) */
   --c1:#18c1ff;
   --c2:#22e1a5;
+  --grad: linear-gradient(90deg, var(--c1), var(--c2));
   --r:18px;
 }
 *{box-sizing:border-box}
@@ -82,8 +83,8 @@ body{
   gap:8px;
   padding:12px 12px;
   border-radius:16px;
-  background:rgba(15,23,38,.60);
-  border:1px solid rgba(24,193,255,.26);
+  border:1px solid transparent;
+  background: linear-gradient(rgba(10,15,20,.72), rgba(10,15,20,.72)) padding-box, var(--grad) border-box;
   box-shadow:0 0 0 2px rgba(24,193,255,.06);
 }
 .searchBox input{
@@ -112,11 +113,12 @@ body{
 .seg{
   display:flex;
   align-items:center;
-  border:1px solid rgba(255,255,255,.12);
+  border:1px solid transparent;
   background:rgba(15,23,38,.55);
   border-radius:999px;
   padding:6px;
   gap:6px;
+  background: linear-gradient(rgba(15,23,38,.68), rgba(15,23,38,.68)) padding-box, var(--grad) border-box;
 }
 .segBtn{
   border:0;
@@ -186,13 +188,14 @@ body{
 }
 .card{
   background:rgba(15,23,38,.68);
-  border:1px solid rgba(255,255,255,.12);
+  border:1px solid transparent;
   border-radius:var(--r);
   padding:14px 14px 12px;
   box-shadow:var(--shadow);
   min-height:150px;
   display:flex;
   gap:12px;
+  background: linear-gradient(rgba(15,23,38,.68), rgba(15,23,38,.68)) padding-box, var(--grad) border-box;
 }
 .iconCircle{
   width:54px;height:54px;
@@ -494,4 +497,12 @@ textarea{min-height:120px;resize:vertical}
   line-height: 1.6;
   text-align:center;
   color: rgba(234,242,255,.75);
+}
+
+
+.topToggle{display:flex;align-items:center;justify-content:center;min-width:160px;max-width:220px;height:44px;border-radius:999px;padding:4px;}
+
+.topToggle.gradientOutline{
+  border:1px solid transparent;
+  background: linear-gradient(rgba(15,23,38,.68), rgba(15,23,38,.68)) padding-box, var(--grad) border-box;
 }
