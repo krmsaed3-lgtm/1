@@ -244,13 +244,14 @@
     }
   
 
-/* ===== AI Robot Avatar + Motion (Pro) ===== */
+/* ===== AI Robot Avatar (Simple, Safe) ===== */
 .avatar{
   position: relative;
-  overflow: visible !important; /* allow hand outside circle */
+  overflow: hidden !important; /* keep robot inside the circle */
+  border-radius: 999px;
 }
 .avatar img{
-  opacity: 0 !important; /* keep for avatar.js but hide */
+  opacity: 0 !important; /* keep for avatar.js but hide visually */
   pointer-events: none;
 }
 
@@ -258,44 +259,31 @@
   position:absolute;
   inset:0;
   border-radius: 999px;
-  overflow: visible;
-  pointer-events: none;
+  overflow:hidden;
+  pointer-events:none;
 }
 
 .ai-robot-stage .ai-robot{
-  position:absolute;
-  left: 50%;
-  top: 50%;
-  width: 110%;
-  height: 110%;
-  transform: translate(-50%, -50%);
-  filter: drop-shadow(0 10px 18px rgba(0,0,0,0.55));
-  will-change: transform;
+  width:100%;
+  height:100%;
+  display:block;
+  object-fit: cover;
+  transform: scale(1.08);
+  filter: drop-shadow(0 10px 16px rgba(0,0,0,0.35));
 }
 
-/* Account page smaller stage */
-.ai-robot-stage.small .ai-robot{
-  width: 115%;
-  height: 115%;
+/* subtle pulse */
+.ai-robot-stage.is-pulse .ai-robot{
+  animation: aiRobotPulse 700ms ease-in-out both;
+}
+@keyframes aiRobotPulse{
+  0%{ transform: scale(1.06); }
+  50%{ transform: scale(1.12); }
+  100%{ transform: scale(1.08); }
 }
 
-/* Run animation class */
-.ai-robot-stage.is-animating .ai-robot{
-  animation: aiRobotMove 6.2s cubic-bezier(.22,.61,.36,1) both;
-}
-
-@keyframes aiRobotMove{
-  0%   { transform: translate(-50%, -50%) scale(1); }
-  12%  { transform: translate(-50%, -50%) scale(1.02); }
-  28%  { transform: translate(calc(-50% + var(--ai-dx, 90px)), calc(-50% + var(--ai-dy, 90px))) scale(1.05); }
-  55%  { transform: translate(calc(-50% + var(--ai-dx, 90px)), calc(-50% + var(--ai-dy, 90px))) scale(1.05); }
-  78%  { transform: translate(-50%, -50%) scale(1.02); }
-  100% { transform: translate(-50%, -50%) scale(1); }
-}
-
-/* Reduce motion */
 @media (prefers-reduced-motion: reduce){
-  .ai-robot-stage.is-animating .ai-robot{ animation: none !important; }
+  .ai-robot-stage.is-pulse .ai-robot{ animation:none !important; }
 }
 
 </style>
@@ -318,8 +306,8 @@
 <div class="avatar">
 <img alt="Avatar" id="account-avatar" src="images/account-avatar.png"/>
 
-<div class="ai-robot-stage small" aria-hidden="true">
-  <img class="ai-robot" id="aiRobotAccount" src="images/robots/robot_wave.png" alt="AI Robot"/>
+<div class="ai-robot-stage" aria-hidden="true">
+  <img class="ai-robot" id="aiRobotAccount" src="images/robots/robot_wave.png" alt="AI Robot">
 </div>
 
 </div>
@@ -446,36 +434,41 @@
     })();</script>
 
 <script>
-/* ===== AI Robot Motion Controller (Account) ===== */
+/* AI Robot Avatar Controller (Account Information) */
 (function(){
   'use strict';
-  var stage = document.querySelector('.avatar-wrapper .avatar .ai-robot-stage');
+
   var robot = document.getElementById('aiRobotAccount');
-  if(!stage || !robot) return;
+  var stage = robot ? robot.closest('.ai-robot-stage') : null;
+  if(!robot || !stage) return;
 
-  var frames = {
-    wave: 'images/robots/robot_wave.png',
-    wink: 'images/robots/robot_wink.png'
-  };
+  var frames = [
+    'images/robots/robot_wave.png',
+    'images/robots/robot_wink.png',
+    'images/robots/robot_wave.png'
+  ];
 
-  function setFrame(key){
-    var src = frames[key] || frames.wave;
-    if(robot.getAttribute('src') !== src) robot.setAttribute('src', src);
-  }
+  var idx = 0;
 
-  function winkWave(){
-    setFrame('wave');
-    stage.classList.remove('is-animating');
+  function step(){
+    idx = (idx + 1) % frames.length;
+    robot.setAttribute('src', frames[idx]);
+
+    stage.classList.remove('is-pulse');
     void stage.offsetWidth;
-    stage.classList.add('is-animating');
-
-    window.setTimeout(function(){ setFrame('wink'); }, 900);
-    window.setTimeout(function(){ setFrame('wave'); }, 2200);
-    window.setTimeout(function(){ stage.classList.remove('is-animating'); }, 3600);
+    stage.classList.add('is-pulse');
   }
 
-  window.setTimeout(winkWave, 1200);
-  window.setInterval(winkWave, 28000);
+  function run(){
+    idx = 0;
+    robot.setAttribute('src', frames[0]);
+    stage.classList.add('is-pulse');
+    window.setTimeout(step, 1600);
+    window.setTimeout(step, 3200);
+  }
+
+  window.setTimeout(run, 1100);
+  window.setInterval(run, 28000);
 })();
 </script>
 
