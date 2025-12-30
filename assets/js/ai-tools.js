@@ -188,7 +188,6 @@
   const grid = $('grid');
   const chips = $('chips');
   const search = $('search');
-  const clearSearch = $('clearSearch');
   // Saved/All toggle is mounted near the first section header (like the reference UI)
   let segEl = null;
   let filterAll = null;
@@ -345,8 +344,6 @@
 
     card.appendChild(top);
     card.appendChild(bottom);
-
-    card.addEventListener('click', () => openTool(t));
     return card;
   }
 
@@ -388,8 +385,16 @@
 
     if (orderedKeys.length === 0) {
       const empty = el('div','empty');
-      empty.innerHTML = `<div class="emptyTitle">No tools found</div><div class="emptySub">Try another keyword or category.</div>`;
-      grid.appendChild(empty);
+      empty.innerHTML = (() => {
+        if (showSavedOnly) {
+          if (savedSet.size === 0) {
+            return `<div class="emptyTitle">No saved tools yet</div><div class="emptySub">Tap “Save ☆” on any tool to add it here.</div>`;
+          }
+          return `<div class="emptyTitle">No saved tools found</div><div class="emptySub">Try switching category or clearing the search.</div>`;
+        }
+        return `<div class="emptyTitle">No tools found</div><div class="emptySub">Try another keyword or category.</div>`;
+      })();
+grid.appendChild(empty);
       return;
     }
 
@@ -878,8 +883,6 @@
     mountSeg();
     renderChips();
     render();
-
-    clearSearch.addEventListener('click', ()=>{ search.value=''; render(); search.focus(); });
     $('doSearch').addEventListener('click', ()=> render());
     search.addEventListener('input', ()=> render());
 

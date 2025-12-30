@@ -259,6 +259,7 @@ body{
 
 /* Footer */
 .foot{margin-top:18px;padding:14px 0 0;text-align:center}
+/* .footNote removed */
 .footNote{color:var(--muted2);font-size:12px}
 
 /* Sheet + Drawer */
@@ -476,4 +477,21 @@ textarea{min-height:120px;resize:vertical}
   .heroTitle{font-size:28px}
   .cards{grid-template-columns:1fr}
   .tab{padding:9px 14px}
+}
+
+
+.heroLead{
+  margin: 10px 0 8px;
+  font-weight: 800;
+  font-size: 20px;
+  line-height: 1.25;
+  text-align:center;
+  color: #EAF2FF;
+}
+.heroText{
+  margin: 0 0 18px;
+  font-size: 14px;
+  line-height: 1.6;
+  text-align:center;
+  color: rgba(234,242,255,.75);
 }
