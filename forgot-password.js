@@ -1,4 +1,4 @@
-/* Forgot Password page logic (no Arabic in code) */
+/* forgot-password.js — نفس المنطق السابق مع اعتماد data-code لتجنّب الالتباس */
 (function () {
   'use strict';
 
@@ -28,7 +28,6 @@
     steps.forEach(function (s) { s.classList.remove('active'); });
     var el = document.getElementById(stepId);
     if (el) el.classList.add('active');
-
     if (stepId === 'stepPhone') setDots(1);
     else if (stepId === 'stepEmail') setDots(2);
     else if (stepId === 'stepVerify') setDots(3);
@@ -94,7 +93,14 @@
   // Elements
   var btnBack = document.getElementById('btnBack');
 
-  var dialCodeEl = document.getElementById('dialCode');
+  var prefixBtn = document.getElementById('prefixBtn');
+  var prefixValue = document.getElementById('prefixValue');
+  var areaModal = document.getElementById('areaModal');
+  var areaMask = document.getElementById('areaMask');
+  var areaList = document.getElementById('areaList');
+  var areaClose = document.getElementById('areaClose');
+  var areaSearch = document.getElementById('areaSearch');
+
   var phoneEl = document.getElementById('phone');
   var phoneErr = document.getElementById('phoneErr');
   var btnFind = document.getElementById('btnFind');
@@ -116,12 +122,7 @@
   var btnReset = document.getElementById('btnReset');
   var btnBackToVerify = document.getElementById('btnBackToVerify');
 
-  var state = {
-    userId: null,
-    phone: null,
-    email: null,
-    verified: false
-  };
+  var state = { userId: null, phone: null, email: null, verified: false };
 
   function clearErrors() {
     if (phoneErr) phoneErr.textContent = '';
@@ -138,10 +139,7 @@
 
   if (btnBackToPhone) btnBackToPhone.addEventListener('click', function () {
     clearErrors();
-    state.userId = null;
-    state.phone = null;
-    state.email = null;
-    state.verified = false;
+    state = { userId: null, phone: null, email: null, verified: false };
     try { localStorage.removeItem('fp_user_id'); } catch (_) {}
     setStep('stepPhone');
   });
@@ -157,25 +155,163 @@
     setStep('stepVerify');
   });
 
+  // country list (same set)
+  var countries = [
+    { name: "Slovenia", code: "+386", iso: "si", common: true },
+    { name: "Panama", code: "+507", iso: "pa", common: true },
+    { name: "Syria", code: "+963", iso: "sy", common: true },
+    { name: "Republic of Lebanon", code: "+961", iso: "lb", common: true },
+    { name: "Cyprus", code: "+357", iso: "cy", common: true },
+    { name: "Saudi Arabia", code: "+966", iso: "sa", common: true },
+    { name: "United Arab Emirates", code: "+971", iso: "ae" },
+    { name: "Qatar", code: "+974", iso: "qa" },
+    { name: "Kuwait", code: "+965", iso: "kw" },
+    { name: "Bahrain", code: "+973", iso: "bh" },
+    { name: "Oman", code: "+968", iso: "om" },
+    { name: "Jordan", code: "+962", iso: "jo" },
+    { name: "Iraq", code: "+964", iso: "iq" },
+    { name: "Turkey", code: "+90", iso: "tr" },
+    { name: "Egypt", code: "+20", iso: "eg" },
+    { name: "Morocco", code: "+212", iso: "ma" },
+    { name: "Algeria", code: "+213", iso: "dz" },
+    { name: "Tunisia", code: "+216", iso: "tn" },
+    { name: "Libya", code: "+218", iso: "ly" },
+    { name: "Yemen", code: "+967", iso: "ye" },
+    { name: "United States", code: "+1", iso: "us" },
+    { name: "Canada", code: "+1", iso: "ca" },
+    { name: "United Kingdom", code: "+44", iso: "gb" },
+    { name: "Germany", code: "+49", iso: "de" },
+    { name: "France", code: "+33", iso: "fr" },
+    { name: "Italy", code: "+39", iso: "it" },
+    { name: "Spain", code: "+34", iso: "es" },
+    { name: "Russia", code: "+7", iso: "ru" },
+    { name: "India", code: "+91", iso: "in" },
+    { name: "Pakistan", code: "+92", iso: "pk" },
+    { name: "Afghanistan", code: "+93", iso: "af" },
+    { name: "Iran", code: "+98", iso: "ir" },
+    { name: "China", code: "+86", iso: "cn" },
+    { name: "Hong Kong", code: "+852", iso: "hk" },
+    { name: "Japan", code: "+81", iso: "jp" },
+    { name: "South Korea", code: "+82", iso: "kr" },
+    { name: "Singapore", code: "+65", iso: "sg" },
+    { name: "Malaysia", code: "+60", iso: "my" },
+    { name: "Indonesia", code: "+62", iso: "id" },
+    { name: "Philippines", code: "+63", iso: "ph" },
+    { name: "Thailand", code: "+66", iso: "th" },
+    { name: "Vietnam", code: "+84", iso: "vn" },
+    { name: "Australia", code: "+61", iso: "au" },
+    { name: "New Zealand", code: "+64", iso: "nz" },
+    { name: "Brazil", code: "+55", iso: "br" },
+    { name: "Argentina", code: "+54", iso: "ar" },
+    { name: "Mexico", code: "+52", iso: "mx" },
+    { name: "South Africa", code: "+27", iso: "za" },
+    { name: "Nigeria", code: "+234", iso: "ng" },
+    { name: "Kenya", code: "+254", iso: "ke" },
+    { name: "Ethiopia", code: "+251", iso: "et" },
+    { name: "Sweden", code: "+46", iso: "se" },
+    { name: "Norway", code: "+47", iso: "no" },
+    { name: "Denmark", code: "+45", iso: "dk" },
+    { name: "Netherlands", code: "+31", iso: "nl" },
+    { name: "Belgium", code: "+32", iso: "be" },
+    { name: "Switzerland", code: "+41", iso: "ch" },
+    { name: "Austria", code: "+43", iso: "at" },
+    { name: "Greece", code: "+30", iso: "gr" },
+    { name: "Portugal", code: "+351", iso: "pt" },
+    { name: "Ireland", code: "+353", iso: "ie" }
+  ];
+
+  function buildCountryList(filter) {
+    if (!areaList) return;
+    areaList.innerHTML = '';
+    var q = (filter || '').toLowerCase();
+
+    var common = countries.filter(function (c) {
+      if (!c.common) return false;
+      if (!q) return true;
+      return c.name.toLowerCase().includes(q) || c.code.indexOf(filter) !== -1;
+    });
+
+    var others = countries.filter(function (c) {
+      if (c.common) return false;
+      if (!q) return true;
+      return c.name.toLowerCase().includes(q) || c.code.indexOf(filter) !== -1;
+    });
+
+    function appendSection(title, items) {
+      if (!items.length) return;
+      var titleEl = document.createElement('div');
+      titleEl.style.color = 'rgba(255,255,255,0.6)';
+      titleEl.style.padding = '6px 6px 8px';
+      titleEl.style.fontSize = '12px';
+      titleEl.textContent = title;
+      areaList.appendChild(titleEl);
+
+      items.forEach(function (c) {
+        var item = document.createElement('div');
+        item.className = 'country-option';
+        var name = document.createElement('span');
+        name.style.display = 'inline-flex';
+        name.style.alignItems = 'center';
+        name.innerHTML = '<img class="flag" src="https://flagcdn.com/w20/' + c.iso + '.png" alt="">' + ' ' + c.name;
+        var code = document.createElement('span');
+        code.textContent = c.code;
+        item.appendChild(name);
+        item.appendChild(code);
+        item.addEventListener('click', function () {
+          if (prefixValue) {
+            prefixValue.dataset.code = c.code;
+            prefixValue.innerHTML = '<img class="flag" src="https://flagcdn.com/w20/' + c.iso + '.png" alt="">' + c.code;
+          }
+          closeModal();
+        });
+        areaList.appendChild(item);
+      });
+    }
+
+    appendSection('Commonly used countries', common);
+    appendSection('All countries/regions', others);
+  }
+
+  function openModal() {
+    if (!areaModal) return;
+    areaModal.classList.add('open');
+    if (areaSearch) areaSearch.value = '';
+    buildCountryList('');
+  }
+  function closeModal() {
+    if (!areaModal) return;
+    areaModal.classList.remove('open');
+  }
+
+  if (prefixBtn) prefixBtn.addEventListener('click', openModal);
+  if (areaMask) areaMask.addEventListener('click', closeModal);
+  if (areaClose) areaClose.addEventListener('click', closeModal);
+  if (areaSearch) {
+    areaSearch.addEventListener('input', function () {
+      buildCountryList(areaSearch.value || '');
+    });
+  }
+
+  function getPhoneDigits(v) { return String(v || '').replace(/\D/g, ''); }
+
   btnFind.addEventListener('click', async function () {
     clearErrors();
-    var prefix = String(dialCodeEl.value || '').trim();
-    var digits = String(phoneEl.value || '').trim().replace(/\s+/g, '');
-
+    var prefix = (prefixValue && prefixValue.dataset && prefixValue.dataset.code) ? prefixValue.dataset.code : '+386';
+    var digits = getPhoneDigits(phoneEl.value || '');
     if (!digits || digits.length < 5) {
       phoneErr.textContent = 'Enter your phone number.';
       return;
     }
 
-    var fullPhone = null;
+    var fullPhone;
     try {
       if (window.ExaAuth && typeof window.ExaAuth.fullPhone === 'function') {
         fullPhone = window.ExaAuth.fullPhone(prefix, digits);
       } else {
-        fullPhone = String(prefix) + String(digits);
+        fullPhone = prefix + digits;
       }
     } catch (_) {
-      fullPhone = String(prefix) + String(digits);
+      fullPhone = prefix + digits;
     }
 
     btnFind.disabled = true;
@@ -192,6 +328,11 @@
       state.verified = false;
 
       try { localStorage.setItem('fp_user_id', state.userId); } catch (_) {}
+
+      if (!state.email) {
+        phoneErr.textContent = 'لا يوجد إيميل مرتبط بهذا الحساب — راسل الدعم.';
+        return;
+      }
 
       if (foundPhoneEl) foundPhoneEl.textContent = state.phone;
       if (emailEl) emailEl.value = state.email;
@@ -220,7 +361,6 @@
 
     btnSendCode.disabled = true;
     try {
-      // Your DB should have this RPC. If it does not exist, create it in SQL.
       await rpc('request_email_verification', { p_user: state.userId, p_email: email });
       state.email = email;
       showToast('Code sent');
@@ -304,6 +444,16 @@
     }
   });
 
-  // Init
+  // initial prefix setup
+  (function initPrefix() {
+    try {
+      if (prefixValue && (!prefixValue.dataset || !prefixValue.dataset.code)) {
+        prefixValue.dataset.code = '+386';
+        prefixValue.innerHTML = '<img class="flag" src="https://flagcdn.com/w20/si.png" alt="">' + '+386';
+      }
+    } catch (e) {}
+  })();
+
   setStep('stepPhone');
+
 })();
