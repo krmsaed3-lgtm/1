@@ -1,10 +1,13 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport"/>
 <title>Sign Up</title>
+
+<!-- Flag CDN (preconnect only) -->
+<link rel="preconnect" href="https://flagcdn.com">
+
 <style>
     :root {
       --page-bg: #05070b;
@@ -137,6 +140,14 @@
       font-size: 14px;
       color: #ffffff;
       cursor: pointer;
+    }
+
+    /* عرض محتوى الزر أفقيًا ومحاذاة الوسط، gap أصغر حتى لا يبدو العلم بعيدًا */
+    .prefix-box span {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px; /* تم تقليل الفراغ هنا */
+      color: #FFFFFF;
     }
 
     .arrow-down {
@@ -466,6 +477,18 @@
       opacity: 1;
       transform: translate(-50%, 0);
     }
+
+    /* flag أصغر ليناسب المربع */
+    .flag {
+      width: 14px;
+      height: 10px;
+      vertical-align: middle;
+      margin-right: 6px;
+      border-radius: 2px;
+      object-fit: cover;
+      flex-shrink: 0;
+    }
+
   </style>
 </head>
 <body>
@@ -486,8 +509,9 @@
 <div class="field">
 <div class="field-label">Phone</div>
 <div class="phone-row">
-<button class="prefix-box" type="button">
-<span>+386</span>
+<!-- زر اختيار البلد مع span لادخال العلم والنداء بشكل أفقي -->
+<button id="prefixBtn" class="prefix-box" type="button">
+<span id="prefixValue">+386</span>
 <span class="arrow-down"></span>
 </button>
 <input autocomplete="tel" class="input-field" id="phone-input" placeholder="Enter phone" type="tel"/>
@@ -533,9 +557,9 @@
       </button>
 <p class="terms">
         By signing up, I agree to the
-        <a href="#">Service Agreement</a>
+        <a href="service-agreement.html">Service Agreement</a>
         and
-        <a href="#">Privacy Policy</a>.
+        <a href="privacy-policy.html">Privacy Policy</a>.
       </p>
 <p class="signup">
         Already have an account?
@@ -584,16 +608,175 @@ document.addEventListener("DOMContentLoaded", function () {
   var verificationInput = document.getElementById("verification-code-input");
   var signUpBtn = document.querySelector(".sign-up-btn");
   var prefixBox = document.querySelector(".prefix-box");
-  var prefixValue = prefixBox ? prefixBox.querySelector("span") : null;
+  var prefixValue = document.getElementById("prefixValue");
+  var prefixBtn = document.getElementById("prefixBtn");
 
   var generatedCodeSpan = document.getElementById("generated-code");
   var refreshCodeBtn = document.querySelector(".refresh-code-btn");
   var toastEl = document.getElementById("form-toast");
 
-  // ---- Supabase ----
-  // Supabase is handled inside auth.js (ExaAuth.registerWithInvite)
+  var areaModal = document.querySelector(".area-modal");
+  var areaMask = document.querySelector(".area-modal-mask");
+  var areaPanel = document.querySelector(".area-modal-panel");
+  var areaList = document.querySelector(".area-list");
+  var areaClose = document.querySelector(".area-close");
+  var areaSearchInput = document.querySelector(".area-search-input");
 
-  // ---- Helpers ----
+  // ---- Countries (with iso) — only data change, no layout change ----
+  var countries = [
+    { name: "Slovenia", code: "+386", iso: "si", common: true },
+    { name: "Panama", code: "+507", iso: "pa", common: true },
+    { name: "Syria", code: "+963", iso: "sy", common: true },
+    { name: "Republic of Lebanon", code: "+961", iso: "lb", common: true },
+    { name: "Cyprus", code: "+357", iso: "cy", common: true },
+    { name: "Saudi Arabia", code: "+966", iso: "sa", common: true },
+
+    { name: "United Arab Emirates", code: "+971", iso: "ae" },
+    { name: "Qatar", code: "+974", iso: "qa" },
+    { name: "Kuwait", code: "+965", iso: "kw" },
+    { name: "Bahrain", code: "+973", iso: "bh" },
+    { name: "Oman", code: "+968", iso: "om" },
+    { name: "Jordan", code: "+962", iso: "jo" },
+    { name: "Iraq", code: "+964", iso: "iq" },
+    { name: "Turkey", code: "+90", iso: "tr" },
+    { name: "Egypt", code: "+20", iso: "eg" },
+    { name: "Morocco", code: "+212", iso: "ma" },
+    { name: "Algeria", code: "+213", iso: "dz" },
+    { name: "Tunisia", code: "+216", iso: "tn" },
+    { name: "Libya", code: "+218", iso: "ly" },
+    { name: "Yemen", code: "+967", iso: "ye" },
+    { name: "United States", code: "+1", iso: "us" },
+    { name: "Canada", code: "+1", iso: "ca" },
+    { name: "United Kingdom", code: "+44", iso: "gb" },
+    { name: "Germany", code: "+49", iso: "de" },
+    { name: "France", code: "+33", iso: "fr" },
+    { name: "Italy", code: "+39", iso: "it" },
+    { name: "Spain", code: "+34", iso: "es" },
+    { name: "Russia", code: "+7", iso: "ru" },
+    { name: "India", code: "+91", iso: "in" },
+    { name: "Pakistan", code: "+92", iso: "pk" },
+    { name: "Afghanistan", code: "+93", iso: "af" },
+    { name: "Iran", code: "+98", iso: "ir" },
+    { name: "China", code: "+86", iso: "cn" },
+    { name: "Hong Kong", code: "+852", iso: "hk" },
+    { name: "Japan", code: "+81", iso: "jp" },
+    { name: "South Korea", code: "+82", iso: "kr" },
+    { name: "Singapore", code: "+65", iso: "sg" },
+    { name: "Malaysia", code: "+60", iso: "my" },
+    { name: "Indonesia", code: "+62", iso: "id" },
+    { name: "Philippines", code: "+63", iso: "ph" },
+    { name: "Thailand", code: "+66", iso: "th" },
+    { name: "Vietnam", code: "+84", iso: "vn" },
+    { name: "Australia", code: "+61", iso: "au" },
+    { name: "New Zealand", code: "+64", iso: "nz" },
+    { name: "Brazil", code: "+55", iso: "br" },
+    { name: "Argentina", code: "+54", iso: "ar" },
+    { name: "Mexico", code: "+52", iso: "mx" },
+    { name: "South Africa", code: "+27", iso: "za" },
+    { name: "Nigeria", code: "+234", iso: "ng" },
+    { name: "Kenya", code: "+254", iso: "ke" },
+    { name: "Ethiopia", code: "+251", iso: "et" },
+    { name: "Sweden", code: "+46", iso: "se" },
+    { name: "Norway", code: "+47", iso: "no" },
+    { name: "Denmark", code: "+45", iso: "dk" },
+    { name: "Netherlands", code: "+31", iso: "nl" },
+    { name: "Belgium", code: "+32", iso: "be" },
+    { name: "Switzerland", code: "+41", iso: "ch" },
+    { name: "Austria", code: "+43", iso: "at" },
+    { name: "Greece", code: "+30", iso: "gr" },
+    { name: "Portugal", code: "+351", iso: "pt" },
+    { name: "Ireland", code: "+353", iso: "ie" }
+  ];
+
+  // build country list (only place we inject <img class="flag"> — no CSS/layout change)
+  function buildCountryOptions(list, filter) {
+    if (!areaList) return;
+    areaList.innerHTML = "";
+
+    var q = (filter || "").toLowerCase();
+
+    var common = countries.filter(function (c) {
+      if (!c.common) return false;
+      if (!q) return true;
+      return c.name.toLowerCase().includes(q) || c.code.indexOf(filter) !== -1;
+    });
+
+    var others = countries.filter(function (c) {
+      if (c.common) return false;
+      if (!q) return true;
+      return c.name.toLowerCase().includes(q) || c.code.indexOf(filter) !== -1;
+    });
+
+    function appendSection(title, items) {
+      if (!items.length) return;
+      var titleEl = document.createElement('div');
+      titleEl.className = 'area-section-title';
+      titleEl.textContent = title;
+      areaList.appendChild(titleEl);
+
+      items.forEach(function (c) {
+        var item = document.createElement('div');
+        item.className = 'country-option';
+        var nameSpan = document.createElement('span');
+        nameSpan.className = 'country-option-name';
+        // inject flag + name (keeps layout and styles intact)
+        nameSpan.innerHTML = '<img class="flag" src="https://flagcdn.com/w20/' + c.iso + '.png"> ' + c.name;
+        var codeSpan = document.createElement('span');
+        codeSpan.className = 'country-option-code';
+        codeSpan.textContent = c.code;
+        item.appendChild(nameSpan);
+        item.appendChild(codeSpan);
+        item.addEventListener('click', function () {
+          if (prefixValue) {
+            prefixValue.innerHTML = '<img class="flag" src="https://flagcdn.com/w20/' + c.iso + '.png"> ' + c.code;
+          }
+          closeAreaModal();
+        });
+        areaList.appendChild(item);
+      });
+    }
+
+    appendSection("Commonly used countries", common);
+    appendSection("All countries/regions", others);
+  }
+
+  function openAreaModal() {
+    if (!areaModal) return;
+    areaModal.classList.add('open');
+    if (areaSearchInput) areaSearchInput.value = '';
+    buildCountryOptions(countries, '');
+  }
+
+  function closeAreaModal() {
+    if (!areaModal) return;
+    areaModal.classList.remove('open');
+  }
+
+  // attach events (use prefixBtn first for reliability)
+  if (prefixBtn) prefixBtn.addEventListener('click', openAreaModal);
+  else if (prefixBox) prefixBox.addEventListener('click', openAreaModal);
+
+  if (areaMask) areaMask.addEventListener('click', closeAreaModal);
+  if (areaClose) areaClose.addEventListener('click', closeAreaModal);
+  if (areaSearchInput) {
+    areaSearchInput.addEventListener('input', function () {
+      buildCountryOptions(countries, areaSearchInput.value || '');
+    });
+  }
+
+  // set initial prefix flag for +386 if found (non-breaking)
+  try {
+    if (prefixValue) {
+      for (var i = 0; i < countries.length; i++) {
+        if (countries[i].code === "+386") {
+          prefixValue.innerHTML = '<img class="flag" src="https://flagcdn.com/w20/' + countries[i].iso + '.png"> +386';
+          break;
+        }
+      }
+    }
+  } catch (e) { /* silent fallback */ }
+
+  // ---- existing helpers / logic (unchanged behavior) ----
   function showToast(msg) {
     if (!toastEl) { alert(msg); return; }
     toastEl.textContent = msg;
@@ -628,7 +811,6 @@ document.addEventListener("DOMContentLoaded", function () {
     return digits.length >= 5 && p1.length >= 8 && p1 === p2 && inv.length >= 4;
   }
 
-  // ---- Password eye toggle ----
   document.querySelectorAll(".toggle-password").forEach(function (btn) {
     btn.addEventListener("click", function () {
       var id = btn.getAttribute("data-target");
@@ -641,14 +823,12 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   });
 
-  // ---- Prefill invitation code from URL (?code=XXXX) ----
   try {
     var params = new URLSearchParams(window.location.search || "");
     var code = (params.get("code") || "").trim();
     if (code && invitationInput) invitationInput.value = code;
   } catch (e) {}
 
-  // ---- Verification code ----
   var generatedCode = generateVerificationCode();
   if (refreshCodeBtn) {
     refreshCodeBtn.addEventListener("click", function () {
@@ -656,7 +836,6 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  // ---- Enable button when ready ----
   ["input", "change"].forEach(function (evt) {
     [phoneInput, passwordInput, confirmPasswordInput, invitationInput, verificationInput].forEach(function (el) {
       if (!el) return;
@@ -665,7 +844,6 @@ document.addEventListener("DOMContentLoaded", function () {
   });
   setBtnEnabled(validateBasic());
 
-  // ---- Signup ----
   if (signUpBtn) {
     signUpBtn.addEventListener("click", async function () {
       var digits = getPhoneDigits(phoneInput && phoneInput.value);
@@ -680,7 +858,6 @@ document.addEventListener("DOMContentLoaded", function () {
       if (!invCode) return showToast("Please enter invitation code.");
       if (userCode !== generatedCode) return showToast("Verification code incorrect.");
 
-      // prevent double click
       signUpBtn.disabled = true;
 
       try {
@@ -696,7 +873,6 @@ document.addEventListener("DOMContentLoaded", function () {
           usedInviteCode: invCode
         });
 
-        // device-only password store (optional)
         try {
           if (created && created.id) localStorage.setItem("pw:" + created.id, p1);
         } catch (e) {}
@@ -710,6 +886,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     });
   }
+
 });
 </script>
 <!-- Load Supabase configuration first -->
