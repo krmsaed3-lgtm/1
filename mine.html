@@ -395,7 +395,56 @@
       border: 1px solid rgba(255,255,255,0.10);
     }
 
-  </style>
+  
+/* === Prevent placeholder flash === */
+.pending{ opacity:0; }
+.pending.ready{ opacity:1; transition: opacity .18s ease-out; }
+
+
+/* === AI Avatar (animated GIF) + Many Variants === */
+.avatar.ai{
+  position:relative;
+  isolation:isolate;
+  --ai-h: 190;         /* hue (0..360) */
+  --ai-s: 95%;
+  --ai-l: 55%;
+  --ai-ring: hsl(var(--ai-h) var(--ai-s) var(--ai-l));
+  --ai-ring2: hsl(calc(var(--ai-h) + 28) var(--ai-s) 62%);
+}
+.avatar.ai::before{
+  content:"";
+  position:absolute;
+  inset:-2px;
+  border-radius:50%;
+  border:1px solid color-mix(in oklab, var(--ai-ring) 38%, transparent);
+  box-shadow: 0 0 0 1px color-mix(in oklab, var(--ai-ring) 28%, transparent),
+              0 0 18px color-mix(in oklab, var(--ai-ring) 22%, transparent);
+  pointer-events:none;
+  z-index:3;
+}
+.avatar.ai.frame-dash::before{ border-style:dashed; }
+.avatar.ai.frame-double::before{
+  box-shadow:
+    0 0 0 1px color-mix(in oklab, var(--ai-ring) 28%, transparent),
+    0 0 0 3px color-mix(in oklab, var(--ai-ring2) 20%, transparent),
+    0 0 18px color-mix(in oklab, var(--ai-ring) 22%, transparent);
+}
+@keyframes aiPulse { 0%,100%{transform:scale(1); opacity:.75} 50%{transform:scale(1.06); opacity:.35} }
+.avatar.ai.pulse::after{
+  content:"";
+  position:absolute;
+  inset:-7px;
+  border-radius:50%;
+  border:1px solid color-mix(in oklab, var(--ai-ring) 20%, transparent);
+  box-shadow:0 0 24px color-mix(in oklab, var(--ai-ring) 14%, transparent);
+  animation: aiPulse 2.6s ease-in-out infinite;
+  pointer-events:none;
+  z-index:2;
+}
+/* Keep GIF vivid */
+.avatar.ai img{ filter:saturate(1.08) contrast(1.08); }
+
+</style>
 </head>
 <body>
 <div class="page">
@@ -404,12 +453,12 @@
 </header>
 <main class="content">
 <section class="profile-card">
-<div class="avatar">
+<div class="avatar ai" id="mine-ai-avatar">
 <img alt="Avatar" id="mine-avatar" src="images/ec72cc3f0db8049d48f6fbcea83f4437.png"/>
 </div>
 <div class="profile-info">
-<div class="profile-phone" id="mine-phone"></div>
-<div class="profile-id" id="mine-id">ID: -</div>
+<div class="profile-phone" id="mine-phone" class="pending"></div>
+<div class="profile-id" id="mine-id" class="pending"></div>
 
 </div>
 <div class="profile-arrow">›</div>
@@ -818,13 +867,13 @@
     })();
   
 </script>
-<script src="profile-avatar-shared.js"></script>
 <!-- Load Supabase configuration -->
 <script src="sb-config.js"></script>
 <!-- Authentication helpers -->
 <script src="auth.js"></script>
 <!-- User profile helpers -->
 <script src="sb-user.js"></script><script src="avatar.js"></script>
+<script src="profile-shared-v2.js"></script>
 <!-- Enforce login redirects -->
 <script src="common-nav.js"></script>
 <script>
@@ -884,7 +933,6 @@
       var idVal = profile.publicId || profile.public_id || profile.uid || profile.id;
       if(idVal) idEl.textContent = 'ID: ' + String(idVal).trim();
     }
-    if(window.ProfileAvatar && typeof window.ProfileAvatar.applyAll === 'function'){ try{ window.ProfileAvatar.applyAll(profile); }catch(e){} }
     if(window.UserAvatar && typeof window.UserAvatar.apply === 'function'){
       window.UserAvatar.apply(profile);
     }
@@ -921,7 +969,6 @@
           if (!window.SBUser || typeof window.SBUser.getCurrentProfile !== "function") return;
 
           var profile = await window.SBUser.getCurrentProfile();
-          if (window.ProfileAvatar && profile) { try { window.ProfileAvatar.cacheProfile(profile); window.ProfileAvatar.applyAll(profile); } catch(e){} }
           if (!profile) return;
 
           var phoneEl = document.getElementById("mine-phone");
@@ -976,6 +1023,11 @@
   color:#cfd6dd !important;
   border:1px solid rgba(255,255,255,.25) !important;
 }
+
+/* === Prevent placeholder flash === */
+.pending{ opacity:0; }
+.pending.ready{ opacity:1; transition: opacity .18s ease-out; }
+
 </style>
 
 
@@ -1009,6 +1061,11 @@
   color:#ffffff !important;
   border:1px solid rgba(255,255,255,0.4) !important;
 }
+
+/* === Prevent placeholder flash === */
+.pending{ opacity:0; }
+.pending.ready{ opacity:1; transition: opacity .18s ease-out; }
+
 </style>
 
 </body>

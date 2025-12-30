@@ -242,7 +242,56 @@
         overflow: hidden;
       }
     }
-  </style>
+  
+/* === Prevent placeholder flash === */
+.pending{ opacity:0; }
+.pending.ready{ opacity:1; transition: opacity .18s ease-out; }
+
+
+/* === AI Avatar (animated GIF) + Many Variants === */
+.avatar.ai{
+  position:relative;
+  isolation:isolate;
+  --ai-h: 190;         /* hue (0..360) */
+  --ai-s: 95%;
+  --ai-l: 55%;
+  --ai-ring: hsl(var(--ai-h) var(--ai-s) var(--ai-l));
+  --ai-ring2: hsl(calc(var(--ai-h) + 28) var(--ai-s) 62%);
+}
+.avatar.ai::before{
+  content:"";
+  position:absolute;
+  inset:-2px;
+  border-radius:50%;
+  border:1px solid color-mix(in oklab, var(--ai-ring) 38%, transparent);
+  box-shadow: 0 0 0 1px color-mix(in oklab, var(--ai-ring) 28%, transparent),
+              0 0 18px color-mix(in oklab, var(--ai-ring) 22%, transparent);
+  pointer-events:none;
+  z-index:3;
+}
+.avatar.ai.frame-dash::before{ border-style:dashed; }
+.avatar.ai.frame-double::before{
+  box-shadow:
+    0 0 0 1px color-mix(in oklab, var(--ai-ring) 28%, transparent),
+    0 0 0 3px color-mix(in oklab, var(--ai-ring2) 20%, transparent),
+    0 0 18px color-mix(in oklab, var(--ai-ring) 22%, transparent);
+}
+@keyframes aiPulse { 0%,100%{transform:scale(1); opacity:.75} 50%{transform:scale(1.06); opacity:.35} }
+.avatar.ai.pulse::after{
+  content:"";
+  position:absolute;
+  inset:-7px;
+  border-radius:50%;
+  border:1px solid color-mix(in oklab, var(--ai-ring) 20%, transparent);
+  box-shadow:0 0 24px color-mix(in oklab, var(--ai-ring) 14%, transparent);
+  animation: aiPulse 2.6s ease-in-out infinite;
+  pointer-events:none;
+  z-index:2;
+}
+/* Keep GIF vivid */
+.avatar.ai img{ filter:saturate(1.08) contrast(1.08); }
+
+</style>
 </head>
 <body>
 <div class="app">
@@ -259,8 +308,8 @@
 <div class="row">
 <div class="label">Profile Picture</div>
 <div class="avatar-wrapper">
-<div class="avatar">
-<img alt="Avatar" id="account-avatar" src="images/account-avatar.png"/>
+<div class="avatar ai" id="ai-avatar">
+<img alt="Avatar" id="account-avatar" src="https://media1.tenor.com/m/VUx8HrR_T8AAAAAd/fandroid-wink.gif"/>
 </div>
 <div class="chevron"></div>
 </div>
@@ -268,14 +317,14 @@
 <div class="row">
 <div class="label">ID</div>
 <div class="value copy-wrapper">
-<span id="user-id">-</span>
+<span id="user-id" class="pending">-</span>
 <div class="copy-icon" id="copy-id"></div>
 </div>
 </div>
 <div class="row">
 <div class="label">Phone</div>
 <div class="value">
-<span class="value-link account-phone-value">-</span>
+<span class="value-link account-phone-value">70758137</span>
 </div>
 </div>
 </section>
@@ -283,13 +332,13 @@
 </main>
 </div>
 <div class="toast-message" id="toast"></div>
-<script src="profile-avatar-shared.js"></script>
 <!-- Load Supabase configuration -->
 <script src="sb-config.js"></script>
 <!-- Authentication helpers -->
 <script src="auth.js"></script>
 <!-- User profile helpers -->
 <script src="sb-user.js"></script><script src="avatar.js"></script>
+<script src="profile-shared-v2.js"></script>
 <!-- Enforce login redirects -->
 <script src="common-nav.js"></script>
 <script>
@@ -318,7 +367,6 @@
       if (!window.SBUser || typeof window.SBUser.getCurrentProfile !== "function") return;
 
       var profile = await window.SBUser.getCurrentProfile();
-      if (window.ProfileAvatar && profile) { try { window.ProfileAvatar.cacheProfile(profile); window.ProfileAvatar.applyAll(profile); } catch(e){} }
         if (window.UserAvatar && typeof window.UserAvatar.apply === 'function') {
           window.UserAvatar.apply(profile);
         }
