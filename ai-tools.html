@@ -1,685 +1,86 @@
 <!doctype html>
-<html lang="ar" dir="rtl">
+<html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>Job AI • AI Power</title>
-
-  <!-- Optional: nicer Arabic font (safe even if blocked) -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;600;700;800;900&display=swap" rel="stylesheet">
-
-  <style>
-    :root{
-      --bg:#05060b;
-      --panel: rgba(255,255,255,.06);
-      --panel2: rgba(255,255,255,.04);
-      --stroke: rgba(255,255,255,.10);
-      --text:#ffffff;
-      --muted:#aab2c0;
-
-      --c1:#18C1FF;
-      --c2:#22E1A5;
-      --grad: linear-gradient(90deg, var(--c1), var(--c2));
-      --grad2: radial-gradient(900px 520px at 20% -10%, rgba(24,193,255,.18), transparent 55%),
-               radial-gradient(900px 520px at 90% 0%, rgba(34,225,165,.16), transparent 55%);
-
-      --shadow: 0 12px 40px rgba(0,0,0,.45);
-      --radius: 18px;
-
-      --nav-h: 72px;
-      --nav-pad: calc(env(safe-area-inset-bottom, 0px) + 10px);
-    }
-
-    *{box-sizing:border-box}
-    html,body{height:100%}
-    body{
-      margin:0;
-      font-family: "Tajawal", system-ui, -apple-system, "Segoe UI", Roboto, Arial;
-      background: var(--grad2), var(--bg);
-      color:var(--text);
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
-    }
-
-    /* Mobile container */
-    .app{
-      max-width:480px;
-      margin:0 auto;
-      min-height:100vh;
-      padding:14px 12px calc(var(--nav-h) + var(--nav-pad) + 18px);
-    }
-
-    /* Top bar */
-    .topbar{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      padding:6px 2px 10px;
-      margin-bottom:6px;
-    }
-    .brand{
-      display:flex;align-items:center;gap:10px;
-      min-width:0;
-    }
-    .mark{
-      width:40px;height:40px;border-radius:14px;
-      background: radial-gradient(circle at 20% 20%, var(--c2) 0, var(--c1) 55%, #0a1022 100%);
-      border:1px solid rgba(255,255,255,.14);
-      display:flex;align-items:center;justify-content:center;
-      font-weight:900;color:#04111a;
-      box-shadow: 0 10px 26px rgba(0,0,0,.35);
-      user-select:none;
-    }
-    .brand-title{min-width:0}
-    .brand-title h1{
-      margin:0;
-      font-size:14px;
-      font-weight:900;
-      letter-spacing:.2px;
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
-    }
-    .brand-title .sub{
-      margin-top:3px;
-      font-size:11px;
-      color:var(--muted);
-    }
-
-    .pill{
-      display:inline-flex;align-items:center;gap:8px;
-      padding:8px 10px;
-      border-radius:999px;
-      border:1px solid rgba(255,255,255,.12);
-      background: rgba(255,255,255,.04);
-      color:#dbe6ff;
-      font-size:11px;
-      white-space:nowrap;
-    }
-    .pill .dot{
-      width:8px;height:8px;border-radius:99px;
-      background: var(--grad);
-      box-shadow: 0 0 18px rgba(24,193,255,.35);
-    }
-
-    /* HERO */
-    .hero{
-      position:relative;
-      border-radius: 22px;
-      overflow:hidden;
-      border:1px solid rgba(255,255,255,.12);
-      background: rgba(255,255,255,.04);
-      box-shadow: var(--shadow);
-    }
-    .hero::before{
-      content:"";
-      position:absolute; inset:0;
-      background:
-        linear-gradient(180deg, rgba(5,6,11,.15), rgba(5,6,11,.95) 70%),
-        url("https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=1200&q=70");
-      background-size: cover;
-      background-position: center;
-      filter: saturate(1.05) contrast(1.05);
-      transform: scale(1.02);
-    }
-    .hero-inner{
-      position:relative;
-      padding:16px;
-    }
-    .hero h2{
-      margin:8px 0 0;
-      font-size:22px;
-      line-height:1.25;
-      font-weight:950;
-      letter-spacing:.2px;
-    }
-    .grad-text{
-      background: var(--grad);
-      -webkit-background-clip:text;
-      background-clip:text;
-      color:transparent;
-    }
-    .hero p{
-      margin:10px 0 0;
-	  > yazan:
-color: rgba(255,255,255,.86);
-      font-size:12.5px;
-      line-height:1.75;
-    }
-
-    .hero-badges{
-      display:flex;
-      flex-wrap:wrap;
-      gap:8px;
-      margin-top:12px;
-    }
-    .badge{
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      padding:8px 10px;
-      border-radius:999px;
-      border:1px solid rgba(255,255,255,.12);
-      background: rgba(255,255,255,.06);
-      font-size:11px;
-      color:#eef6ff;
-    }
-    .badge svg{width:14px;height:14px;opacity:.95}
-
-    .hero-cta{
-      margin-top:14px;
-      display:flex;
-      gap:10px;
-      align-items:stretch;
-    }
-    .btn{
-      border:0;
-      border-radius: 999px;
-      padding:12px 14px;
-      font-weight:900;
-      cursor:pointer;
-      font-size:13px;
-    }
-    .btn-primary{
-      flex:1;
-      background: var(--grad);
-      color:#031015;
-      box-shadow: 0 14px 34px rgba(0,0,0,.35);
-    }
-    .btn-ghost{
-      width:110px;
-      background: rgba(255,255,255,.08);
-      color:#eaf3ff;
-      border:1px solid rgba(255,255,255,.14);
-    }
-
-    /* SECTION */
-    .section{
-      margin-top:14px;
-    }
-    .section-head{
-      display:flex;
-      align-items:flex-end;
-      justify-content:space-between;
-      margin: 2px 2px 10px;
-      gap:10px;
-    }
-    .section-title{
-      font-size:13px;
-      color:#eaf1ff;
-      margin:0;
-      font-weight:900;
-    }
-    .section-sub{
-      font-size:11px;
-      color:var(--muted);
-      margin:0;
-    }
-
-    /* Story card */
-    .story{
-      border-radius: var(--radius);
-      border:1px solid rgba(255,255,255,.10);
-      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
-      padding:14px;
-      box-shadow: 0 10px 30px rgba(0,0,0,.25);
-    }
-    .story-grid{
-      display:grid;
-      grid-template-columns: 1fr;
-      gap:10px;
-    }
-    .mini{
-      border-radius: 16px;
-      border:1px solid rgba(255,255,255,.10);
-      background: rgba(255,255,255,.04);
-      padding:12px;
-      display:flex;
-      gap:10px;
-      align-items:flex-start;
-    }
-    .mini .ic{
-      width:36px;height:36px;
-      border-radius:12px;
-      display:flex;align-items:center;justify-content:center;
-      background: rgba(24,193,255,.10);
-      border:1px solid rgba(24,193,255,.18);
-      flex:0 0 auto;
-      font-size:16px;
-    }
-    .mini h4{
-      margin:0;
-      font-size:12.5px;
-      font-weight:900;
-    }
-    .mini p{
-      margin:6px 0 0;
-      font-size:11.5px;
-      color:var(--muted);
-      line-height:1.65;
-    }
-
-    /* Proof row */
-    .proof{
-      display:grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap:10px;
-      margin-top:10px;
-    }
-    .metric{
-      border-radius: 16px;
-      border:1px solid rgba(255,255,255,.10);
-      background: rgba(255,255,255,.04);
-      padding:10px;
-      text-align:center;
-    }
-    .metric .v{
-      font-weight:1000;
-      font-size:13px;
-      letter-spacing:.2px;
-    }
-    .metric .k{
-      margin-top:4px;
-      font-size:10.5px;
-      color:var(--muted);
-    }
-
-    /* Quick actions (cards with Run) */
-    .cards{display:flex;flex-direction:column;gap:10px}
-    .card{
-      background: rgba(255,255,255,.04);
-      border:1px solid rgba(255,255,255,.10);
-      border-radius: 18px;
-      padding:12px;
-      display:flex;
-      gap:12px;
-      align-items:flex-start;
-      justify-content:space-between;
-    }
-    .card-left{display:flex;gap:10px;align-items:flex-start;min-width:0}
-    .icon{
-      width:38px;height:38px;border-radius:14px;
-      border:1px solid rgba(24,193,255,.22);
-      background: rgba(24,193,255,.10);
-      display:flex;align-items:center;justify-content:center;
-      font-size:16px;flex:0 0 auto;
-    }
-    .card h3{margin:0;font-size:14px;font-weight:1000}
-    .card p{margin:6px 0 0;font-size:11.5px;color:var(--muted);line-height:1.6}
-    .run{
-      border:0;cursor:pointer;background: var(--grad);
-      color:#05060b;font-weight:1000;border-radius:999px;
-      padding:9px 16px;font-size:13px;flex:0 0 auto;
-      box-shadow: 0 12px 28px rgba(0,0,0,.35);
-    }
-
-    /* FAQ */
-
-> yazan:
-details.faq{
-      border-radius: 16px;
-      border:1px solid rgba(255,255,255,.10);
-      background: rgba(255,255,255,.03);
-      padding:10px 12px;
-    }
-    details.faq + details.faq{margin-top:10px}
-    details.faq summary{
-      list-style:none;
-      cursor:pointer;
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:10px;
-      font-weight:900;
-      font-size:12.5px;
-    }
-    details.faq summary::-webkit-details-marker{display:none}
-    .chev{opacity:.7}
-    details.faq[open] .chev{transform:rotate(180deg)}
-    .faq p{
-      margin:8px 0 0;
-      color:var(--muted);
-      font-size:11.5px;
-      line-height:1.7;
-    }
-
-    /* Bottom Nav (same behavior as your file) */
-    .bottom-nav{
-      position:fixed;
-      left:0; right:0; bottom:0;
-      height:var(--nav-h);
-      padding:8px 0 var(--nav-pad);
-      background:#0C0B10;
-      box-shadow:0 -1px 0 rgba(255,255,255,.05);
-      display:flex;
-      align-items:flex-start;
-      justify-content:space-around;
-      z-index:999;
-      backdrop-filter: blur(10px);
-    }
-    .bottom-item{
-      flex:1;
-      display:flex;
-      flex-direction:column;
-      align-items:center;
-      gap:4px;
-      font-size:11px;
-      color:#7b8593;
-      user-select:none;
-      cursor:pointer;
-    }
-    .bottom-item.active span{color:#00d1ff}
-    .bottom-icon-img{width:26px;height:26px;object-fit:contain}
-    .bottom-item.power .bottom-icon-img.power-img{width:40px;height:40px;border-radius:999px}
-
-    @media (min-width:480px){
-      .bottom-nav{left:50%; right:auto; transform:translateX(-50%); max-width:480px;}
-    }
-
-    /* Small helper */
-    .note{
-      margin-top:10px;
-      color: rgba(255,255,255,.72);
-      font-size:10.5px;
-      line-height:1.6;
-    }
-    .divider{
-      height:1px;
-      background: rgba(255,255,255,.08);
-      margin: 12px 0;
-    }
-  </style>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>AI Tools - JOPAI</title>
+  <link rel="stylesheet" href="assets/css/ai-tools.css"/>
 </head>
-
 <body>
-  <div class="app">
-
-    <!-- Top -->
-    <div class="topbar">
-      <div class="brand">
-        <div class="mark">JA</div>
-        <div class="brand-title">
-          <h1>Job AI</h1>
-          <div class="sub">Compute-Powered Daily Income</div>
-        </div>
+  <header class="topbar">
+    <div class="brand">
+      <img src="assets/images/logo.svg" alt="Logo" class="logo"/>
+      <div>
+        <div class="brandname">JOPAI</div>
+        <div class="brandtag">AI Tools (Offline)</div>
       </div>
-      <div class="pill"><span class="dot"></span> تشغيل سريع</div>
     </div>
 
-    <!-- HERO -->
-    <section class="hero" aria-label="Hero">
-      <div class="hero-inner">
-        <h2>
-          دخلك اليومي… <span class="grad-text">بخطوة واحدة</span>
-        </h2>
-        <p>
-          الفكرة بسيطة: تودعين USDT، تضغطي تشغيل، وتحصلين على ربح يومي ثابت.
-          <br>
-          من الخلف، يتم تشغيل قدرة حوسبة حقيقية (سيرفرات سحابية + مهام معالجة وذكاء اصطناعي وخدمات شبكات).
-        </p>
+    <nav class="tabs" aria-label="AI Tools Tabs">
+      <button class="tab is-active" data-tab="tools">AI-Tools</button>
+      <button class="tab" data-tab="drawing" disabled title="Coming soon">AI Drawing</button>
+    </nav>
 
-        <div class="hero-badges">
-          <div class="badge">
-            <svg viewBox="0 0 24 24" fill="none"><path d="M12 2l8 4v6c0 5-3.5 9.4-8 10-4.5-.6-8-5-8-10V6l8-4z" stroke="white" opacity=".9" stroke-width="1.5"/><path d="M8 12l2.2 2.2L16 8.5" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            سجل دفع موثوق
-          </div>
-          <div class="badge">
-            <svg viewBox="0 0 24 24" fill="none"><path d="M7 11V7a5 5 0 0110 0v4" stroke="white" opacity=".9" stroke-width="1.6" stroke-linecap="round"/><path d="M6.5 11h11a1.5 1.5 0 011.5 1.5v7A2.5 2.5 0 0116.5 22h-9A2.5 2.5 0 015 19.5v-7A1.5 1.5 0 016.5 11z" stroke="white" opacity=".9" stroke-width="1.6"/></svg>
-            شفافية + أرقام منطقية
-          </div>
-          <div class="badge">
-            <svg viewBox="0 0 24 24" fill="none"><path d="M4 7h16M7 4v6m10-6v6M6 10h12v10H6V10z" stroke="white" opacity=".9" stroke-width="1.6" stroke-linecap="round"/></svg>
-            أرباح يومية ثابتة
-          </div>
+    <div class="topicons">
+      <button class="iconbtn" id="openWorks" title="My Works">
+        <span class="ic">🗂️</span>
+      </button>
+      <button class="iconbtn" id="openHelp" title="Help">
+        <span class="ic">❔</span>
+      </button>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="hero">
+      <h1 class="title">Unleash your productivity with AI Tools</h1>
+      <p class="subtitle">15 daily tools — internal, fast, and mobile-friendly. No external APIs.</p>
+
+      <div class="searchwrap">
+        <div class="searchbox">
+          <input id="search" type="search" placeholder="Search tools by name or keywords…" autocomplete="off"/>
+          <button id="clearSearch" class="searchclear" aria-label="Clear">✕</button>
         </div>
-
-        <div class="hero-cta">
-          <button class="btn btn-primary" id="goChat"
-                  data-q="📊 اشرحي لي كيف يعمل Job AI وكيف يحقق أرباحًا بشكل مقنع وبالأرقام.">
-            ابدئي الآن
-          </button>
-          <button class="btn btn-ghost" id="learnMore">اعرفي أكثر</button>
-        </div>
-
-        <div class="note">
-
-> yazan:
-* أرباح معقولة ومستدامة تعتمد على تشغيل موارد حوسبة فعلية وليس وعوداً خيالية.
-        </div>
+        <button id="toggleSaved" class="btn btn-ghost" aria-pressed="false">Show Saved</button>
       </div>
+
+      <div class="chips" id="chips"></div>
     </section>
 
-    <!-- Story / Explanation -->
-    <div class="section" id="more">
-      <div class="section-head">
-        <div>
-          <p class="section-title">📊 دراسة مقنعة: كيف يعمل Job AI ويحقق أرباحًا؟</p>
-          <p class="section-sub">نفس الفكرة… لكن بصياغة أقوى تشد القارئ وتبني ثقة.</p>
-        </div>
+    <section class="grid" id="grid" aria-live="polite"></section>
+
+    <footer class="foot">
+      <div>All tools run locally inside your browser.</div>
+    </footer>
+  </main>
+
+  <!-- Modal / Sheet -->
+  <div class="backdrop" id="backdrop" hidden></div>
+  <div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle" hidden>
+    <div class="sheethead">
+      <div>
+        <div id="sheetTitle" class="sheettitle"></div>
+        <div id="sheetDesc" class="sheetdesc"></div>
       </div>
-
-      <div class="story">
-        <div class="story-grid">
-          <div class="mini">
-            <div class="ic">1️⃣</div>
-            <div>
-              <h4>النموذج للمستخدم: بسيط جدًا</h4>
-              <p>
-                تودعين مبلغ بسيط من USDT (مثلاً 10 أو 100)، ثم تضغطي زر تشغيل.
-                بدون خطوات معقدة — الهدف أن يكون الدخل اليومي واضح وسهل.
-              </p>
-            </div>
-          </div>
-
-          <div class="mini">
-            <div class="ic">2️⃣</div>
-            <div>
-              <h4>من الخلف: استثمار في حوسبة حقيقية</h4>
-              <p>
-                الإيداعات تُستخدم لتأجير سيرفرات سحابية قوية وتشغيل مهام حوسبة:
-                ذكاء اصطناعي، معالجة بيانات، تشغيل خدمات شبكات/عُقد (Nodes) وخدمات مشابهة.
-              </p>
-            </div>
-          </div>
-
-          <div class="mini">
-            <div class="ic">3️⃣</div>
-            <div>
-              <h4>كيف يصير الربح؟ (مثال واضح)</h4>
-              <p>
-                إذا كان الإيداع 100 USDT: يتم تشغيله في حوسبة تُدر مثلًا 2 USDT يوميًا.
-                أنتِ تحصلين 1 USDT يوميًا، والفرق (1 USDT) هو هامش ربح المنصة.
-              </p>
-            </div>
-          </div>
-
-          <div class="mini">
-            <div class="ic">4️⃣</div>
-            <div>
-              <h4>ليش الناس ترتاح؟</h4>
-              <p>
-                لأن العائد منطقي وغير مبالغ فيه، والنموذج قائم على تشغيل موارد فعلية.
-                مع الوقت، ثقة المستخدم تزيد لما يشوف انتظام بالدفع ووضوح بالآلية.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <div class="divider"></div>
-
-        <div class="proof">
-          <div class="metric">
-            <div class="v"><span class="grad-text">+2</span> سنوات</div>
-            <div class="k">سجل عمل مستمر</div>
-          </div>
-          <div class="metric">
-            <div class="v"><span class="grad-text">عائد</span> منطقي</div>
-            <div class="k">بدون مبالغة</div>
-          </div>
-          <div class="metric">
-            <div class="v"><span class="grad-text">تشغيل</span> فعلي</div>
-            <div class="k">سيرفرات سحابية</div>
-          </div>
-        </div>
-      </div>
+      <button class="iconbtn" id="closeSheet" aria-label="Close">✕</button>
     </div>
-
-    <!-- Quick actions (keeps your old Run behavior to ai-chat.html) -->
-    <div class="section">
-      <div class="section-head">
-        <div>
-          <p class="section-title">🚀 اختيارات سريعة</p>
-          <p class="section-sub">كل زر يفتح الدردشة ويحط السؤال تلقائيًا.</p>
-        </div>
-      </div>
-
-      <div class="cards">
-        <div class="card">
-          <div class="card-left">
-            <div class="icon">💡</div>
-            <div style="min-width:0">
-              <h3>كيف أربح؟</h3>
-              <p>شرح مختصر ومقنع لطريقة الربح ولماذا هي منطقية.</p>
-            </div>
-          </div>
-          <button class="run" data-q="اشرح لي كيف أربح من Job AI بطريقة مقنعة وبسيطة.">Run</button>
-        </div>
-
-        <div class="card">
-          <div class="card-left">
-            <div class="icon">📈</div>
-            <div style="min-width:0">
-              <h3>كم ربح اليوم حسب رصيدي؟</h3>
-              <p>احسبي الربح اليومي بالأرقام على أمثلة مختلفة.</p>
-            </div>
-          </div>
-          <button class="run" data-q="احسب لي الربح اليومي حسب الرصيد: 10 و 50 و 100 USDT مع مثال واضح.">Run</button>
-        </div>
-
-        <div class="card">
-          <div class="card-left">
-            <div class="icon">🧠</div>
-            <div style="min-width:0">
-              <h3>ليش النموذج مستدام؟</h3>
-              <p>توضيح مصدر الأرباح (قدرة حوسبة) بدون وعود خيالية.</p>
-            </div>
-          </div>
-
-> yazan:
-<button class="run" data-q="ليش نموذج Job AI مستدام؟ اشرح مصدر الأرباح بشكل منطقي وواضح.">Run</button>
-        </div>
-
-        <div class="card">
-          <div class="card-left">
-            <div class="icon">👥</div>
-            <div style="min-width:0">
-              <h3>دعوة الأصدقاء</h3>
-              <p>كيف تزيدي أرباحك بمكافآت الإحالات بطريقة محترمة.</p>
-            </div>
-          </div>
-          <button class="run" data-q="اشرح لي نظام دعوة الأصدقاء وكيف يزيد الأرباح بطريقة بسيطة.">Run</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- FAQ -->
-    <div class="section">
-      <div class="section-head">
-        <div>
-          <p class="section-title">❓ أسئلة الناس قبل ما تبدأ</p>
-          <p class="section-sub">مختصر ومطمئن — بدون تعقيد.</p>
-        </div>
-      </div>
-
-      <details class="faq">
-        <summary>
-          هل الأرباح “مبالغ فيها”؟
-          <span class="chev">⌄</span>
-        </summary>
-        <p>
-          لا. الفكرة قائمة على عائد منطقي من تشغيل موارد حوسبة، ثم مشاركة جزء ثابت مع المستخدم.
-          أي شيء “خيالي” عادةً غير مستدام — وهنا نركز على منطقية واستمرارية.
-        </p>
-      </details>
-
-      <details class="faq">
-        <summary>
-          شو اللي بيصير بالإيداع؟
-          <span class="chev">⌄</span>
-        </summary>
-        <p>
-          يتم توجيهه لتشغيل سيرفرات سحابية ومهام حوسبة (AI/معالجة بيانات/خدمات شبكات…)،
-          والنتيجة عائد يومي يتم توزيع جزء منه لك.
-        </p>
-      </details>
-
-      <details class="faq">
-        <summary>
-          كيف أبدأ بأمان؟
-          <span class="chev">⌄</span>
-        </summary>
-        <p>
-          ابدئي بمبلغ بسيط للتجربة، تابعي الربح اليومي، وبعدها قرري التوسّع تدريجيًا حسب راحتك.
-        </p>
-      </details>
-    </div>
-
+    <div class="sheetbody" id="sheetBody"></div>
   </div>
 
-  <!-- Bottom Nav (keeps your existing links/images) -->
-  <nav class="bottom-nav">
-    <div class="bottom-item mine" data-go="mine.html">
-      <img alt="Mine" class="bottom-icon-img" src="images/mine-icon.png"/>
-      <span>Mine</span>
+  <!-- My Works Drawer -->
+  <div class="drawer" id="drawer" hidden>
+    <div class="drawerhead">
+      <div class="drawertitle">My Works (History)</div>
+      <button class="iconbtn" id="closeDrawer" aria-label="Close">✕</button>
     </div>
-    <div class="bottom-item assets" data-go="my-assets.html">
-      <img alt="Assets" class="bottom-icon-img" src="images/assets-icon.png"/>
-      <span>Assets</span>
+    <div class="drawerbody">
+      <div class="draweractions">
+        <button class="btn btn-ghost" id="clearWorks">Clear</button>
+      </div>
+      <div id="worksList" class="works"></div>
     </div>
-    <div class="bottom-item power active" data-go="ai-tools.html">
-      <img alt="AI Power" class="bottom-icon-img power-img" src="images/ai-power.gif"/>
-      <span>AI Power</span>
-    </div>
-    <div class="bottom-item chat" data-go="ai-chat.html">
-      <img alt="AI Chat" class="bottom-icon-img" src="images/chat-icon.png"/>
-      <span>AI Chat</span>
-    </div>
-    <div class="bottom-item tools" data-go="ai-tools.html">
-      <img alt="AI–Tools" class="bottom-icon-img" src="images/tools-icon.png"/>
-      <span>AI–Tools</span>
-    </div>
-  </nav>
+  </div>
 
-  <script>
-    // Smooth scroll to details
-    document.getElementById('learnMore')?.addEventListener('click', function(){
-      var el = document.getElementById('more');
-      if (el) el.scrollIntoView({behavior:'smooth', block:'start'});
-    });
-
-    // Main CTA -> open chat with a strong prompt
-    document.getElementById('goChat')?.addEventListener('click', function(){
-      var q = this.getAttribute('data-q') || '';
-      window.location.href = 'ai-chat.html?q=' + encodeURIComponent(q);
-    });
-
-    // Keep your existing Run behavior (opens ai-chat.html?q=...)
-    document.querySelectorAll('.run').forEach(function(btn){
-      btn.addEventListener('click', function(){
-        var q = btn.getAttribute('data-q') || '';
-        window.location.href = 'ai-chat.html?q=' + encodeURIComponent(q);
-      });
-    });
-
-    // Bottom nav routing
-    document.querySelectorAll('.bottom-item').forEach(function(item){
-      item.addEventListener('click', function(){
-        var href = item.getAttribute('data-go');
-        if (href) window.location.href = href;
-      });
-    });
-  </script>
+  <script src="assets/js/ai-tools.js"></script>
 </body>
 </html>
