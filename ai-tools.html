@@ -12,7 +12,7 @@
       <img src="assets/images/logo.svg" alt="Logo" class="logo"/>
       <div>
         <div class="brandname">JOPAI</div>
-        <div class="brandtag">AI Tools (Offline)</div>
+        <div class="brandtag">AI Tools</div>
       </div>
     </div>
 
@@ -22,35 +22,40 @@
     </nav>
 
     <div class="topicons">
-      <button class="iconbtn" id="openWorks" title="My Works">
-        <span class="ic">🗂️</span>
+      <button class="iconbtn" id="openWorks" title="Site message">
+        <span class="ic">✉️</span>
       </button>
-      <button class="iconbtn" id="openHelp" title="Help">
-        <span class="ic">❔</span>
+      <button class="iconbtn" id="openHelp" title="Support">
+        <span class="ic">🎧</span>
       </button>
     </div>
   </header>
 
   <main class="wrap">
     <section class="hero">
-      <h1 class="title">Unleash your productivity with AI Tools</h1>
-      <p class="subtitle">15 daily tools — internal, fast, and mobile-friendly. No external APIs.</p>
+      <h1 class="heroTitle"><span class="heroBrand">JOPAI</span> AI Tools</h1>
+      <p class="heroSub">A curated set of offline tools — fast, clean, and mobile-first.</p>
 
-      <div class="searchwrap">
-        <div class="searchbox">
-          <input id="search" type="search" placeholder="Search tools by name or keywords…" autocomplete="off"/>
-          <button id="clearSearch" class="searchclear" aria-label="Clear">✕</button>
+      <div class="searchRow" role="search">
+        <div class="searchBox">
+          <input id="search" type="search" placeholder="Search tool names like: translate, email, summary…" autocomplete="off"/>
+          <button id="clearSearch" class="searchBtn" aria-label="Clear search" title="Clear">✕</button>
+          <button id="doSearch" class="searchBtn isPrimary" aria-label="Search" title="Search">🔍</button>
         </div>
-        <button id="toggleSaved" class="btn btn-ghost" aria-pressed="false">Show Saved</button>
+
+        <div class="seg" role="tablist" aria-label="Filter">
+          <button id="filterAll" class="segBtn isActive" type="button" role="tab" aria-selected="true">All</button>
+          <button id="filterSaved" class="segBtn" type="button" role="tab" aria-selected="false">Save</button>
+        </div>
       </div>
 
-      <div class="chips" id="chips"></div>
+      <div class="chipRow" id="chips" aria-label="Categories"></div>
     </section>
 
-    <section class="grid" id="grid" aria-live="polite"></section>
+    <section class="list" id="grid" aria-live="polite"></section>
 
     <footer class="foot">
-      <div>All tools run locally inside your browser.</div>
+      <div class="footNote">All tools run locally inside your browser — no external APIs.</div>
     </footer>
   </main>
 
