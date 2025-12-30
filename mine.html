@@ -395,7 +395,63 @@
       border: 1px solid rgba(255,255,255,0.10);
     }
 
-  </style>
+  
+
+/* ===== AI Robot Avatar + Motion (Pro) ===== */
+.avatar{
+  position: relative;
+  overflow: visible !important; /* allow hand outside circle */
+}
+.avatar img{
+  opacity: 0 !important; /* keep for avatar.js but hide */
+  pointer-events: none;
+}
+
+.ai-robot-stage{
+  position:absolute;
+  inset:0;
+  border-radius: 999px;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.ai-robot-stage .ai-robot{
+  position:absolute;
+  left: 50%;
+  top: 50%;
+  width: 110%;
+  height: 110%;
+  transform: translate(-50%, -50%);
+  filter: drop-shadow(0 10px 18px rgba(0,0,0,0.55));
+  will-change: transform;
+}
+
+/* Account page smaller stage */
+.ai-robot-stage.small .ai-robot{
+  width: 115%;
+  height: 115%;
+}
+
+/* Run animation class */
+.ai-robot-stage.is-animating .ai-robot{
+  animation: aiRobotMove 6.2s cubic-bezier(.22,.61,.36,1) both;
+}
+
+@keyframes aiRobotMove{
+  0%   { transform: translate(-50%, -50%) scale(1); }
+  12%  { transform: translate(-50%, -50%) scale(1.02); }
+  28%  { transform: translate(calc(-50% + var(--ai-dx, 90px)), calc(-50% + var(--ai-dy, 90px))) scale(1.05); }
+  55%  { transform: translate(calc(-50% + var(--ai-dx, 90px)), calc(-50% + var(--ai-dy, 90px))) scale(1.05); }
+  78%  { transform: translate(-50%, -50%) scale(1.02); }
+  100% { transform: translate(-50%, -50%) scale(1); }
+}
+
+/* Reduce motion */
+@media (prefers-reduced-motion: reduce){
+  .ai-robot-stage.is-animating .ai-robot{ animation: none !important; }
+}
+
+</style>
 </head>
 <body>
 <div class="page">
@@ -406,6 +462,11 @@
 <section class="profile-card">
 <div class="avatar">
 <img alt="Avatar" id="mine-avatar" src="images/ec72cc3f0db8049d48f6fbcea83f4437.png"/>
+
+<div class="ai-robot-stage" aria-hidden="true">
+  <img class="ai-robot" id="aiRobotMine" src="images/robots/robot_wave.png" alt="AI Robot"/>
+</div>
+
 </div>
 <div class="profile-info">
 <div class="profile-phone" id="mine-phone"></div>
@@ -1007,6 +1068,82 @@
   border:1px solid rgba(255,255,255,0.4) !important;
 }
 </style>
+
+
+<script>
+/* ===== AI Robot Motion Controller (Mine) ===== */
+(function(){
+  'use strict';
+
+  var stage = document.querySelector('.profile-card .avatar .ai-robot-stage');
+  var robot = document.getElementById('aiRobotMine');
+  if(!stage || !robot) return;
+
+  var frames = {
+    wave: 'images/robots/robot_wave.png',
+    right: 'images/robots/robot_point_right.png',
+    left: 'images/robots/robot_point_left.png',
+    wink: 'images/robots/robot_wink.png'
+  };
+
+  function setFrame(key){
+    var src = frames[key] || frames.wave;
+    if(robot.getAttribute('src') !== src) robot.setAttribute('src', src);
+  }
+
+  function computeTargetDelta(){
+    // Target: right-most first row button (Task Center) for pointing
+    var target = document.querySelector('.shortcut-grid .shortcut-item:nth-child(4) .shortcut-icon-wrap');
+    if(!target) return {dx: 90, dy: 95};
+
+    var a = stage.getBoundingClientRect();
+    var t = target.getBoundingClientRect();
+
+    var ax = a.left + a.width/2;
+    var ay = a.top + a.height/2;
+
+    var tx = t.left + t.width/2;
+    var ty = t.top + t.height/2;
+
+    // Move close above the target (a bit upward so robot points "down")
+    var dx = (tx - ax);
+    var dy = (ty - ay) - 18;
+
+    // clamp for safety on small screens
+    dx = Math.max(-140, Math.min(160, dx));
+    dy = Math.max(60, Math.min(190, dy));
+
+    return {dx: Math.round(dx), dy: Math.round(dy)};
+  }
+
+  function runOnce(){
+    var d = computeTargetDelta();
+    stage.style.setProperty('--ai-dx', d.dx + 'px');
+    stage.style.setProperty('--ai-dy', d.dy + 'px');
+
+    // timeline: wave -> point right -> wink -> wave (return)
+    setFrame('wave');
+    stage.classList.remove('is-animating');
+    // force reflow
+    void stage.offsetWidth;
+    stage.classList.add('is-animating');
+
+    window.setTimeout(function(){ setFrame('right'); }, 900);   // point while moving down
+    window.setTimeout(function(){ setFrame('wink'); }, 2900);   // wink on target
+    window.setTimeout(function(){ setFrame('wave'); }, 4200);   // wave before return
+    window.setTimeout(function(){
+      stage.classList.remove('is-animating');
+      setFrame('wave');
+    }, 6400);
+  }
+
+  // First run after page settles
+  window.setTimeout(runOnce, 1400);
+
+  // Repeat gently
+  window.setInterval(runOnce, 26000);
+})();
+</script>
 
 </body>
 </html>
