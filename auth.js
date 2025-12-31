@@ -1,27 +1,3 @@
-
-
-async function rpcCall(name, body) {
-  ensureConfig();
-  var url = SB.url + '/rest/v1/rpc/' + encodeURIComponent(name);
-  var res = await fetch(url, {
-    method: 'POST',
-    headers: Object.assign({}, SB.headers(), { 'Content-Type': 'application/json' }),
-    body: JSON.stringify(body || {})
-  });
-  var data = null;
-  var text = '';
-  try { data = await res.json(); }
-  catch (_e) { try { text = await res.text(); } catch (__e) {} }
-  if (!res.ok) {
-    var msg = '';
-    if (data && (data.error || data.message)) msg = String(data.error || data.message);
-    else if (text) msg = text;
-    else msg = 'RPC failed: ' + res.status;
-    throw new Error(msg);
-  }
-  return data;
-}
-
 // Authentication and user registration module
 //
 // This script defines a global `ExaAuth` object that provides methods
@@ -152,6 +128,45 @@ async function rpcCall(name, body) {
     return el ? String(el.value || '').trim() : '';
   }
 
+
+function readPasswordFromPage() {
+  var el = firstMatch([
+    'input[type="password"]',
+    'input[name*="password"]',
+    'input[id*="password"]',
+    'input[placeholder*="Password"]',
+    'input[placeholder*="password"]'
+  ]);
+  return el ? String(el.value || '').trim() : '';
+}
+
+async function rpcCall(name, body) {
+  var url = SB.url + '/rest/v1/rpc/' + encodeURIComponent(name);
+  var res = await fetch(url, {
+    method: 'POST',
+    headers: Object.assign({}, SB.headers(), { 'Content-Type': 'application/json' }),
+    body: JSON.stringify(body || {})
+  });
+
+  var data = null;
+  var text = '';
+  try { data = await res.json(); }
+  catch (_e) { try { text = await res.text(); } catch (__e) {} }
+
+  if (!res.ok) {
+    var msg = '';
+    if (data && (data.error || data.message)) msg = String(data.error || data.message);
+    else if (text) msg = text;
+    else msg = 'RPC failed: ' + res.status;
+    var err = new Error(msg);
+    err.status = res.status;
+    err.payload = data || text;
+    throw err;
+  }
+  return data;
+}
+
+
   async function fetchUserByPhone(phone) {
     if (!phone) return null;
     var url =
@@ -189,7 +204,7 @@ async function rpcCall(name, body) {
    * IMPORTANT: Your signup page has country-code select + phone input.
    * If the caller doesn't pass `opts.phone`, we auto-read from the page.
    *
-   * @param {{phone?:string, usedInviteCode?:string, prefix?:string, digits?:string, password?:string}} opts
+   * @param {{phone?:string, usedInviteCode?:string, prefix?:string, digits?:string}} opts
    * @returns {Promise<{id:string, phone:string, inviteCode:string, publicId:number, createdAt:string}>}
    */
   async function registerWithInvite(opts) {
@@ -225,6 +240,10 @@ async function rpcCall(name, body) {
         errText = await res.text();
       } catch (e) {}
       // Make the message cleaner for toast/alert
+      // Friendlier duplicate phone error
+      if (errText && (errText.indexOf('users_phone_key') !== -1 || errText.indexOf('duplicate key') !== -1 || errText.indexOf('already exists') !== -1)) {
+        throw new Error('PHONE_EXISTS');
+      }
       throw new Error(errText || 'Failed to register');
     }
 
@@ -232,15 +251,19 @@ async function rpcCall(name, body) {
     if (!Array.isArray(data) || !data.length) throw new Error('Unexpected signup response');
     var user = data[0];
 
-
-// Store initial login password in DB (required on your signup page)
-var pwd = (opts.password != null ? String(opts.password) : '').trim();
-if (!pwd || pwd.length < 8) throw new Error('Password must be at least 8 characters');
-try {
-  await rpcCall('set_or_change_login_password', { p_current: '', p_new: pwd, p_user: user.id });
-} catch (e) {
-  throw new Error('Failed to set login password');
-}
+    var passwordSet = true;
+    try {
+      var pwd = (opts.password != null ? String(opts.password) : '').trim() || readPasswordFromPage();
+      if (pwd && pwd.length >= 8) {
+        var ok = await rpcCall('set_or_change_login_password', { p_current: '', p_new: pwd, p_user: user.id });
+        if (!(ok === true || ok === 't')) { passwordSet = false; }
+        // Verify it was actually persisted (handles RLS silently blocking updates)
+        var v = await rpcCall('check_login_password', { p_user: user.id, p_login: pwd });
+        if (!(v === true || v === 't')) { passwordSet = false; }
+      }
+    } catch (_e) {
+      passwordSet = false;
+    }
 
 
     try {
@@ -256,13 +279,14 @@ try {
       phone: user.phone,
       inviteCode: user.invite_code,
       publicId: user.public_id,
-      createdAt: user.created_at
+      createdAt: user.created_at,
+      passwordSet: passwordSet
     };
   }
 
   /**
-   * Log in an existing user by phone number + login password.
-   * (Password is verified against your DB.)
+   * Log in an existing user by phone number ONLY.
+   * (Password is verified via check_login_password.)
    *
    * @param {{phone?:string, prefix?:string, digits?:string}} opts
    * @returns {Promise<{id:string, phone:string}>}
@@ -281,7 +305,8 @@ try {
     var user = await fetchUserByPhone(phone);
     if (!user) throw new Error('Account not found');
 
-    var pwd = (opts.password != null ? String(opts.password) : '').trim();
+    // Enforce login password (verified against DB)
+    var pwd = (opts.password != null ? String(opts.password) : '').trim() || readPasswordFromPage();
     if (!pwd || pwd.length < 8) throw new Error('Enter login password');
     var okPwd = await rpcCall('check_login_password', { p_user: user.id, p_login: pwd });
     if (!(okPwd === true || okPwd === 't')) throw new Error('Wrong login password');

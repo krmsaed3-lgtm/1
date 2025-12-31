@@ -864,7 +864,7 @@ and
       ? window.ExaAuth.fullPhone(areaCodeVal, digits)
       : (areaCodeVal + digits);
 
-    await window.ExaAuth.loginWithPhone({ phone: phoneFull, password: pwdBad });
+    await window.ExaAuth.loginWithPhone({ phone: phoneFull });
 
     window.location.href = 'my-assets.html';
   } catch (err) {

@@ -873,6 +873,9 @@ document.addEventListener("DOMContentLoaded", function () {
           usedInviteCode: invCode,
           password: p1
         });
+        if (created && created.passwordSet === false) {
+          showToast('Account created. Please set Login Password in Security Center.');
+        }
         window.location.href = "my-assets.html";
       } catch (err) {
         console && console.error && console.error("Signup error:", err);
