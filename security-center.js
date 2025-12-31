@@ -51,6 +51,33 @@
       body: JSON.stringify(body || {})
     });
   }
+  async function callEdge(fnName, body) {
+    ensureConfig();
+    var res = await fetch(SB.url + '/functions/v1/' + fnName, {
+      method: 'POST',
+      headers: Object.assign({}, SB.headers(), { 'Content-Type': 'application/json' }),
+      body: JSON.stringify(body || {})
+    });
+
+    var data = null;
+    var text = '';
+    try { data = await res.json(); }
+    catch (_e) { try { text = await res.text(); } catch (__e) {} }
+
+    if (!res.ok) {
+      var msg = '';
+      if (data && (data.error || data.message)) msg = String(data.error || data.message);
+      else if (text) msg = text;
+      else msg = 'Request failed: ' + res.status;
+      var err = new Error(msg);
+      err.status = res.status;
+      err.payload = data || text;
+      throw err;
+    }
+    return data;
+  }
+
+
 
   async function fetchUserRow(userId) {
     var rows = await sbFetch('/rest/v1/users?select=id,email,email_verified&' +
@@ -329,8 +356,8 @@
 
       emSend.disabled = true;
       try {
-        await rpc('request_email_verification', { p_user: userId, p_email: emailVal });
-        showToast('Code created');
+        await callEdge('sendEmailCode', { user_id: userId, email: emailVal });
+        showToast('Verification code sent');
       } catch (e) {
         var ee2 = document.getElementById('em-email-error');
         if (ee2) ee2.textContent = String(e && e.message ? e.message : e);
@@ -352,9 +379,8 @@
 
       emSubmit.disabled = true;
       try {
-        var ok = await rpc('verify_email_code', { p_user: userId, p_code: codeVal });
-        if (ok === true || ok === 't') {
-          showToast('Email verified');
+        await callEdge('confirmEmailCode', { user_id: userId, email: (emEmail ? String(emEmail.value || '').trim() : ''), code: codeVal });
+        showToast('Email verified');
           emCode.value = '';
           closeModal('email');
         } else {
