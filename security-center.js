@@ -385,10 +385,25 @@
 
       var codeVal = (emCode.value || '').trim();
       resetEmailErrors();
+var passVal = (emPassword && emPassword.value) ? String(emPassword.value || '') : '';
+if (!passVal || passVal.length < 8) {
+  var pe0 = document.getElementById('em-password-error');
+  if (pe0) pe0.textContent = 'Enter login password.';
+  return;
+}
+
 
       emSubmit.disabled = true;
       try {
-        await callEdge('confirm_email_code', { user_id: userId, email: (emEmail ? String(emEmail.value || '').trim() : ''), code: codeVal });
+var okPwd = await rpc('check_login_password', { p_user: userId, p_login: passVal });
+if (!(okPwd === true || okPwd === 't')) {
+  var pe1 = document.getElementById('em-password-error');
+  if (pe1) pe1.textContent = 'Wrong login password.';
+  return;
+}
+
+await callEdge('confirm_email_code', { user_id: userId, email: (emEmail ? String(emEmail.value || '').trim() : ''), code: codeVal });
+
         showToast('Email verified');
         emCode.value = '';
         closeModal('email');
