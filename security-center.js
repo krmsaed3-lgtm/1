@@ -158,18 +158,22 @@
 
     var newError = '';
     var confirmError = '';
+    var currentError = '';
 
     if (newVal.length && newVal.length < 8) newError = 'Password must be at least 8 characters.';
     if (lpConfirm) lpConfirm.disabled = newVal.length < 8;
 
     if (lpConfirm && !lpConfirm.disabled && confirmVal && confirmVal !== newVal) confirmError = 'Passwords do not match.';
 
-    var newErrEl = document.getElementById('lp-new-error');
+        if (currentVal.length && currentVal.length < 8) currentError = 'Current password must be at least 8 characters.';
+    if (!currentVal.length) currentError = 'Current password is required.';
+
+var newErrEl = document.getElementById('lp-new-error');
     var confErrEl = document.getElementById('lp-confirm-error');
     if (newErrEl) newErrEl.textContent = newError;
     if (confErrEl) confErrEl.textContent = confirmError;
 
-    if (lpSubmit) lpSubmit.disabled = !(newVal.length >= 8 && confirmVal === newVal);
+    if (lpSubmit) lpSubmit.disabled = !(newVal.length >= 8 && confirmVal === newVal && currentVal.length >= 8);
   }
 
   if (lpNew && lpConfirm) {
@@ -194,6 +198,7 @@
       if (!exists) return showToast('Session invalid. Please login again');
 
       lpSubmit.disabled = true;
+      if (!lpCurrent || !lpCurrent.value || lpCurrent.value.length < 8) { showToast('Enter current login password'); lpSubmit.disabled = false; return; }
       try {
         var ok = await rpc('set_or_change_login_password', {
           p_current: (lpCurrent ? lpCurrent.value : ''),
