@@ -158,22 +158,18 @@
 
     var newError = '';
     var confirmError = '';
-    var currentError = '';
 
     if (newVal.length && newVal.length < 8) newError = 'Password must be at least 8 characters.';
     if (lpConfirm) lpConfirm.disabled = newVal.length < 8;
 
     if (lpConfirm && !lpConfirm.disabled && confirmVal && confirmVal !== newVal) confirmError = 'Passwords do not match.';
 
-        if (currentVal.length && currentVal.length < 8) currentError = 'Current password must be at least 8 characters.';
-    if (!currentVal.length) currentError = 'Current password is required.';
-
-var newErrEl = document.getElementById('lp-new-error');
+    var newErrEl = document.getElementById('lp-new-error');
     var confErrEl = document.getElementById('lp-confirm-error');
     if (newErrEl) newErrEl.textContent = newError;
     if (confErrEl) confErrEl.textContent = confirmError;
 
-    if (lpSubmit) lpSubmit.disabled = !(newVal.length >= 8 && confirmVal === newVal && currentVal.length >= 8);
+    if (lpSubmit) lpSubmit.disabled = !(newVal.length >= 8 && confirmVal === newVal);
   }
 
   if (lpNew && lpConfirm) {
@@ -190,15 +186,8 @@ var newErrEl = document.getElementById('lp-new-error');
       if (!userId) return showToast('Please login first');
       var exists = await ensureUserExists(userId);
       if (!exists) return showToast('Session invalid. Please login again');
-      var exists = await ensureUserExists(userId);
-      if (!exists) return showToast('Session invalid. Please login again');
-      var exists = await ensureUserExists(userId);
-      if (!exists) return showToast('Session invalid. Please login again');
-      var exists = await ensureUserExists(userId);
-      if (!exists) return showToast('Session invalid. Please login again');
 
       lpSubmit.disabled = true;
-      if (!lpCurrent || !lpCurrent.value || lpCurrent.value.length < 8) { showToast('Enter current login password'); lpSubmit.disabled = false; return; }
       try {
         var ok = await rpc('set_or_change_login_password', {
           p_current: (lpCurrent ? lpCurrent.value : ''),
@@ -284,7 +273,9 @@ var newErrEl = document.getElementById('lp-new-error');
       var userId = await getCurrentUserIdAsync();
       if (!userId) return showToast('Please login first');
 
-      fpSubmit.disabled = true;
+            var exists = await ensureUserExists(userId);
+      if (!exists) return showToast('Session invalid. Please login again');
+fpSubmit.disabled = true;
       try {
         var ok = await callSetFundPassword(userId, fpLogin.value, fpNew.value);
 
@@ -360,7 +351,9 @@ var newErrEl = document.getElementById('lp-new-error');
       var userId = await getCurrentUserIdAsync();
       if (!userId) return showToast('Please login first');
 
-      var emailVal = (emEmail.value || '').trim();
+            var exists = await ensureUserExists(userId);
+      if (!exists) return showToast('Session invalid. Please login again');
+var emailVal = (emEmail.value || '').trim();
       resetEmailErrors();
       if (!validateEmailFormat(emailVal)) {
         var ee = document.getElementById('em-email-error');
@@ -388,11 +381,22 @@ var newErrEl = document.getElementById('lp-new-error');
       var userId = await getCurrentUserIdAsync();
       if (!userId) return showToast('Please login first');
 
-      var codeVal = (emCode.value || '').trim();
+            var exists = await ensureUserExists(userId);
+      if (!exists) return showToast('Session invalid. Please login again');
+var codeVal = (emCode.value || '').trim();
       resetEmailErrors();
+
+      // Verify login password (no-op update) so it won't accept any random password
+      var passVal = (emPassword ? String(emPassword.value || '') : '');
+      if (!passVal || passVal.length < 8) { var pe = document.getElementById('em-password-error'); if (pe) pe.textContent = 'Enter login password.'; return; }
+
 
       emSubmit.disabled = true;
       try {
+        // This RPC returns true only if current login password matches (or sets it first time)
+        var passOk = await rpc('set_or_change_login_password', { p_current: passVal, p_new: passVal, p_user: userId });
+        if (!(passOk === true || passOk === 't')) { var pe2 = document.getElementById('em-password-error'); if (pe2) pe2.textContent = 'Wrong login password.'; return; }
+
         await callEdge('confirm_email_code', { user_id: userId, email: (emEmail ? String(emEmail.value || '').trim() : ''), code: codeVal });
         showToast('Email verified');
         emCode.value = '';
