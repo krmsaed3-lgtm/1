@@ -52,38 +52,21 @@
     });
   }
 
-  
-  function getEdgeBaseUrl() {
-    // Works on Supabase REST base like https://<ref>.supabase.co
-    // Edge functions live under /functions/v1
-    ensureConfig();
-    return String(SB.url || '').replace(/\/+$/, '');
-  }
-
-  async function callEdge(fnName, body) {
-    ensureConfig();
-    var base = getEdgeBaseUrl();
-    var res = await fetch(base + '/functions/v1/' + encodeURIComponent(fnName), {
-      method: 'POST',
-      headers: Object.assign({}, SB.headers(), { 'Content-Type': 'application/json' }),
-      body: JSON.stringify(body || {})
-    });
-    var data = null, text = '';
-    try { data = await res.json(); } catch (_e) { try { text = await res.text(); } catch (__e) {} }
-    if (!res.ok) {
-      var msg = '';
-      if (data && (data.error || data.message)) msg = String(data.error || data.message);
-      else if (text) msg = text;
-      else msg = 'Request failed: ' + res.status;
-      throw new Error(msg);
-    }
-    return data;
-  }
-async function fetchUserRow(userId) {
+  async function fetchUserRow(userId) {
     var rows = await sbFetch('/rest/v1/users?select=id,email,email_verified&' +
       'id=eq.' + encodeURIComponent(userId) + '&limit=1', { method: 'GET' });
     return (Array.isArray(rows) && rows[0]) ? rows[0] : null;
   }
+
+  async function ensureUserExists(userId) {
+    try {
+      var u = await fetchUserRow(userId);
+      return !!u;
+    } catch (_e) {
+      return false;
+    }
+  }
+
 
   var toastEl = document.getElementById('toast');
   function showToast(message) {
@@ -165,6 +148,14 @@ async function fetchUserRow(userId) {
 
       var userId = await getCurrentUserIdAsync();
       if (!userId) return showToast('Please login first');
+      var exists = await ensureUserExists(userId);
+      if (!exists) return showToast('Session invalid. Please login again');
+      var exists = await ensureUserExists(userId);
+      if (!exists) return showToast('Session invalid. Please login again');
+      var exists = await ensureUserExists(userId);
+      if (!exists) return showToast('Session invalid. Please login again');
+      var exists = await ensureUserExists(userId);
+      if (!exists) return showToast('Session invalid. Please login again');
 
       lpSubmit.disabled = true;
       try {
@@ -338,8 +329,8 @@ async function fetchUserRow(userId) {
 
       emSend.disabled = true;
       try {
-        await callEdge('sendEmailCode', { user_id: userId, email: emailVal });
-        showToast('Verification code sent');
+        await rpc('request_email_verification', { p_user: userId, p_email: emailVal });
+        showToast('Code created');
       } catch (e) {
         var ee2 = document.getElementById('em-email-error');
         if (ee2) ee2.textContent = String(e && e.message ? e.message : e);
@@ -348,53 +339,39 @@ async function fetchUserRow(userId) {
       }
     });
   }
-if (emSubmit) {
+
+  if (emSubmit) {
     emSubmit.addEventListener('click', async function () {
       if (emSubmit.disabled) return;
 
       var userId = await getCurrentUserIdAsync();
       if (!userId) return showToast('Please login first');
 
-      var emailVal = (emEmail ? (emEmail.value || '').trim() : '');
-      var codeVal = (emCode ? (emCode.value || '').trim() : '');
-      var passVal = (emPassword ? (emPassword.value || '') : '');
-
+      var codeVal = (emCode.value || '').trim();
       resetEmailErrors();
 
-      // Validate login password by attempting a no-op "change" (new = current).
-      // This prevents accepting any password in the UI, without changing database schema.
       emSubmit.disabled = true;
       try {
-        var passOk = await rpc('set_or_change_login_password', {
-          p_current: passVal,
-          p_new: passVal,
-          p_user: userId
-        });
-
-        if (!(passOk === true || passOk === 't')) {
-          var pe = document.getElementById('em-password-error');
-          if (pe) pe.textContent = 'Wrong login password.';
-          showToast('Wrong login password');
-          return;
+        var ok = await rpc('verify_email_code', { p_user: userId, p_code: codeVal });
+        if (ok === true || ok === 't') {
+          showToast('Email verified');
+          emCode.value = '';
+          closeModal('email');
+        } else {
+          var ce = document.getElementById('em-code-error');
+          if (ce) ce.textContent = 'Incorrect code.';
         }
-
-        await callEdge('confirmEmailCode', { user_id: userId, email: emailVal, code: codeVal });
-        showToast('Email verified');
-        if (emCode) emCode.value = '';
-        if (emPassword) emPassword.value = '';
-        closeModal('email');
       } catch (e) {
-        // Prefer showing backend error on code
         var ce2 = document.getElementById('em-code-error');
         if (ce2) ce2.textContent = String(e && e.message ? e.message : e);
-        showToast((e && e.message) ? e.message : 'Verification failed');
       } finally {
         emSubmit.disabled = false;
         updateEmailSubmitState();
       }
     });
   }
-updateEmailSubmitState();
+
+  updateEmailSubmitState();
   validateLoginPassword();
   validateFundPassword();
 })();
