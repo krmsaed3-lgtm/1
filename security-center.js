@@ -62,7 +62,6 @@
         body: JSON.stringify(body || {})
       });
     } catch (e) {
-      // Safari/iOS can throw "Load failed" here
       var err = new Error((e && e.message) ? e.message : 'Load failed');
       err.status = 0;
       throw err;
@@ -78,6 +77,7 @@
       if (data && (data.error || data.message)) msg = String(data.error || data.message);
       else if (text) msg = text;
       else msg = 'Request failed: ' + res.status;
+
       var err2 = new Error(msg);
       err2.status = res.status;
       err2.payload = data || text;
@@ -102,7 +102,6 @@
       return false;
     }
   }
-
 
 
   var toastEl = document.getElementById('toast');
@@ -185,6 +184,12 @@
 
       var userId = await getCurrentUserIdAsync();
       if (!userId) return showToast('Please login first');
+      var exists = await ensureUserExists(userId);
+      if (!exists) return showToast('Session invalid. Please login again');
+      var exists = await ensureUserExists(userId);
+      if (!exists) return showToast('Session invalid. Please login again');
+      var exists = await ensureUserExists(userId);
+      if (!exists) return showToast('Session invalid. Please login again');
       var exists = await ensureUserExists(userId);
       if (!exists) return showToast('Session invalid. Please login again');
 
@@ -273,8 +278,6 @@
 
       var userId = await getCurrentUserIdAsync();
       if (!userId) return showToast('Please login first');
-      var exists = await ensureUserExists(userId);
-      if (!exists) return showToast('Session invalid. Please login again');
 
       fpSubmit.disabled = true;
       try {
@@ -351,8 +354,6 @@
     emSend.addEventListener('click', async function () {
       var userId = await getCurrentUserIdAsync();
       if (!userId) return showToast('Please login first');
-      var exists = await ensureUserExists(userId);
-      if (!exists) return showToast('Session invalid. Please login again');
 
       var emailVal = (emEmail.value || '').trim();
       resetEmailErrors();
@@ -381,8 +382,6 @@
 
       var userId = await getCurrentUserIdAsync();
       if (!userId) return showToast('Please login first');
-      var exists = await ensureUserExists(userId);
-      if (!exists) return showToast('Session invalid. Please login again');
 
       var codeVal = (emCode.value || '').trim();
       resetEmailErrors();
@@ -391,12 +390,8 @@
       try {
         await callEdge('confirm_email_code', { user_id: userId, email: (emEmail ? String(emEmail.value || '').trim() : ''), code: codeVal });
         showToast('Email verified');
-          emCode.value = '';
-          closeModal('email');
-        } else {
-          var ce = document.getElementById('em-code-error');
-          if (ce) ce.textContent = 'Incorrect code.';
-        }
+        emCode.value = '';
+        closeModal('email');
       } catch (e) {
         var ce2 = document.getElementById('em-code-error');
         if (ce2) ce2.textContent = String(e && e.message ? e.message : e);
