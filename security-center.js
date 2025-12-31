@@ -51,58 +51,12 @@
       body: JSON.stringify(body || {})
     });
   }
-  async function callEdge(fnName, body) {
-    ensureConfig();
-    var url = SB.url + '/functions/v1/' + fnName;
-    var res;
-    try {
-      res = await fetch(url, {
-        method: 'POST',
-        headers: Object.assign({}, SB.headers(), { 'Content-Type': 'application/json' }),
-        body: JSON.stringify(body || {})
-      });
-    } catch (e) {
-      var err = new Error((e && e.message) ? e.message : 'Load failed');
-      err.status = 0;
-      throw err;
-    }
-
-    var data = null;
-    var text = '';
-    try { data = await res.json(); }
-    catch (_e) { try { text = await res.text(); } catch (__e) {} }
-
-    if (!res.ok) {
-      var msg = '';
-      if (data && (data.error || data.message)) msg = String(data.error || data.message);
-      else if (text) msg = text;
-      else msg = 'Request failed: ' + res.status;
-
-      var err2 = new Error(msg);
-      err2.status = res.status;
-      err2.payload = data || text;
-      throw err2;
-    }
-    return data;
-  }
-
-
 
   async function fetchUserRow(userId) {
     var rows = await sbFetch('/rest/v1/users?select=id,email,email_verified&' +
       'id=eq.' + encodeURIComponent(userId) + '&limit=1', { method: 'GET' });
     return (Array.isArray(rows) && rows[0]) ? rows[0] : null;
   }
-
-  async function ensureUserExists(userId) {
-    try {
-      var u = await fetchUserRow(userId);
-      return !!u;
-    } catch (_e) {
-      return false;
-    }
-  }
-
 
   var toastEl = document.getElementById('toast');
   function showToast(message) {
@@ -184,8 +138,6 @@
 
       var userId = await getCurrentUserIdAsync();
       if (!userId) return showToast('Please login first');
-      var exists = await ensureUserExists(userId);
-      if (!exists) return showToast('Session invalid. Please login again');
 
       lpSubmit.disabled = true;
       try {
@@ -273,9 +225,7 @@
       var userId = await getCurrentUserIdAsync();
       if (!userId) return showToast('Please login first');
 
-            var exists = await ensureUserExists(userId);
-      if (!exists) return showToast('Session invalid. Please login again');
-fpSubmit.disabled = true;
+      fpSubmit.disabled = true;
       try {
         var ok = await callSetFundPassword(userId, fpLogin.value, fpNew.value);
 
@@ -351,9 +301,7 @@ fpSubmit.disabled = true;
       var userId = await getCurrentUserIdAsync();
       if (!userId) return showToast('Please login first');
 
-            var exists = await ensureUserExists(userId);
-      if (!exists) return showToast('Session invalid. Please login again');
-var emailVal = (emEmail.value || '').trim();
+      var emailVal = (emEmail.value || '').trim();
       resetEmailErrors();
       if (!validateEmailFormat(emailVal)) {
         var ee = document.getElementById('em-email-error');
@@ -363,8 +311,8 @@ var emailVal = (emEmail.value || '').trim();
 
       emSend.disabled = true;
       try {
-        await callEdge('send_email_code', { user_id: userId, email: emailVal });
-        showToast('Verification code sent');
+        await rpc('request_email_verification', { p_user: userId, p_email: emailVal });
+        showToast('Code created');
       } catch (e) {
         var ee2 = document.getElementById('em-email-error');
         if (ee2) ee2.textContent = String(e && e.message ? e.message : e);
@@ -381,26 +329,29 @@ var emailVal = (emEmail.value || '').trim();
       var userId = await getCurrentUserIdAsync();
       if (!userId) return showToast('Please login first');
 
-            var exists = await ensureUserExists(userId);
-      if (!exists) return showToast('Session invalid. Please login again');
-var codeVal = (emCode.value || '').trim();
+      var codeVal = (emCode.value || '').trim();
       resetEmailErrors();
 
-      // Verify login password (no-op update) so it won't accept any random password
+      var emailNow = (emEmail ? String(emEmail.value || '').trim() : '');
       var passVal = (emPassword ? String(emPassword.value || '') : '');
-      if (!passVal || passVal.length < 8) { var pe = document.getElementById('em-password-error'); if (pe) pe.textContent = 'Enter login password.'; return; }
+      if (!passVal || passVal.length < 8) {
+        var pe0 = document.getElementById('em-password-error');
+        if (pe0) pe0.textContent = 'Enter login password.';
+        return;
+      }
 
 
       emSubmit.disabled = true;
       try {
-        // This RPC returns true only if current login password matches (or sets it first time)
-        var passOk = await rpc('set_or_change_login_password', { p_current: passVal, p_new: passVal, p_user: userId });
-        if (!(passOk === true || passOk === 't')) { var pe2 = document.getElementById('em-password-error'); if (pe2) pe2.textContent = 'Wrong login password.'; return; }
-
-        await callEdge('confirm_email_code', { user_id: userId, email: (emEmail ? String(emEmail.value || '').trim() : ''), code: codeVal });
-        showToast('Email verified');
-        emCode.value = '';
-        closeModal('email');
+        var ok = await rpc('verify_email_code', { p_user: userId, p_code: codeVal });
+        if (ok === true || ok === 't') {
+          showToast('Email verified');
+          emCode.value = '';
+          closeModal('email');
+        } else {
+          var ce = document.getElementById('em-code-error');
+          if (ce) ce.textContent = 'Incorrect code.';
+        }
       } catch (e) {
         var ce2 = document.getElementById('em-code-error');
         if (ce2) ce2.textContent = String(e && e.message ? e.message : e);
