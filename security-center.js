@@ -385,6 +385,13 @@
 
       var codeVal = (emCode.value || '').trim();
       resetEmailErrors();
+var passVal = (emPassword && emPassword.value) ? String(emPassword.value || '') : '';
+if (!passVal || passVal.length < 8) {
+  var pe0 = document.getElementById('em-password-error');
+  if (pe0) pe0.textContent = 'Enter login password.';
+  return;
+}
+
 
       emSubmit.disabled = true;
       try {
