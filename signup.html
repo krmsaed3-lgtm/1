@@ -870,13 +870,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
         var created = await window.ExaAuth.registerWithInvite({
           phone: phoneFull,
-          usedInviteCode: invCode
+          usedInviteCode: invCode,
+          password: p1
         });
-
-        try {
-          if (created && created.id) localStorage.setItem("pw:" + created.id, p1);
-        } catch (e) {}
-
         window.location.href = "my-assets.html";
       } catch (err) {
         console && console.error && console.error("Signup error:", err);
