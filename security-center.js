@@ -52,7 +52,80 @@
     });
   }
 
-  async function fetchUserRow(userId) {
+  
+// ---------- AUTH & EDGE HELPERS ----------
+// Uses same SB_CONFIG headers (apikey + bearer token) so it works with your existing auth.js/sb-config.js setup.
+async function authUpdatePassword(newPassword) {
+  ensureConfig();
+  if (!newPassword || String(newPassword).length < 8) throw new Error('Password must be at least 8 characters.');
+  var res = await fetch(SB.url + '/auth/v1/user', {
+    method: 'PUT',
+    headers: Object.assign({}, SB.headers(), { 'Content-Type': 'application/json' }),
+    body: JSON.stringify({ password: newPassword })
+  });
+  // Supabase Auth often returns 200 with JSON, but handle text too
+  if (!res.ok) {
+    var t = '';
+    try { t = await res.text(); } catch (_e) {}
+    throw new Error(t || ('Auth update failed: ' + res.status));
+  }
+  return true;
+}
+
+
+async function authUpdatePasswordWithReauth(email, currentPassword, newPassword) {
+  ensureConfig();
+  if (!email) throw new Error('Missing email for re-auth.');
+  if (!currentPassword) throw new Error('Enter current login password.');
+  // 1) Get a fresh access token using the password grant
+  var tokenRes = await fetch(SB.url + '/auth/v1/token?grant_type=password', {
+    method: 'POST',
+    headers: Object.assign({}, SB.headers(), { 'Content-Type': 'application/json' }),
+    body: JSON.stringify({ email: String(email).trim(), password: String(currentPassword) })
+  });
+  var tokenData = null;
+  var tokenText = '';
+  try { tokenData = await tokenRes.json(); } catch (_e) { try { tokenText = await tokenRes.text(); } catch (__e) {} }
+  if (!tokenRes.ok) {
+    var msg = (tokenData && (tokenData.error_description || tokenData.message || tokenData.error)) ? String(tokenData.error_description || tokenData.message || tokenData.error) : (tokenText || ('Re-auth failed: ' + tokenRes.status));
+    throw new Error(msg);
+  }
+  var accessToken = tokenData && tokenData.access_token ? tokenData.access_token : '';
+  if (!accessToken) throw new Error('Re-auth failed: missing access token');
+
+  // 2) Update password using that token
+  var res = await fetch(SB.url + '/auth/v1/user', {
+    method: 'PUT',
+    headers: Object.assign({}, SB.headers(), { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + accessToken }),
+    body: JSON.stringify({ password: newPassword })
+  });
+  var t = '';
+  try { if (!res.ok) t = await res.text(); } catch (_e2) {}
+  if (!res.ok) throw new Error(t || ('Auth update failed: ' + res.status));
+  return true;
+}
+
+// Edge function call helper (optional). If your project doesn't have this function yet, it will just fail and we fall back.
+async function callEdgeFunction(fnName, bodyObj) {
+  ensureConfig();
+  var res = await fetch(SB.url + '/functions/v1/' + encodeURIComponent(fnName), {
+    method: 'POST',
+    headers: Object.assign({}, SB.headers(), { 'Content-Type': 'application/json' }),
+    body: JSON.stringify(bodyObj || {})
+  });
+  var data = null;
+  var txt = '';
+  try { data = await res.json(); } catch (_e) { try { txt = await res.text(); } catch (__e) {} }
+  if (!res.ok) {
+    var msg = (data && (data.message || data.error)) ? String(data.message || data.error) : (txt || ('Function failed: ' + res.status));
+    var err = new Error(msg);
+    err.status = res.status;
+    err.payload = data || txt;
+    throw err;
+  }
+  return data;
+}
+async function fetchUserRow(userId) {
     var rows = await sbFetch('/rest/v1/users?select=id,email,email_verified&' +
       'id=eq.' + encodeURIComponent(userId) + '&limit=1', { method: 'GET' });
     return (Array.isArray(rows) && rows[0]) ? rows[0] : null;
@@ -141,13 +214,31 @@
 
       lpSubmit.disabled = true;
       try {
-        var ok = await rpc('set_or_change_login_password', {
-          p_current: (lpCurrent ? lpCurrent.value : ''),
-          p_new: lpNew.value,
-          p_user: userId
-        });
+        
+// Prefer updating Supabase Auth password (this affects real login)
+var row = null;
+try { row = await fetchUserRow(userId); } catch (_e) {}
+var email = (row && row.email) ? String(row.email) : '';
 
-        if (ok === true || ok === 't') {
+try {
+  await authUpdatePasswordWithReauth(email, (lpCurrent ? lpCurrent.value : ''), lpNew.value);
+  showToast('Login password updated');
+  lpNew.value = ''; lpConfirm.value = '';
+  if (lpCurrent) lpCurrent.value = '';
+  validateLoginPassword();
+  closeModal('login-password');
+  return;
+} catch (eAuth) {
+  // If Auth update fails (e.g., you use a custom password system), fall back to your existing RPC.
+}
+
+var ok = await rpc('set_or_change_login_password', {
+  p_current: (lpCurrent ? lpCurrent.value : ''),
+  p_new: lpNew.value,
+  p_user: userId
+});
+
+if (ok === true || ok === 't') {
           showToast('Login password updated');
           lpNew.value = ''; lpConfirm.value = '';
           if (lpCurrent) lpCurrent.value = '';
@@ -311,8 +402,24 @@
 
       emSend.disabled = true;
       try {
-        await rpc('request_email_verification', { p_user: userId, p_email: emailVal });
-        showToast('Code created');
+        
+var resp = await rpc('request_email_verification', { p_user: userId, p_email: emailVal });
+
+// If you have an Edge Function to send the code via email, call it here.
+// Create an Edge Function named: send_security_email_code
+// Body: { userId, email, code }  (code is optional if your function generates it)
+try {
+  var code = (resp && (resp.code || resp.p_code)) ? String(resp.code || resp.p_code) : '';
+  await callEdgeFunction('send_security_email_code', { userId: userId, email: emailVal, code: code });
+  showToast('Code sent to email');
+} catch (_sendErr) {
+  // Fallback: we still created the code in DB, but email delivery isn't set up.
+  if (resp && (resp.code || resp.p_code)) {
+    showToast('Code created: ' + String(resp.code || resp.p_code));
+  } else {
+    showToast('Code created (email sending not configured)');
+  }
+}
       } catch (e) {
         var ee2 = document.getElementById('em-email-error');
         if (ee2) ee2.textContent = String(e && e.message ? e.message : e);
