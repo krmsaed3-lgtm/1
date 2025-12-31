@@ -128,6 +128,40 @@
     return el ? String(el.value || '').trim() : '';
   }
 
+function readPasswordFromPage() {
+  // Try common password fields without requiring UI changes
+  var el = findFirst([
+    'input[type="password"]',
+    'input[id*="password"]',
+    'input[name*="password"]',
+    'input[placeholder*="Password"]',
+    'input[placeholder*="password"]'
+  ]);
+  return el ? String(el.value || '') : '';
+}
+
+async function rpcCall(name, body) {
+  var url = SB.url + '/rest/v1/rpc/' + encodeURIComponent(name);
+  var res = await fetch(url, {
+    method: 'POST',
+    headers: Object.assign({}, SB.headers(), { 'Content-Type': 'application/json' }),
+    body: JSON.stringify(body || {})
+  });
+  var data = null;
+  var text = '';
+  try { data = await res.json(); }
+  catch (_e) { try { text = await res.text(); } catch (__e) {} }
+  if (!res.ok) {
+    var msg = '';
+    if (data && (data.error || data.message)) msg = String(data.error || data.message);
+    else if (text) msg = text;
+    else msg = 'RPC failed: ' + res.status;
+    throw new Error(msg);
+  }
+  return data;
+}
+
+
   async function fetchUserByPhone(phone) {
     if (!phone) return null;
     var url =
@@ -227,7 +261,7 @@
 
   /**
    * Log in an existing user by phone number ONLY.
-   * (No passwords; your database schema doesn't store passwords.)
+   * (Optional password: if a password field exists, it will be verified.)
    *
    * @param {{phone?:string, prefix?:string, digits?:string}} opts
    * @returns {Promise<{id:string, phone:string}>}
@@ -245,6 +279,17 @@
 
     var user = await fetchUserByPhone(phone);
     if (!user) throw new Error('Account not found');
+
+// Optional: if a password field exists (or opts.password is provided), enforce login password verification.
+// This uses the DB function: check_login_password(p_user uuid, p_login text) returns boolean
+var pwd = (opts.password != null ? String(opts.password) : '') || readPasswordFromPage();
+if (pwd && pwd.length) {
+  var ok = await rpcCall('check_login_password', { p_user: user.id, p_login: pwd });
+  if (!(ok === true || ok === 't')) {
+    throw new Error('Wrong login password');
+  }
+}
+
 
     try {
       localStorage.setItem('currentUserId', user.id);
