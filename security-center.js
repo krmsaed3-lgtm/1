@@ -51,33 +51,34 @@
       body: JSON.stringify(body || {})
     });
   }
-  async function callEdge(fnName, body) {
-    ensureConfig();
-    var res = await fetch(SB.url + '/functions/v1/' + fnName, {
-      method: 'POST',
-      headers: Object.assign({}, SB.headers(), { 'Content-Type': 'application/json' }),
-      body: JSON.stringify(body || {})
-    });
 
-    var data = null;
-    var text = '';
-    try { data = await res.json(); }
-    catch (_e) { try { text = await res.text(); } catch (__e) {} }
 
-    if (!res.ok) {
-      var msg = '';
-      if (data && (data.error || data.message)) msg = String(data.error || data.message);
-      else if (text) msg = text;
-      else msg = 'Request failed: ' + res.status;
-      var err = new Error(msg);
-      err.status = res.status;
-      err.payload = data || text;
-      throw err;
-    }
-    return data;
+async function callEdge(fnName, body) {
+  ensureConfig();
+  var res = await fetch(SB.url + '/functions/v1/' + fnName, {
+    method: 'POST',
+    headers: Object.assign({}, SB.headers(), { 'Content-Type': 'application/json' }),
+    body: JSON.stringify(body || {})
+  });
+
+  var data = null;
+  var text = '';
+  try { data = await res.json(); }
+  catch (_e) { try { text = await res.text(); } catch (__e) {} }
+
+  if (!res.ok) {
+    var msg = '';
+    if (data && (data.error || data.message)) msg = String(data.error || data.message);
+    else if (text) msg = text;
+    else msg = 'Request failed: ' + res.status;
+
+    var err = new Error(msg);
+    err.status = res.status;
+    err.payload = data || text;
+    throw err;
   }
-
-
+  return data;
+}
 
   async function fetchUserRow(userId) {
     var rows = await sbFetch('/rest/v1/users?select=id,email,email_verified&' +
@@ -342,60 +343,61 @@
   });
 
   if (emSend) {
-    emSend.addEventListener('click', async function () {
-      var userId = await getCurrentUserIdAsync();
-      if (!userId) return showToast('Please login first');
+  emSend.addEventListener('click', async function () {
+    var userId = await getCurrentUserIdAsync();
+    if (!userId) return showToast('Please login first');
+    var exists = await ensureUserExists(userId);
+    if (!exists) return showToast('Session invalid. Please login again');
 
-      var emailVal = (emEmail.value || '').trim();
-      resetEmailErrors();
-      if (!validateEmailFormat(emailVal)) {
-        var ee = document.getElementById('em-email-error');
-        if (ee) ee.textContent = 'Enter a valid email.';
-        return;
-      }
+    var emailVal = (emEmail.value || '').trim();
+    resetEmailErrors();
+    if (!validateEmailFormat(emailVal)) {
+      var ee = document.getElementById('em-email-error');
+      if (ee) ee.textContent = 'Enter a valid email.';
+      return;
+    }
 
-      emSend.disabled = true;
-      try {
-        await callEdge('sendEmailCode', { user_id: userId, email: emailVal });
-        showToast('Verification code sent');
-      } catch (e) {
-        var ee2 = document.getElementById('em-email-error');
-        if (ee2) ee2.textContent = String(e && e.message ? e.message : e);
-      } finally {
-        emSend.disabled = false;
-      }
-    });
-  }
+    emSend.disabled = true;
+    try {
+      await callEdge('sendEmailCode', { user_id: userId, email: emailVal });
+      showToast('Verification code sent');
+    } catch (e) {
+      var ee2 = document.getElementById('em-email-error');
+      if (ee2) ee2.textContent = String(e && e.message ? e.message : e);
+    } finally {
+      emSend.disabled = false;
+    }
+  });
+}
 
   if (emSubmit) {
-    emSubmit.addEventListener('click', async function () {
-      if (emSubmit.disabled) return;
+  emSubmit.addEventListener('click', async function () {
+    if (emSubmit.disabled) return;
 
-      var userId = await getCurrentUserIdAsync();
-      if (!userId) return showToast('Please login first');
+    var userId = await getCurrentUserIdAsync();
+    if (!userId) return showToast('Please login first');
+    var exists = await ensureUserExists(userId);
+    if (!exists) return showToast('Session invalid. Please login again');
 
-      var codeVal = (emCode.value || '').trim();
-      resetEmailErrors();
+    var emailVal = (emEmail ? (emEmail.value || '').trim() : '');
+    var codeVal = (emCode.value || '').trim();
+    resetEmailErrors();
 
-      emSubmit.disabled = true;
-      try {
-        await callEdge('confirmEmailCode', { user_id: userId, email: (emEmail ? String(emEmail.value || '').trim() : ''), code: codeVal });
-        showToast('Email verified');
-          emCode.value = '';
-          closeModal('email');
-        } else {
-          var ce = document.getElementById('em-code-error');
-          if (ce) ce.textContent = 'Incorrect code.';
-        }
-      } catch (e) {
-        var ce2 = document.getElementById('em-code-error');
-        if (ce2) ce2.textContent = String(e && e.message ? e.message : e);
-      } finally {
-        emSubmit.disabled = false;
-        updateEmailSubmitState();
-      }
-    });
-  }
+    emSubmit.disabled = true;
+    try {
+      await callEdge('confirmEmailCode', { user_id: userId, email: emailVal, code: codeVal });
+      showToast('Email verified');
+      if (emCode) emCode.value = '';
+      closeModal('email');
+    } catch (e) {
+      var ce2 = document.getElementById('em-code-error');
+      if (ce2) ce2.textContent = String(e && e.message ? e.message : e);
+    } finally {
+      emSubmit.disabled = false;
+      updateEmailSubmitState();
+    }
+  });
+}
 
   updateEmailSubmitState();
   validateLoginPassword();
